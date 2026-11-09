@@ -14,9 +14,9 @@ Offline synthetic work only. No NIC, wire, exchange, cross-host latency, product
 | Do not silently lose measurement records | A requested run beyond the record cap returns INCOMPLETE before starting, without quantiles |
 | Do not trust the producer's own statistics | Independent Python integer/Fraction oracle and eight corrupted-data counterexamples |
 
-## Run the prepared candidate
+## Run the preview
 
-Version `0.1.0-preview.1` is a local candidate awaiting the coordinated final publication review of all four projects. No public release/download or native public-build CI is claimed yet.
+Preview version: `0.1.0-preview.1`. Use the [release channel](https://github.com/pouriajamali/tail-latency-evidence-bench/releases) for published Windows x64, Linux x64 and source archives, checksums and signatures. Verify downloaded bytes with [PROVENANCE.md](PROVENANCE.md) before executing them. Local builds and CI artifacts are separate from published releases.
 
 From the extracted Windows x64 package:
 
