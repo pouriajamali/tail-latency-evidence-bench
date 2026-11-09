@@ -32,7 +32,7 @@ def main():
     for file in ['README.md','LICENSE','NOTICE.md','PROVENANCE.md','SIGNING-PUBLIC-KEY.pub','CONTRIBUTING.md']:shutil.copy2(ROOT/file,package/file)
     for directory in ['docs','tools','vendor','.config']:shutil.copytree(ROOT/directory,package/directory,ignore=shutil.ignore_patterns('__pycache__','*.pyc'))
     shutil.copytree(ROOT/'tests/provenance-fixture',package/'tests/provenance-fixture')
-    assets=json.loads((ROOT/'src/Ownership.Cli/obj/project.assets.json').read_text(encoding='utf-8'))
+    assets=json.loads((ROOT/'src/Bench.Cli/obj/project.assets.json').read_text(encoding='utf-8'))
     folders=[Path(p) for p in assets['packageFolders']];dependencies=[];licenses=package/'licenses';licenses.mkdir()
     for identity,entry in sorted(assets['libraries'].items()):
         if entry['type']!='package':continue
@@ -47,7 +47,7 @@ def main():
         copyright_file=licenses/(identifier+'-COPYRIGHT.txt');copyright_file.write_text(notice['copyright']+'\n',encoding='utf-8',newline='\n')
         dependencies.append({'id':identifier,'version':version_id,'license':declared,'nugetContentHash':entry.get('sha512'),'copyright':notice['copyright'],
             'licenseFile':primary.relative_to(package).as_posix(),'licenseSha256':sha(primary),'copyrightFile':copyright_file.relative_to(package).as_posix(),'licenseSource':notice['licenseSource']})
-    locks=json.loads((ROOT/'src/Ownership.Cli/packages.lock.json').read_text(encoding='utf-8'))['dependencies']
+    locks=json.loads((ROOT/'src/Bench.Cli/packages.lock.json').read_text(encoding='utf-8'))['dependencies']
     locked={(key,value['resolved'],value['contentHash']) for graph in locks.values() for key,value in graph.items() if 'contentHash' in value}
     actual={(d['id'],d['version'],d['nugetContentHash']) for d in dependencies}
     require(actual==locked, 'Resolved/shipped library graph differs from source lock')
