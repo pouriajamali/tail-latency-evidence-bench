@@ -1,0 +1,1 @@
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><AssemblyName>tail-evidence</AssemblyName></PropertyGroup><ItemGroup><ProjectReference Include="../Evidence/Evidence.csproj" /></ItemGroup></Project>
