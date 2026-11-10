@@ -1,0 +1,177 @@
+{
+  "schema": "flagship-evidence/v1",
+  "documentationDate": "2026-11-10",
+  "project": "Tail-Latency Evidence Bench",
+  "repository": "https://github.com/pouriajamali/tail-latency-evidence-bench",
+  "scope": "AI-assisted original synthetic local laboratory; documentation refresh, no runtime test or benchmark rerun",
+  "runtime": {
+    "tag": "v0.1.0-preview.1",
+    "commit": "6158f7f8a9a8e4fd7c12ed575f427d7117b89801",
+    "tree": "211cd1a412c71c5b687a57fdb575c3b2590d8684",
+    "signedTagObject": "de2ae6a0922d02c2a2f19f07063d613225cd0a5d"
+  },
+  "release": {
+    "id": 439576568,
+    "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/tag/v0.1.0-preview.1",
+    "prerelease": true,
+    "assets": [
+      {
+        "id": 728783298,
+        "name": "SHA256SUMS.txt",
+        "bytes": 373,
+        "sha256": "7ed7c353458a935439066a6a1d205520e5610458ec346dd8dbbf5c8882d28709",
+        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/SHA256SUMS.txt"
+      },
+      {
+        "id": 728809234,
+        "name": "SHA256SUMS.txt.sig",
+        "bytes": 294,
+        "sha256": "bf4ff680a2c4816b08044c47bb05882f6268576dea30bc1a14e275cfab66e840",
+        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/SHA256SUMS.txt.sig"
+      },
+      {
+        "id": 728809273,
+        "name": "SIGNING-PUBLIC-KEY.pub",
+        "bytes": 113,
+        "sha256": "cc7038b2d98f856af97b58eb06619ff441fbe9b178da5396f61d1ccdf7a65e7c",
+        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/SIGNING-PUBLIC-KEY.pub"
+      },
+      {
+        "id": 728783300,
+        "name": "tail-latency-evidence-bench-v0.1.0-preview.1-linux-x64.tar.gz",
+        "bytes": 35409385,
+        "sha256": "352604eb282c253495251f5731518184171ab08b485b084fb95baf9ece16ebba",
+        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/tail-latency-evidence-bench-v0.1.0-preview.1-linux-x64.tar.gz"
+      },
+      {
+        "id": 728783289,
+        "name": "tail-latency-evidence-bench-v0.1.0-preview.1-source.zip",
+        "bytes": 64052,
+        "sha256": "40c8a120e80e412c4bf8e10e553412d51626d3f54d49d5e1b2cca28c3e0f08df",
+        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/tail-latency-evidence-bench-v0.1.0-preview.1-source.zip"
+      },
+      {
+        "id": 728783293,
+        "name": "tail-latency-evidence-bench-v0.1.0-preview.1-win-x64.zip",
+        "bytes": 35871273,
+        "sha256": "e5374e478cd5416707ba3dc009e9aa20cb4fdc912adba0d9c8f8ae944d2b9958",
+        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/tail-latency-evidence-bench-v0.1.0-preview.1-win-x64.zip"
+      }
+    ]
+  },
+  "tagCi": {
+    "id": 42688191372,
+    "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/actions/runs/42688191372",
+    "headSha": "6158f7f8a9a8e4fd7c12ed575f427d7117b89801",
+    "event": "push",
+    "headBranch": "v0.1.0-preview.1",
+    "conclusion": "success"
+  },
+  "signing": {
+    "trustedFingerprint": "SHA256:AgU5bZlJSjUu0KsWMmVEEr+BfXpcMVNroTA33bHcQdU",
+    "namespace": "file",
+    "guide": "../PROVENANCE.md",
+    "trustBoundary": "Key shipped beside bytes is not independent identity proof; SSH provenance is not OS code signing"
+  },
+  "sourceFilesComparedDuringDelivery": 47,
+  "observedTaggedEvidence": {
+    "unitsEachOs": 15,
+    "tagProofPlatforms": [
+      {
+        "rid": "win-x64",
+        "unitCases": 15,
+        "packageChecks": {
+          "status": "PASS",
+          "os": "Windows",
+          "sourceCommit": "6158f7f8a9a8e4fd7c12ed575f427d7117b89801",
+          "rid": "win-x64",
+          "payloadFiles": 225,
+          "checks": [
+            "exact-payload-set-size-sha256",
+            "full-runtime-license-copyright-thirdparty-notices",
+            "actual-bcl-runtime-graph",
+            "raw-archive-sha512-distinct-from-nuget-lock-identity",
+            "actual-native-help-version-source",
+            "invalid-mode-rejected-before-output",
+            "actual-record-cap-no-statistics-quantiles"
+          ],
+          "checkCount": 7,
+          "shippedComponents": 1
+        },
+        "nativeArchiveSha256": "e5374e478cd5416707ba3dc009e9aa20cb4fdc912adba0d9c8f8ae944d2b9958"
+      },
+      {
+        "rid": "linux-x64",
+        "unitCases": 15,
+        "packageChecks": {
+          "status": "PASS",
+          "os": "Linux",
+          "sourceCommit": "6158f7f8a9a8e4fd7c12ed575f427d7117b89801",
+          "rid": "linux-x64",
+          "payloadFiles": 225,
+          "checks": [
+            "exact-payload-set-size-sha256",
+            "full-runtime-license-copyright-thirdparty-notices",
+            "actual-bcl-runtime-graph",
+            "raw-archive-sha512-distinct-from-nuget-lock-identity",
+            "actual-native-help-version-source",
+            "invalid-mode-rejected-before-output",
+            "actual-record-cap-no-statistics-quantiles"
+          ],
+          "checkCount": 7,
+          "shippedComponents": 1
+        },
+        "nativeArchiveSha256": "352604eb282c253495251f5731518184171ab08b485b084fb95baf9ece16ebba"
+      }
+    ],
+    "nativeDemoEachOs": {
+      "runs": 6,
+      "plannedRecordsEachRun": 5000,
+      "oracleCorruptionCases": 8,
+      "rawCapOutcome": "INCOMPLETE_WITHOUT_STATISTICS",
+      "status": "PASS_ACCOUNTING_NOT_A_PERFORMANCE_THRESHOLD"
+    },
+    "offeredScheduleSha256": "9c085cdf97c439898241a5b0056d03b0f42a0d7fb3327b93d0fb81dbdf378b7f",
+    "performanceThreshold": false
+  },
+  "namedSourceEvidence": [
+    {
+      "path": "tests/Evidence.Tests/AnalysisTests.cs",
+      "name": "EightHandWorkedRequestsHaveDisjointAccounting",
+      "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/blob/6158f7f8a9a8e4fd7c12ed575f427d7117b89801/tests/Evidence.Tests/AnalysisTests.cs"
+    },
+    {
+      "path": "tests/Evidence.Tests/AnalysisTests.cs",
+      "name": "NoSamplesNeverMeansZeroLatency",
+      "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/blob/6158f7f8a9a8e4fd7c12ed575f427d7117b89801/tests/Evidence.Tests/AnalysisTests.cs"
+    },
+    {
+      "path": "tests/Evidence.Tests/AnalysisTests.cs",
+      "name": "P999DisplayFloorIsNotAConfidenceClaim",
+      "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/blob/6158f7f8a9a8e4fd7c12ed575f427d7117b89801/tests/Evidence.Tests/AnalysisTests.cs"
+    },
+    {
+      "path": "tests/Evidence.Tests/AnalysisTests.cs",
+      "name": "PreflightRecordCapIsIncompleteWithoutQuantilesOrLostSamples",
+      "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/blob/6158f7f8a9a8e4fd7c12ed575f427d7117b89801/tests/Evidence.Tests/AnalysisTests.cs"
+    },
+    {
+      "path": "tests/Evidence.Tests/AnalysisTests.cs",
+      "name": "ImpossibleChronologyIsRejected",
+      "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/blob/6158f7f8a9a8e4fd7c12ed575f427d7117b89801/tests/Evidence.Tests/AnalysisTests.cs"
+    },
+    {
+      "path": "tests/Evidence.Tests/AnalysisTests.cs",
+      "name": "CompletedAfterCutoffIsRejected",
+      "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/blob/6158f7f8a9a8e4fd7c12ed575f427d7117b89801/tests/Evidence.Tests/AnalysisTests.cs"
+    }
+  ],
+  "claimsNotEstablished": [
+    "Production or venue suitability",
+    "Live trading or profitability",
+    "Independent human authorship or individual mastery from CI alone",
+    "Real adoption or team-management history",
+    "Performance superiority"
+  ],
+  "reproductionBoundary": "Use exact runtime tag/source and fresh local outputs; CI artifact retention and timing reproducibility are not guaranteed; current documentation main can differ from runtime source"
+}
