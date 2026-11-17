@@ -5,7 +5,6 @@ import hashlib
 import importlib.util
 import json
 import os
-import platform
 import subprocess
 import sys
 import threading

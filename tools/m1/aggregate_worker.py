@@ -1,5 +1,5 @@
 """Purpose-specific M1 stages. No command, host or arbitrary dataset arguments."""
-import argparse,hashlib,json,os,platform,subprocess,sys,time
+import argparse,hashlib,json,os,subprocess,sys,time
 from pathlib import Path
 WORK=Path(__file__).resolve().parent
 ROOT=WORK.parent.parent
@@ -153,6 +153,7 @@ def linux_profile():
 
 def linux_vendor_observation(a, attachment_sha, profile):
     """Closed vendor metadata ONLY: no project import, network call or target."""
+    import platform  # Linux-only observer; no Windows WMI/provider dependency.
     import copy, importlib.util
     import csv, ctypes, ctypes.wintypes, fractions, gzip, io, math, re, runpy, select, shutil, base64, contextlib
     import ssl, stat, struct, tarfile, threading, urllib.request, zipfile, zlib
