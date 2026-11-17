@@ -107,4 +107,4 @@ The current source expands compact C# layout for review. The published preview l
 
 To reproduce a published package, use its exact original runtime source: [v0.1.0-preview.1 source](https://github.com/pouriajamali/tail-latency-evidence-bench/tree/6158f7f8a9a8e4fd7c12ed575f427d7117b89801) (`6158f7f8a9a8e4fd7c12ed575f427d7117b89801`). Later `main` layout is reviewed separately from those frozen release commits.
 
-The bounded M1 attempt on 2026-11-17 stopped before qualification because Git normalized two hash-bound inputs. Exact-byte source packaging is corrected on this task branch; M1 remains HOLD and needs a separately authorized replacement validation. The published preview runtime and existing healthy evidence are unchanged.
+The bounded M1 attempt on 2026-11-17 stopped before qualification because Git normalized two hash-bound inputs. Exact-byte source packaging is corrected on this task branch. One replacement validation is explicitly authorized with the same canonical lease and caps; M1 remains HOLD until its actual admission and complete fixed-case receipts are accepted. The published preview runtime and existing healthy evidence are unchanged.
