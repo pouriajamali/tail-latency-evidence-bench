@@ -289,7 +289,7 @@ def linux_root(a,args):
     def phase(frame,label,cap=99,mode="normal"):
         pinned_plan(a["casePlanSha256"])
         p=OUT/"linux-x64"/("frame-"+label+"-"+str(cap)+"-"+mode+".json");fresh(p,frame)
-        entry="import runpy,sys;sys.path[:0]="+repr([str(WORK),str(ROOT/"tools")])+";runpy.run_path("+repr(str(WORK/"experiment.py"))+",run_name='__main__')"
+        entry="import sys;sys.path[:0]="+repr([str(WORK),str(ROOT/"tools")])+";import experiment;experiment.main()"
         experiment.DEADLINE=a["executionWindow"]["deadlineUnix"]-30
         code,_,_=experiment.bounded_child(["/usr/bin/python3","-I","-S","-B"]+(["-O"] if mode=="optimized" else [])+
           ["-c",entry,"--attachment",str(p),"--attachment-sha",sha(p),"--rid","linux-x64","--phase",label,"--cap",str(cap),"--mode",mode])

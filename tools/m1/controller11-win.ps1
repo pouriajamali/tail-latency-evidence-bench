@@ -105,9 +105,12 @@ try{
    $map['TAIL11_ROOT_PROFILE']=$profilePath;$map['TAIL11_ROOT_NONCE']=$nonce;$map['GITHUB_SHA']=$sourceCommit;$map['GITHUB_RUN_ID']=$runId
    $block=($map.GetEnumerator()|ForEach-Object{"$($_.Key)=$($_.Value)"}) -join [char]0
    $environment=[Runtime.InteropServices.Marshal]::StringToHGlobalUni($block+[char]0+[char]0)
-   $entry="import runpy,sys;sys.path[:0]=[sys.argv.pop(1),sys.argv.pop(1)];runpy.run_path(sys.argv.pop(1),run_name='__main__')"
+   # Direct fixed-module entry avoids runpy/pkgutil synthetic namespaces. No new origin is admitted.
+   Need ($script -cin @('aggregate_worker.py','experiment.py')) 'FIXED_ENTRY_MODULE'
+   $module=if($script -ceq 'aggregate_worker.py'){'aggregate_worker'}else{'experiment'}
+   $entry="import sys;sys.path[:0]=[sys.argv.pop(1),sys.argv.pop(1)];import $module as m;m.main()"
    $argv=@($python,'-I','-S','-B','-X',"pycache_prefix=$cache");if($mode -ceq 'optimized'){$argv+='-O'}
-   $argv+=@('-c',$entry,$work,(Join-Path $repo 'tools'),(Join-Path $work $script),'--attachment',$fp,'--attachment-sha',(Hash $fp))+$arguments
+   $argv+=@('-c',$entry,$work,(Join-Path $repo 'tools'),'--attachment',$fp,'--attachment-sha',(Hash $fp))+$arguments
    $command=[Text.StringBuilder]::new((($argv|ForEach-Object{[Tail11DiagnosticJob]::Quote([string]$_)}) -join ' '))
    $si=[Tail11DiagnosticJob+STARTUP]::new();$si.cb=[Runtime.InteropServices.Marshal]::SizeOf($si)
    [Tail11DiagnosticJob]::Check([Tail11DiagnosticJob]::CreateProcess($python,$command,[IntPtr]::Zero,[IntPtr]::Zero,$false,0x08000404,$environment,$work,[ref]$si,[ref]$pi),'CREATE_SUSPENDED')
