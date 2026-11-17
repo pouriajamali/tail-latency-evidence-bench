@@ -210,6 +210,37 @@ def process_modules():
 def os_base_provider(path):
     return path.name.lower() in OS_BASE and str(path.parent).lower()==r"c:\windows\system32"
 
+def validate_owned_ssh_profile(p):
+    require(p.get("schema")=="tail11-owned-ssh-role-profile/v1" and
+            p.get("role")=="OWNED_SSH_PUBLIC_SIGNATURE_NOT_PYTHON","OWNED_SSH_ROLE_SCOPE")
+    require(p.get("sshExeSHA256")=="c9dc170cd161db87e75eb6cf282f1325005b9e35628b9a36cb19883a8be1a34f" and
+            p.get("fingerprint")=="SHA256:AgU5bZlJSjUu0KsWMmVEEr+BfXpcMVNroTA33bHcQdU" and
+            p.get("namespace")=="file","OWNED_SSH_ROLE_IDENTITY")
+    require(p.get("publicSignatureInputs")=={
+            "SHA256SUMS.txt":"7ed7c353458a935439066a6a1d205520e5610458ec346dd8dbbf5c8882d28709",
+            "SHA256SUMS.txt.sig":"bf4ff680a2c4816b08044c47bb05882f6268576dea30bc1a14e275cfab66e840",
+            "SIGNING-PUBLIC-KEY.pub":"cc7038b2d98f856af97b58eb06619ff441fbe9b178da5396f61d1ccdf7a65e7c"},"OWNED_SSH_PUBLIC_INPUTS")
+    require(all(type(p.get(k)) is str and len(p[k])==64 and all(c in "0123456789abcdef" for c in p[k])
+                for k in ("proofSHA256","catalogProofSHA256")),"OWNED_SSH_PROOF_DIGEST")
+    require(p.get("state")=="ADMITTED_EXACT_OWNED_SSH_SIGNATURE_ROLE" and
+            p.get("signatureExitCode")==0 and p.get("signatureAcceptedUnderAdmittedClosure") is True and
+            p.get("originalHandleTerminal") is True and p.get("heldFilesThroughTerminal") is True and
+            p.get("readOnlyImageMatches") is True and p.get("unresolved")==[] and
+            p.get("rootImportEdges") and all(e.get("resolved") is True for e in p["rootImportEdges"]),
+            "OWNED_SSH_DEPENDENCY_CLOSURE_HOLD")
+    return p
+
+def owned_ssh_profile(bootstrap):
+    import pathlib,json,hashlib
+    path=pathlib.Path(bootstrap["qualifierPath"]).resolve().parent/"metadata/owned-ssh-profile.json"
+    raw=path.read_bytes();require(len(raw)<=65536,"OWNED_SSH_PROFILE_CAP")
+    require(hashlib.sha256(raw).hexdigest()==bootstrap["sourceHashes"].get("metadata/owned-ssh-profile.json"),"OWNED_SSH_PROFILE_SOURCE_BINDING")
+    p=json.loads(raw)
+    global LAST_OWNED_SSH_ROLE
+    LAST_OWNED_SSH_ROLE={"role":p.get("role"),"state":p.get("state"),"proofSHA256":p.get("proofSHA256"),"unresolved":p.get("unresolved",[])}
+    return validate_owned_ssh_profile(p)
+
+
 def enqueue_provider(todo,pending,seen,path):
     if str(path) not in seen and path not in pending:
         todo.append({"path":str(path)});pending.add(path)
@@ -228,6 +259,7 @@ def graph_queue_control():
 
 def inventory(bootstrap,stage,role,plans):
     import pathlib,hashlib,json,stat,time
+    ssh_role=owned_ssh_profile(bootstrap)
     soft_stop=time.monotonic()+16
     def within_role():require(time.monotonic()<soft_stop,"ROLE_SOFT_DEADLINE")
     root=pathlib.Path(sys.executable).parent.resolve()
@@ -299,20 +331,12 @@ def inventory(bootstrap,stage,role,plans):
             require(c.is_relative_to(pathlib.Path(sys.pycache_prefix)) and not c.exists(),"CACHE_ORIGIN_UNBOUND")
     bind(sys.executable);bind(root/"python312.dll")
     loaded,resolve=process_modules()
-    # Fixed SSH is an OS-base critical tool, not a vendor singlelink file and
-    # never launched by qualification. Its PE dependencies remain explicit.
+    # SSH has a separate owned-process proof. It is never loaded/executed in
+    # either Python import qualifier; its PE imports are not Python modules.
     ssh=pathlib.Path(bootstrap["sshKeygen"]["path"])
-    require(str(ssh).lower()==r"c:\windows\system32\openssh\ssh-keygen.exe","SSH_TOOL_PATH")
-    ssh_before=ssh.stat()
-    require(ssh_before.st_size==861184 and new_bytes+861184<=cap,"SSH_TOOL_BOUND")
-    ssh_data=ssh.read_bytes();new_bytes+=len(ssh_data)
-    require(hashlib.sha256(ssh_data).hexdigest()==bootstrap["sshKeygen"]["sha256"]==
-            "c9dc170cd161db87e75eb6cf282f1325005b9e35628b9a36cb19883a8be1a34f","SSH_TOOL_HASH")
-    ssh_after=ssh.stat()
-    require((ssh_before.st_dev,ssh_before.st_ino,ssh_before.st_size,ssh_before.st_mtime_ns)==
-            (ssh_after.st_dev,ssh_after.st_ino,ssh_after.st_size,ssh_after.st_mtime_ns),"SSH_TOOL_DRIFT")
-    ssh_imports=pe_imports(ssh_data)
-    pe_edges.extend({"from":str(ssh),**item} for item in ssh_imports)
+    require(str(ssh).lower()==r"c:\windows\system32\openssh\ssh-keygen.exe" and
+            bootstrap["sshKeygen"]["sha256"]==ssh_role["sshExeSHA256"],"SSH_TOOL_IDENTITY")
+    ssh_imports=[{"name":e["name"],"kind":e["kind"]} for e in ssh_role["rootImportEdges"]]
     # Collect any newly found Python/native providers to a finite fixed point.
     todo=list(loaded);seen=set();os_refs={}
     pending={pathlib.Path(x["path"]).resolve() for x in todo}
@@ -352,4 +376,4 @@ def inventory(bootstrap,stage,role,plans):
     return {"exactProviderAttestation":exact,"consumingFiles":list(files.values()),"modules":modules,"peDependencies":pe_edges,
             "osBaseTCB":list(os_refs.values()),"windowsBuild":list(sys.getwindowsversion()),
             "newlyReadBytes":new_bytes,"unresolved":[],"completeCoverageForDeclaredInputGraph":True,
-            "staticImportPlans":plans,"criticalSSH":{"bytes":861184,"sha256":bootstrap["sshKeygen"]["sha256"],"peImports":ssh_imports,"executed":False}}
+            "staticImportPlans":plans,"criticalSSH":{"bytes":861184,"sha256":bootstrap["sshKeygen"]["sha256"],"peImports":ssh_imports,"executedInPythonQualifier":False,"roleProofSHA256":ssh_role["proofSHA256"]}}

@@ -1,0 +1,97 @@
+{
+  "catalogProofSHA256": "d08fb16432748d7f225dd4ad27a21ca26691e47ac6dbc9da09f63a739e2e3e01",
+  "fingerprint": "SHA256:AgU5bZlJSjUu0KsWMmVEEr+BfXpcMVNroTA33bHcQdU",
+  "globalFullClosureQualified": false,
+  "healthyReplay": 0,
+  "heldFilesThroughTerminal": true,
+  "namespace": "file",
+  "originalHandleTerminal": true,
+  "proofSHA256": "304f5178c484103b633fe04e90b5baaa7e980feaf9346f2cfca0f20651d133a9",
+  "publicSignatureInputs": {
+    "SHA256SUMS.txt": "7ed7c353458a935439066a6a1d205520e5610458ec346dd8dbbf5c8882d28709",
+    "SHA256SUMS.txt.sig": "bf4ff680a2c4816b08044c47bb05882f6268576dea30bc1a14e275cfab66e840",
+    "SIGNING-PUBLIC-KEY.pub": "cc7038b2d98f856af97b58eb06619ff441fbe9b178da5396f61d1ccdf7a65e7c"
+  },
+  "readOnlyImageMatches": false,
+  "role": "OWNED_SSH_PUBLIC_SIGNATURE_NOT_PYTHON",
+  "rootImportEdges": [
+    {
+      "kind": "normal",
+      "mappedPath": "C:\\WINDOWS\\SYSTEM32\\libcrypto.dll",
+      "name": "libcrypto.dll",
+      "resolved": true
+    },
+    {
+      "kind": "normal",
+      "mappedPath": "C:\\WINDOWS\\System32\\KERNEL32.DLL",
+      "name": "kernel32.dll",
+      "resolved": true
+    },
+    {
+      "kind": "normal",
+      "mappedPath": "C:\\WINDOWS\\System32\\ADVAPI32.dll",
+      "name": "advapi32.dll",
+      "resolved": true
+    },
+    {
+      "kind": "normal",
+      "mappedPath": "C:\\WINDOWS\\System32\\WS2_32.dll",
+      "name": "ws2_32.dll",
+      "resolved": true
+    },
+    {
+      "kind": "normal",
+      "mappedPath": "C:\\WINDOWS\\System32\\CRYPT32.dll",
+      "name": "crypt32.dll",
+      "resolved": true
+    },
+    {
+      "kind": "normal",
+      "mappedPath": "C:\\WINDOWS\\System32\\USER32.dll",
+      "name": "user32.dll",
+      "resolved": true
+    }
+  ],
+  "schema": "tail11-owned-ssh-role-profile/v1",
+  "signatureAcceptedUnderAdmittedClosure": false,
+  "signatureExitCode": 0,
+  "sshExeSHA256": "c9dc170cd161db87e75eb6cf282f1325005b9e35628b9a36cb19883a8be1a34f",
+  "state": "HOLD_UNRESOLVED_OWNED_SSH_DEPENDENCIES",
+  "unresolved": [
+    {
+      "code": "UNADMITTED_PROVIDER",
+      "from": "actual-owned-ssh",
+      "path": "C:\\WINDOWS\\system32\\napinsp.dll"
+    },
+    {
+      "code": "UNADMITTED_PROVIDER",
+      "from": "actual-owned-ssh",
+      "path": "C:\\WINDOWS\\SYSTEM32\\DSPARSE.dll"
+    },
+    {
+      "code": "UNADMITTED_PROVIDER",
+      "from": "actual-owned-ssh",
+      "path": "C:\\WINDOWS\\System32\\winrnr.dll"
+    },
+    {
+      "code": "UNADMITTED_PROVIDER",
+      "from": "actual-owned-ssh",
+      "path": "C:\\WINDOWS\\system32\\nlansp_c.dll"
+    },
+    {
+      "code": "UNADMITTED_PROVIDER",
+      "from": "actual-owned-ssh",
+      "path": "C:\\WINDOWS\\system32\\wshbth.dll"
+    },
+    {
+      "code": "UNADMITTED_PROVIDER",
+      "from": "actual-owned-ssh",
+      "path": "C:\\WINDOWS\\SYSTEM32\\kernel.appcore.dll"
+    },
+    {
+      "code": "NORMALIZED_READONLY_IMAGE_DIFFERS",
+      "from": "libcrypto.dll",
+      "section": ".rdata"
+    }
+  ]
+}

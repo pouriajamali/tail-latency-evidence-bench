@@ -1,9 +1,10 @@
 {
   "files": {
-    "aggregate_worker.py": "335a20b5d44dd3809503d61c81e241fe41108d3d8ed4248ad53374f49e3891b8",
+    "aggregate_worker.py": "7db7720fd014eede89fb90236e4f936ef1f79157e6402fc8d50f57a8eeb2403e",
     "case-plan.json": "7ac106ea67b7e990dfa19a4b3a0ae33b941b7b86a00b986f8ef56350c2bddf3a",
     "controller11-linux.sh": "8b3d39dce8c2908d1f51fd218d4be7de2d99313bf7436fe82e8985d98ba1ff0f",
     "controller11-win.ps1": "da03019af3bc4bd25142b88619305dd46db66978bd7a7a062ef11ea0255a0e2b",
+    "crypto_held_reader.py": "876022cc034984d7c544f39aff940d61af6c3df783dd07be97d993f60d8c98cc",
     "exact_provider.py": "892332b52455e41c94e10419c6c8bb040fa16ee64aea155531840f517f67f1f8",
     "experiment.py": "bc0bcfcd9600baf991423ac49192f5f66f41cd37b98742142996d531609830e8",
     "fetch_extract.py": "db8351521b16da281a8e6774222a20e7d77077d31f3eb973b12de5061da991f7",
@@ -13,9 +14,11 @@
     "metadata/SHA256SUMS.txt": "7ed7c353458a935439066a6a1d205520e5610458ec346dd8dbbf5c8882d28709",
     "metadata/SHA256SUMS.txt.sig": "bf4ff680a2c4816b08044c47bb05882f6268576dea30bc1a14e275cfab66e840",
     "metadata/SIGNING-PUBLIC-KEY.pub": "cc7038b2d98f856af97b58eb06619ff441fbe9b178da5396f61d1ccdf7a65e7c",
+    "metadata/owned-ssh-profile.json": "38464b31289538f54232f0c54c8653ffafcb570f3e3d8b4cbf96143334da7ae9",
+    "owned_ssh_proof.py": "76c6c27d6084f183047a9f03ca1c481cefee015b77cd91a7ee6440689c100d96",
     "preflight_witness.py": "d2d508c4b55b1718bf7e86cc17909e9f2b6da0c1e3e7e9721008bbbff64fbfa7",
     "provider_file_reader.cs": "1f5b6315d820f4637f58aff25b8bf9f1e1b02f7b38389e51a4712e1c7629c507",
-    "qualifier.py": "243218a7dcb77d4e2d8b3385ff2fb141008c0d058512c3343e3f7b64d5973393",
+    "qualifier.py": "dff0e813e2e0700694f236b5eb22b39c9657d4763f9fda79b661650e0e36c098",
     "support.py": "313eb31d651007ad4ffbf8646fa5797131f6899ef8a46fbbf5e2bf46a0ede3ce"
   },
   "schema": "tail11-ci-source-manifest/v1"

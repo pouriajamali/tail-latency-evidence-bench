@@ -98,7 +98,7 @@ def qualify(a,args):
             previous=first["consumingFiles"];used+=first["newlyReadBytes"]
         source_bytes+=2*sum((WORK/n).stat().st_size for n in a["sourceHashes"])
         source_bytes+=3*sum(p.stat().st_size for p in (args.attachment,WORK/"source-manifest.json",s.ticket_path()))
-        b={"sourcePaths":source_paths,"qualifierPath":str(WORK/"qualifier.py"),
+        b={"sourceHashes":a["sourceHashes"],"sourcePaths":source_paths,"qualifierPath":str(WORK/"qualifier.py"),
            "frozenVerifier":{"path":str(ROOT/"tools/verify_downloads.py"),"sha256":s.VERIFIER_SHA},
            "sshKeygen":a["sshKeygen"],"readBytesAlready":used+source_bytes,"priorConsumingFiles":previous}
         if a.get("exactProvider"):
@@ -124,7 +124,7 @@ def qualify(a,args):
         code=getattr(e,"code",str(e) if isinstance(e,ValueError) and str(e).replace("_","").isalnum() and str(e).upper()==str(e) else "QUALIFIER_INTERNAL_HOLD")
         if not isinstance(code,str) or not code.isascii() or len(code)>100:code="QUALIFIER_INTERNAL_HOLD"
         fresh(OUT/"public"/(args.role+"-hold.json"),{"status":"HOLD","code":code,
-             "role":args.role,"safeProviders":getattr(q,"LAST_SAFE_PROVIDERS",[]),"newSnapshot":False})
+             "role":args.role,"safeProviders":getattr(q,"LAST_SAFE_PROVIDERS",[]),"ownedSSHRole":getattr(q,"LAST_OWNED_SSH_ROLE",None),"newSnapshot":False})
         raise SystemExit(1) from None
 
 def stage_inputs(a,args):
