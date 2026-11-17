@@ -126,3 +126,10 @@ def attest(a):
   previousCacheAPIResult=False,independentCRLProofSHA256=PROOF_SHA['crl'],oldExitedChildByteIdentity='UNKNOWN_NOT_ATTRIBUTED')
  DATA['evidenceReadBytes']=proof_bytes;DATA['providerFileReadBytes']=len(data);DATA['currentFilePath']=str(TARGET)
  return DATA
+
+
+def reused_controls(a):
+ row=a['exactProvider']['reusedControls'];raw=S.raw(row['path'],8192)
+ need(hx(raw)==row['sha256']=='783a93347441872b9bba921ea3db514965d022f70d7dd085fc358661e43329cd','EXACT_PROVIDER_CONTROL_REUSE_HASH')
+ p=json.loads(raw);need(p['status']=='FIVE_PREVIOUS_EXECUTED_CONTROLS_REUSED' and p['sourceCommit']=='57cabc81304d4b631288a1d26722de54e40e98cf','EXACT_PROVIDER_CONTROL_REUSE_SCOPE')
+ return p['controls'],len(raw)

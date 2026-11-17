@@ -110,7 +110,7 @@ try{
   Add-Type -TypeDefinition (Get-Content -LiteralPath (Join-Path $work 'provider_file_reader.cs') -Raw)
   $providerHeld=[Tail11ExactProvider]::new([Tail11ExactProvider]::ExactPath)
   Need ($providerHeld.Sha256 -ceq '74ee1ab7ce1671b1679a1e1a6d41a48797189cba98fbbbb2ee045bcd0ad41056' -and $providerHeld.Before.Volume -eq 3400468440 -and (([uint64]$providerHeld.Before.IndexHi -shl 32) -bor $providerHeld.Before.IndexLo) -eq 389279892790845374 -and $providerHeld.Before.SizeLo -eq 309528 -and $providerHeld.Before.SizeHi -eq 0) 'EXACT_PROVIDER_PRESTART_PIN'
-  $frame['exactProvider']=@{scope='EXACT_M1_FILE_ONLY';runNonce=$nonce;window=$t.window;proofs=$t.exactProvider.proofs;
+  $frame['exactProvider']=@{scope='EXACT_M1_FILE_ONLY';runNonce=$nonce;window=$t.window;proofs=$t.exactProvider.proofs;reusedControls=$t.exactProvider.reusedControls;
     preheldFile=@{sha256=$providerHeld.Sha256;volume=$providerHeld.Before.Volume;fileIndex=(([uint64]$providerHeld.Before.IndexHi -shl 32) -bor $providerHeld.Before.IndexLo);ntPath=$providerHeld.HeldNtPath;imageSize=$providerHeld.ImageSize}}
   Fresh (Join-Path $out 'provider-held-before-any-child.json') $frame.exactProvider
  }

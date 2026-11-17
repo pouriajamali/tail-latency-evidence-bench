@@ -210,6 +210,22 @@ def process_modules():
 def os_base_provider(path):
     return path.name.lower() in OS_BASE and str(path.parent).lower()==r"c:\windows\system32"
 
+def enqueue_provider(todo,pending,seen,path):
+    if str(path) not in seen and path not in pending:
+        todo.append({"path":str(path)});pending.add(path)
+
+def graph_queue_control():
+    import pathlib
+    nodes=[pathlib.Path('C:/SYNTHETIC_ONLY/provider-'+str(i)+'.dll') for i in range(41)]
+    todo=[{'path':str(p)} for p in nodes];pending=set(nodes);seen=set();pops=0
+    while todo:
+        p=pathlib.Path(todo.pop(0)['path']);pending.discard(p);seen.add(str(p));pops+=1
+        for target in nodes:enqueue_provider(todo,pending,seen,target)
+        require(pops<=41,'DUPLICATE_PROVIDER_QUEUE_NOT_DENIED')
+    require(pops==41 and not pending,'PROVIDER_QUEUE_CONTROL')
+    return {'status':'PASS_NEW_DUPLICATE_QUEUE_CAUSAL_CONTROL','syntheticNodes':41,'pops':pops,'providerEnumerations':0,'fileBodyReads':0}
+
+
 def inventory(bootstrap,stage,role,plans):
     import pathlib,hashlib,json,stat,time
     soft_stop=time.monotonic()+16
@@ -299,9 +315,11 @@ def inventory(bootstrap,stage,role,plans):
     pe_edges.extend({"from":str(ssh),**item} for item in ssh_imports)
     # Collect any newly found Python/native providers to a finite fixed point.
     todo=list(loaded);seen=set();os_refs={}
+    pending={pathlib.Path(x["path"]).resolve() for x in todo}
     for turn in range(512):
         if not todo:break
         item=todo.pop(0);path=pathlib.Path(item["path"]).resolve();key=str(path)
+        pending.discard(path)
         if key in seen:continue
         seen.add(key)
         if path.is_relative_to(root) or (exact is not None and key==exact_key):
@@ -323,7 +341,8 @@ def inventory(bootstrap,stage,role,plans):
             provider=resolve(edge["name"])
             if provider:
                 edge["resolvedPath"]=provider
-                if str(pathlib.Path(provider).resolve()) not in seen:todo.append({"path":provider})
+                provider_path=pathlib.Path(provider).resolve()
+                enqueue_provider(todo,pending,seen,provider_path)
             elif "resolvedPath" not in edge:
                 unresolved.append({"edge":list(marker),"code":"UNRESOLVED_NORMAL_OR_DELAY_PROVIDER"})
     require(new_bytes<=cap,"NEW_HASH_READ_CAP")
