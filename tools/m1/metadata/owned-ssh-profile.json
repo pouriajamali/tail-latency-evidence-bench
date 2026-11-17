@@ -1,10 +1,33 @@
 {
   "catalogProofSHA256": "d08fb16432748d7f225dd4ad27a21ca26691e47ac6dbc9da09f63a739e2e3e01",
+  "currentFileProofBatchSHA256": "4dcdf233f9aed526817c516639dd7f1bd3bd3849e7c09d353d40fc0418561b01",
+  "currentFileProofFailures": [
+    {
+      "currentChainStatus": [
+        "NotTimeValid"
+      ],
+      "issuerCertificateSHA256": "e8e95f0733a55e8bad7be0a1413ee23c51fcea64b3c8fa6a786935fddcc71961",
+      "nativeSignatureStatus": "0x00000000",
+      "path": "C:\\WINDOWS\\system32\\napinsp.dll",
+      "signerCertificateSHA256": "2d7ffce2c256016291b67285456aa8da779d711bbf8e6b85c212a157ddfbe77e"
+    },
+    {
+      "currentChainStatus": [
+        "NotTimeValid"
+      ],
+      "issuerCertificateSHA256": "e8e95f0733a55e8bad7be0a1413ee23c51fcea64b3c8fa6a786935fddcc71961",
+      "nativeSignatureStatus": "0x00000000",
+      "path": "C:\\WINDOWS\\SYSTEM32\\DSPARSE.dll",
+      "signerCertificateSHA256": "2d7ffce2c256016291b67285456aa8da779d711bbf8e6b85c212a157ddfbe77e"
+    }
+  ],
+  "currentFileProofResult": "FOUR_NATIVE_SIGNATURE_CURRENT_CHAIN_PASS_TWO_CURRENT_CHAIN_NOT_TIME_VALID",
   "fingerprint": "SHA256:AgU5bZlJSjUu0KsWMmVEEr+BfXpcMVNroTA33bHcQdU",
   "globalFullClosureQualified": false,
   "healthyReplay": 0,
   "heldFilesThroughTerminal": true,
   "namespace": "file",
+  "newSSHAdmissionExecuted": false,
   "originalHandleTerminal": true,
   "proofSHA256": "304f5178c484103b633fe04e90b5baaa7e980feaf9346f2cfca0f20651d133a9",
   "publicSignatureInputs": {
