@@ -99,7 +99,7 @@ Use the appropriate CLI path from the source/package working directory; do not a
 
 See [decisions](docs/ADR.md), [runbook/review](docs/RUNBOOK.md), [notices](NOTICE.md) and [provenance](PROVENANCE.md). Original code: MIT; no private/shared project code, account/market connection or career-material change.
 
-[CI resource policy](docs/CI-POLICY.md): documentation-only changes get real lightweight document/pipeline checks; source, tag and manual runs retain native validation. Published runtime tags and release assets remain unchanged.
+[CI resource policy](docs/CI-POLICY.md): documentation-only changes get real lightweight document/pipeline checks; source, tag and ordinary manual runs retain native validation. A separate, single-use M1 consumer profile is documented in that policy; admission and M1 completion require its actual receipts. Published runtime tags and release assets remain unchanged.
 
 ## Source readability
 

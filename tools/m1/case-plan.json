@@ -1,0 +1,245 @@
+{
+  "schema": "tail11-fixed-record-cap-case-plan/v1",
+  "projectId": "11",
+  "status": "SOURCE_PREPARED_NOT_EXECUTED",
+  "sourceHead": "4003f255078bf2f1af5badead0dd81972c307260",
+  "runtimeCommit": "6158f7f8a9a8e4fd7c12ed575f427d7117b89801",
+  "nativeCallsTotal": 6,
+  "rawCapacities": [
+    99,
+    100,
+    101
+  ],
+  "caseOrder": [
+    "win-x64-cap-99",
+    "win-x64-cap-100",
+    "win-x64-cap-101",
+    "linux-x64-cap-99",
+    "linux-x64-cap-100",
+    "linux-x64-cap-101"
+  ],
+  "cases": [
+    {
+      "id": "win-x64-cap-99",
+      "rid": "win-x64",
+      "cap": 99,
+      "configuration": {
+        "count": 100,
+        "periodUs": 100,
+        "capacity": 64,
+        "rawCapacity": 99,
+        "seed": 20261109,
+        "latenessBudgetUs": 2000,
+        "drainUs": 20000,
+        "deadlineUs": 2000,
+        "warmupCount": 100
+      },
+      "mode": "healthy",
+      "expectedExit": 4,
+      "expectedStatus": "INCOMPLETE",
+      "expectedRawRecords": 0,
+      "attempts": 1
+    },
+    {
+      "id": "win-x64-cap-100",
+      "rid": "win-x64",
+      "cap": 100,
+      "configuration": {
+        "count": 100,
+        "periodUs": 100,
+        "capacity": 64,
+        "rawCapacity": 100,
+        "seed": 20261109,
+        "latenessBudgetUs": 2000,
+        "drainUs": 20000,
+        "deadlineUs": 2000,
+        "warmupCount": 100
+      },
+      "mode": "healthy",
+      "expectedExit": 0,
+      "expectedStatus": "COMPLETE",
+      "expectedRawRecords": 100,
+      "attempts": 1
+    },
+    {
+      "id": "win-x64-cap-101",
+      "rid": "win-x64",
+      "cap": 101,
+      "configuration": {
+        "count": 100,
+        "periodUs": 100,
+        "capacity": 64,
+        "rawCapacity": 101,
+        "seed": 20261109,
+        "latenessBudgetUs": 2000,
+        "drainUs": 20000,
+        "deadlineUs": 2000,
+        "warmupCount": 100
+      },
+      "mode": "healthy",
+      "expectedExit": 0,
+      "expectedStatus": "COMPLETE",
+      "expectedRawRecords": 100,
+      "attempts": 1
+    },
+    {
+      "id": "linux-x64-cap-99",
+      "rid": "linux-x64",
+      "cap": 99,
+      "configuration": {
+        "count": 100,
+        "periodUs": 100,
+        "capacity": 64,
+        "rawCapacity": 99,
+        "seed": 20261109,
+        "latenessBudgetUs": 2000,
+        "drainUs": 20000,
+        "deadlineUs": 2000,
+        "warmupCount": 100
+      },
+      "mode": "healthy",
+      "expectedExit": 4,
+      "expectedStatus": "INCOMPLETE",
+      "expectedRawRecords": 0,
+      "attempts": 1
+    },
+    {
+      "id": "linux-x64-cap-100",
+      "rid": "linux-x64",
+      "cap": 100,
+      "configuration": {
+        "count": 100,
+        "periodUs": 100,
+        "capacity": 64,
+        "rawCapacity": 100,
+        "seed": 20261109,
+        "latenessBudgetUs": 2000,
+        "drainUs": 20000,
+        "deadlineUs": 2000,
+        "warmupCount": 100
+      },
+      "mode": "healthy",
+      "expectedExit": 0,
+      "expectedStatus": "COMPLETE",
+      "expectedRawRecords": 100,
+      "attempts": 1
+    },
+    {
+      "id": "linux-x64-cap-101",
+      "rid": "linux-x64",
+      "cap": 101,
+      "configuration": {
+        "count": 100,
+        "periodUs": 100,
+        "capacity": 64,
+        "rawCapacity": 101,
+        "seed": 20261109,
+        "latenessBudgetUs": 2000,
+        "drainUs": 20000,
+        "deadlineUs": 2000,
+        "warmupCount": 100
+      },
+      "mode": "healthy",
+      "expectedExit": 0,
+      "expectedStatus": "COMPLETE",
+      "expectedRawRecords": 100,
+      "attempts": 1
+    }
+  ],
+  "negativeControls": [
+    {
+      "id": "N01",
+      "mutation": "rawCapacity=100 (equal count)",
+      "strict": "reject",
+      "baselinePredicatePrediction": "accept"
+    },
+    {
+      "id": "N02",
+      "mutation": "rawCapacity=101 (greater than count)",
+      "strict": "reject",
+      "baselinePredicatePrediction": "accept"
+    },
+    {
+      "id": "N03",
+      "mutation": "count=0",
+      "strict": "reject",
+      "baselinePredicatePrediction": "accept"
+    },
+    {
+      "id": "N04",
+      "mutation": "rawCapacity=0",
+      "strict": "reject",
+      "baselinePredicatePrediction": "accept"
+    },
+    {
+      "id": "N05",
+      "mutation": "count=200001",
+      "strict": "reject",
+      "baselinePredicatePrediction": "accept"
+    },
+    {
+      "id": "N06",
+      "mutation": "cutoffTicks='1'",
+      "strict": "reject",
+      "baselinePredicatePrediction": "accept"
+    },
+    {
+      "id": "N07",
+      "mutation": "offeredScheduleSha256=64 zero characters",
+      "strict": "reject",
+      "baselinePredicatePrediction": "accept"
+    },
+    {
+      "id": "N08",
+      "mutation": "warmupPlanned=1",
+      "strict": "reject",
+      "baselinePredicatePrediction": "accept"
+    },
+    {
+      "id": "N09",
+      "mutation": "statistics={}",
+      "strict": "reject",
+      "baselinePredicatePrediction": "reject"
+    },
+    {
+      "id": "N10",
+      "mutation": "append one actual raw row from cap100 case",
+      "strict": "reject",
+      "baselinePredicatePrediction": "reject"
+    },
+    {
+      "id": "N11",
+      "mutation": "status=COMPLETE",
+      "strict": "reject",
+      "baselinePredicatePrediction": "reject"
+    },
+    {
+      "id": "N12",
+      "mutation": "reason=WORKER_JOIN_BOUND",
+      "strict": "reject",
+      "baselinePredicatePrediction": "reject"
+    }
+  ],
+  "negativeFixturesPerRid": 12,
+  "negativeFixturesTotal": 24,
+  "validatorModes": [
+    "normal",
+    "optimized"
+  ],
+  "validatorPhaseCallsTotal": 4,
+  "logicalValidatorPairsTotal": 60,
+  "nativeReplayForOptimized": false,
+  "denyAdmission": "Real same guard comparing deliberately wrong all-zero expected case-plan hash before launching a child; expected exit23",
+  "oracle": "Frozen shipped oracle unchanged; independent preflight_witness checks external fixed config and observed invocation, no oracle import",
+  "bounds": {
+    "scratchBytes": 1073741824,
+    "evidenceBytes": 8388608,
+    "nativeRawBytes": 65536,
+    "nativeSummaryBytes": 32768,
+    "combinedChildStdoutStderrBytes": 262144,
+    "nativeProcessSeconds": 45,
+    "controllerSeconds": 60,
+    "totalPhaseSeconds": 300
+  },
+  "performanceClaims": false
+}

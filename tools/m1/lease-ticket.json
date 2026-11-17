@@ -1,0 +1,49 @@
+{
+  "actor": "pouriajamali",
+  "branch": "codex/wave4-m1-record-cap-20261117",
+  "canonicalClaim": "LOCAL_CREATE_NEW_STILL_HELD",
+  "canonicalLinuxLeasePathSha256": "844efd814a1c7089474b49f90839f66bc42a0a6e599f0ba5125926a42f480aee",
+  "canonicalLinuxProtocolPathSha256": "9bcc39cb19e4cec12f6611e9822df92892d0da6650e66f5eae980fa8cc8cda9d",
+  "canonicalWindowsLeasePathSha256": "1ef9e46c63a02f6129d99ba4ecb1d6c301cb4cac505e9a41216e2e9d7dfa3830",
+  "canonicalWindowsProtocolPathSha256": "709bfe2d8969fd99e8cfe6964eefcbcf8ea501e83db26ddc6d9606c3d658777c",
+  "casePlanSha256": "7ac106ea67b7e990dfa19a4b3a0ae33b941b7b86a00b986f8ef56350c2bddf3a",
+  "limits": {
+    "active": 16,
+    "affinityMax": 2,
+    "allRoleProof": 1048576,
+    "cpuRate": 1000,
+    "files": 256,
+    "memory": 536870912,
+    "proof": 8388608,
+    "qualification": 60,
+    "read": 67108864,
+    "role": 20,
+    "roleProof": 262144,
+    "scratch": 1073741824,
+    "terminal": 30,
+    "whole": 300,
+    "work": 270
+  },
+  "nativeOrder": [
+    "win-99",
+    "win-100",
+    "win-101",
+    "linux-99",
+    "linux-100",
+    "linux-101"
+  ],
+  "nonce": "505a405c391753bec3cacc67b8ac95ca",
+  "ownerPID": 33192,
+  "ownerStartIdentity": "FILETIME:134393953679846701",
+  "projectId": "11",
+  "protocolSha256": "9120ca49a0d46673053aa0ec0cdbbc6f00731d71ea0b57ddab09e8fc3ac3ac8b",
+  "purpose": "ONE_FIXED_RECORD_CAP_M1",
+  "repository": "pouriajamali/tail-latency-evidence-bench",
+  "runtimeCommit": "6158f7f8a9a8e4fd7c12ed575f427d7117b89801",
+  "schema": "tail11-canonical-ci-ticket/v1",
+  "sourceManifestSha256": "c43a1c209fbd401a05fba1520d6146544bb18bf4e2d30fc70cc37371eb32e1f0",
+  "window": {
+    "deadlineUnix": 1794922068,
+    "startUnix": 1794921768
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "files": {
+    "aggregate_worker.py": "cb8760366f0948ad2266751927ddaf79c4c94500399796126b4e9f4161e3180d",
+    "case-plan.json": "7ac106ea67b7e990dfa19a4b3a0ae33b941b7b86a00b986f8ef56350c2bddf3a",
+    "controller11-linux.sh": "3b020fe0054fd95a84ab9f6eba1f89ce801eaab4a70c36f4b9fa560c76c7a820",
+    "controller11-win.ps1": "25f74a00a786474bbba60eac1def9293b25d15b266b87edeab7603eb5b2e6981",
+    "experiment.py": "9568fd34dec57747bd7d539e453a84fda44bca05db4964999e3b624b48bd7b91",
+    "fetch_extract.py": "db8351521b16da281a8e6774222a20e7d77077d31f3eb973b12de5061da991f7",
+    "input-bindings.json": "bd9eade5efe8036815f9dc25f85a99ce1b329fd95e40388572d032b3a4abca92",
+    "job_bridge11.cs": "b58fbe31353d3b09cacfc3e98068e10d0c2789156737cf2f1d3d47e3b4b93feb",
+    "metadata/SHA256SUMS.txt": "7ed7c353458a935439066a6a1d205520e5610458ec346dd8dbbf5c8882d28709",
+    "metadata/SHA256SUMS.txt.sig": "bf4ff680a2c4816b08044c47bb05882f6268576dea30bc1a14e275cfab66e840",
+    "metadata/SIGNING-PUBLIC-KEY.pub": "cc7038b2d98f856af97b58eb06619ff441fbe9b178da5396f61d1ccdf7a65e7c",
+    "preflight_witness.py": "d2d508c4b55b1718bf7e86cc17909e9f2b6da0c1e3e7e9721008bbbff64fbfa7",
+    "qualifier.py": "539ed05ee8efefa8ca547e23c659ab1af0b28525d64481ea03c0ac774e5f7960",
+    "support.py": "20f5e73ca80c4d88576204c95edbd9331451dfa5747ffa434f7aee1799b315cb"
+  },
+  "schema": "tail11-ci-source-manifest/v1"
+}

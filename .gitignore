@@ -7,3 +7,7 @@ __pycache__/
 *.private.json
 *.nettrace
 *.speedscope.json
+
+# Bounded M1 data and private consuming-file/ownership evidence.
+/outputs/m1/
+/tools/m1/inputs/

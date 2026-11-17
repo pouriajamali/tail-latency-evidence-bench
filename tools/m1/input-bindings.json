@@ -1,0 +1,43 @@
+{
+  "releaseId": 439576568,
+  "tag": "v0.1.0-preview.1",
+  "fingerprint": "SHA256:AgU5bZlJSjUu0KsWMmVEEr+BfXpcMVNroTA33bHcQdU",
+  "archives": [
+    {
+      "rid": "win-x64",
+      "name": "tail-latency-evidence-bench-v0.1.0-preview.1-win-x64.zip",
+      "bytes": 35871273,
+      "sha256": "e5374e478cd5416707ba3dc009e9aa20cb4fdc912adba0d9c8f8ae944d2b9958",
+      "url": "https://api.github.com/repos/pouriajamali/tail-latency-evidence-bench/releases/assets/728783293",
+      "assetId": 728783293
+    },
+    {
+      "rid": "linux-x64",
+      "name": "tail-latency-evidence-bench-v0.1.0-preview.1-linux-x64.tar.gz",
+      "bytes": 35409385,
+      "sha256": "352604eb282c253495251f5731518184171ab08b485b084fb95baf9ece16ebba",
+      "url": "https://api.github.com/repos/pouriajamali/tail-latency-evidence-bench/releases/assets/728783300",
+      "assetId": 728783300
+    }
+  ],
+  "smallAssets": [
+    {
+      "name": "SHA256SUMS.txt",
+      "bytes": 373,
+      "sha256": "7ed7c353458a935439066a6a1d205520e5610458ec346dd8dbbf5c8882d28709",
+      "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/SHA256SUMS.txt"
+    },
+    {
+      "name": "SHA256SUMS.txt.sig",
+      "bytes": 294,
+      "sha256": "bf4ff680a2c4816b08044c47bb05882f6268576dea30bc1a14e275cfab66e840",
+      "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/SHA256SUMS.txt.sig"
+    },
+    {
+      "name": "SIGNING-PUBLIC-KEY.pub",
+      "bytes": 113,
+      "sha256": "cc7038b2d98f856af97b58eb06619ff441fbe9b178da5396f61d1ccdf7a65e7c",
+      "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/SIGNING-PUBLIC-KEY.pub"
+    }
+  ]
+}

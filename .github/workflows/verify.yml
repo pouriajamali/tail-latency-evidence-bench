@@ -6,6 +6,10 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
+      m1_once:
+        description: One canonical-lease-bound M1 admission; never rerun this ticket
+        type: boolean
+        default: false
       verify_release:
         description: Verify aggregation and attestations without creating a release
         type: boolean
@@ -23,6 +27,7 @@ concurrency:
 
 jobs:
   ci_policy:
+    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.m1_once == true && inputs.verify_release != true && github.ref == 'refs/heads/codex/wave4-m1-record-cap-20261117') }}
     name: Changed files and documentation policy
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -42,6 +47,34 @@ jobs:
         run: python3 .github/ci/policy.py gate
       - name: Check actual workflow syntax and expressions
         run: python3 .github/ci/policy.py lint
+  m1_once:
+    name: One bounded M1 Windows admission
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.m1_once == true && inputs.verify_release != true && github.ref == 'refs/heads/codex/wave4-m1-record-cap-20261117' }}
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 5
+    concurrency:
+      group: m1-once-${{ github.sha }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Consume the signed fixed M1 ticket once
+        shell: pwsh
+        env:
+          M1_API_TOKEN: ${{ github.token }}
+        run: '& ./tools/m1/controller11-win.ps1'
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: m1-once-${{ github.run_id }}
+          path: outputs/m1/public/*
+          if-no-files-found: error
+          retention-days: 7
   verify:
     needs: ci_policy
     if: needs.ci_policy.outputs.native == 'true'
@@ -172,4 +205,4 @@ jobs:
           ACTUAL_TAG: ${{ github.ref_name }}
         run: |
           test "$ACTUAL_TAG" = "$RELEASE_TAG"
-          gh release create "$RELEASE_TAG" artifacts/release/* --verify-tag --prerelease --title "$RELEASE_TAG — Tail-Latency Evidence Bench" --notes-file docs/RELEASE.md
+          gh release create "$RELEASE_TAG" artifacts/release/* --verify-tag --prerelease --title "$RELEASE_TAG â€” Tail-Latency Evidence Bench" --notes-file docs/RELEASE.md
