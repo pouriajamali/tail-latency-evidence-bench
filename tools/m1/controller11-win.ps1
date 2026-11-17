@@ -20,6 +20,7 @@ function Fresh([string]$p,$value){
  $f=[IO.File]::Open($p,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::Read)
  try{$f.Write($bytes);$f.Flush($true)}finally{$f.Dispose()}
 }
+$providerHeld=$null
 $code='CI_CONTROLLER_HOLD';$children=0;$terminal=$true;$jobs=@();$runId=$env:GITHUB_RUN_ID
 $ticketSha=$null;$nonce=$null;$sourceCommit=$env:GITHUB_SHA
 try{
@@ -103,7 +104,16 @@ try{
   legacyException='PRIVATE_6158_10.0.14_ONLY';status='QUALIFICATION_ONLY';inputVerified=$false;initialToolReadBytes=$initialRead;
   programDataSha256=([Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($env:ProgramData)))).ToLowerInvariant();
   sshKeygen=@{path=$ssh;sha256=$pins.ssh[1]};oracle=@{'win-x64'=@{path=(Join-Path $repo 'tools/oracle.py');sha256='82c6998225f6bd38d1df941ceb49e13d3adcfb16678780a6a25da17e56ebe1bf'}}}
- if($Local){$frame['execution']='LOCAL_CANONICAL';$frame['canonicalProtocolPath']=$canonicalProtocol;$frame['canonicalLeasePath']=$canonicalLease}
+ if($Local){
+  $frame['execution']='LOCAL_CANONICAL';$frame['canonicalProtocolPath']=$canonicalProtocol;$frame['canonicalLeasePath']=$canonicalLease
+  Need ($t.exactProvider.scope -ceq 'EXACT_M1_FILE_ONLY') 'EXACT_PROVIDER_SCOPE'
+  Add-Type -TypeDefinition (Get-Content -LiteralPath (Join-Path $work 'provider_file_reader.cs') -Raw)
+  $providerHeld=[Tail11ExactProvider]::new([Tail11ExactProvider]::ExactPath)
+  Need ($providerHeld.Sha256 -ceq '74ee1ab7ce1671b1679a1e1a6d41a48797189cba98fbbbb2ee045bcd0ad41056' -and $providerHeld.Before.Volume -eq 3400468440 -and (([uint64]$providerHeld.Before.IndexHi -shl 32) -bor $providerHeld.Before.IndexLo) -eq 389279892790845374 -and $providerHeld.Before.SizeLo -eq 309528 -and $providerHeld.Before.SizeHi -eq 0) 'EXACT_PROVIDER_PRESTART_PIN'
+  $frame['exactProvider']=@{scope='EXACT_M1_FILE_ONLY';runNonce=$nonce;window=$t.window;proofs=$t.exactProvider.proofs;
+    preheldFile=@{sha256=$providerHeld.Sha256;volume=$providerHeld.Before.Volume;fileIndex=(([uint64]$providerHeld.Before.IndexHi -shl 32) -bor $providerHeld.Before.IndexLo);ntPath=$providerHeld.HeldNtPath;imageSize=$providerHeld.ImageSize}}
+  Fresh (Join-Path $out 'provider-held-before-any-child.json') $frame.exactProvider
+ }
  function Run-Phase([string]$label,[string]$script,[string[]]$arguments,[int]$maximum,[string]$mode='normal'){
   Need ((TimeLeft) -gt 0) 'WHOLE_CLOCK'
   Pinned-Plan $t.casePlanSha256
@@ -170,7 +180,10 @@ try{
    if($environment -ne [IntPtr]::Zero){[Runtime.InteropServices.Marshal]::FreeHGlobal($environment)}
   }
  }
- if($Local){Run-Phase 'local-causal-controls' 'local_binding_checks.py' @() 20}
+ if($Local){
+  Need ((Hash $t.reuseLocalControls.path) -ceq $t.reuseLocalControls.sha256 -and $t.reuseLocalControls.sha256 -ceq '9ff5e090a3954da50cd769ab811956168cdce35dddc1fb8709eecc5f523e0cb9') 'REUSE_EXISTING_LOCAL_CONTROLS'
+  Fresh (Join-Path $public 'local-controls-reused.json') @{status='PRIOR_NINE_HEALTHY_CONTROLS_REUSED_NOT_REPEATED';receiptSHA256=$t.reuseLocalControls.sha256;sourceCommit='426cd5043c2f6863c3d05739b8da0b8d4a752694';testsReplayed=0}
+ }
  $qualStart=[DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
  foreach($role in @('input-worker-imports','frozen-verifier-imports')){Run-Phase $role 'aggregate_worker.py' @('--role',$role,'--rid','win-x64') 20}
  Need ([DateTimeOffset]::UtcNow.ToUnixTimeSeconds()-$qualStart -le 60) 'QUALIFICATION60'
@@ -209,6 +222,14 @@ try{
  $candidate=[string]$_.Exception.Message
  if($candidate -cmatch '^[A-Z][A-Z0-9_]{0,99}$'){$code=$candidate}
 }finally{
+ if($null -ne $providerHeld){
+  try{
+   Need $terminal 'PROVIDER_TERMINAL_UNKNOWN'
+   $providerHeld.SealStable()
+   Need ($providerHeld.Stable -and $providerHeld.AfterSha256 -ceq $providerHeld.Sha256) 'PROVIDER_FINAL_HELD_DRIFT'
+   Fresh (Join-Path $out 'provider-held-after-all-terminal.json') @{stable=$providerHeld.Stable;sha256=$providerHeld.AfterSha256;allOwnedTerminal=$terminal;allChildren=$children;explicitFileReadBytes=$providerHeld.ExplicitFileReadBytes}
+  }catch{$code='PROVIDER_FINAL_HOLD'}finally{$providerHeld.Dispose()}
+ }
  $env:M1_API_TOKEN=$null
  $files=@();$proofSize=0
  foreach($p in Get-ChildItem -LiteralPath $public -Recurse -File){$proofSize+=$p.Length;$files+=@{name=[IO.Path]::GetRelativePath($public,$p.FullName).Replace('\','/');bytes=$p.Length;sha256=(Hash $p.FullName)}}

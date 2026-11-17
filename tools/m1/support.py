@@ -162,6 +162,9 @@ def input_kernel(profile):
 
 
 def verify_current_modules(a):
+    if os.name=="nt" and a.get("exactProvider"):
+        import exact_provider
+        exact_provider.attest(a)
     # Same-window stable files; no new process-module snapshot or policy expansion.
     owned={(HERE/n).resolve() for n in a["sourceHashes"]}
     owned|={(ROOT/"tools/oracle.py").resolve(),(ROOT/"tools/verify_downloads.py").resolve()}

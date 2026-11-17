@@ -54,6 +54,9 @@ def qualify(a,args):
     source_paths["verify_downloads.py"]=str(ROOT/"tools/verify_downloads.py")
     q.cache_policy(sys.pycache_prefix)
     lane_reads=[a["canonicalProtocolPath"],a["canonicalLeasePath"]] if a.get("execution")=="LOCAL_CANONICAL" else []
+    if a.get("exactProvider"):
+        import exact_provider
+        lane_reads += [str(exact_provider.TARGET)]+[r["path"] for r in a["exactProvider"]["proofs"].values()]
     q.install_audit(str(Path(sys.executable).parent),str(OUT),lane_reads+list(source_paths.values())+
                     [str(args.attachment),str(WORK/"source-manifest.json"),str(s.ticket_path()),
                      os.environ["TAIL11_ROOT_PROFILE"],a["sshKeygen"]["path"]])
@@ -98,7 +101,13 @@ def qualify(a,args):
         b={"sourcePaths":source_paths,"qualifierPath":str(WORK/"qualifier.py"),
            "frozenVerifier":{"path":str(ROOT/"tools/verify_downloads.py"),"sha256":s.VERIFIER_SHA},
            "sshKeygen":a["sshKeygen"],"readBytesAlready":used+source_bytes,"priorConsumingFiles":previous}
+        if a.get("exactProvider"):
+            if args.role=="input-worker-imports":
+                b["newProviderControls"],control_read=exact_provider.causal_controls(a)
+                b["readBytesAlready"]+=control_read;source_bytes+=control_read
+            b["exactProviderAttestation"]=exact_provider.attest(a)
         result=q.inventory(b,stage,args.role,plans)
+        result["newProviderControls"]=b.get("newProviderControls",[])
         result["newlyReadBytes"]+=source_bytes
         need(time.monotonic()-started<=20 and not any(Path(sys.pycache_prefix).iterdir()),"ROLE20_OR_CACHE")
         result.update(status="QUALIFIER_ROLE_COMPLETE",role=args.role,runNonce=a["runNonce"],

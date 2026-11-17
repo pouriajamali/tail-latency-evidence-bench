@@ -221,13 +221,17 @@ def inventory(bootstrap,stage,role,plans):
     for item in bootstrap.get("verifiedVendorFiles",[]):previous[str(pathlib.Path(item["path"]).resolve())]=item
     for item in bootstrap.get("priorConsumingFiles",[]):previous[str(pathlib.Path(item["path"]).resolve())]=item
     files={};owned=[];modules=[];pe_edges=[];unresolved=[]
-    new_bytes=0;cap=67108864-int(bootstrap.get("readBytesAlready",0))
+    exact=bootstrap.get("exactProviderAttestation");exact_key=str(pathlib.Path(exact["currentFilePath"]).resolve()) if exact else None
+    new_bytes=(exact["providerFileReadBytes"]+exact["evidenceReadBytes"]) if exact else 0;cap=67108864-int(bootstrap.get("readBytesAlready",0))
     def bind(path):
         nonlocal new_bytes
         within_role()
         path=pathlib.Path(path).resolve();key=str(path)
         if key in files:return files[key],None
         require(len(files)<256,"CONSUMING_FILE_LIMIT")
+        if exact is not None and key==exact_key:
+            row={"path":key,"bytes":exact["currentFileIdentity"]["bytes"],"sha256":exact["currentFileSHA256"],"identity":exact["currentFileIdentity"],"hashMethod":"CURRENT_OWN_HELD_MAPPING_ATTESTED","peImports":exact["imports"],"scope":"EXACT_LOCAL_M1_PROVIDER_ONLY"}
+            files[key]=row;pe_edges.extend({"from":key,**item} for item in exact["imports"]);return row,None
         require(key in own or path==pathlib.Path(bootstrap["frozenVerifier"]["path"]).resolve() or
                 path.is_relative_to(root),"UNAPPROVED_VENDOR_ORIGIN")
         with stage.input_held_read(path) as (source,identity):
@@ -300,7 +304,7 @@ def inventory(bootstrap,stage,role,plans):
         item=todo.pop(0);path=pathlib.Path(item["path"]).resolve();key=str(path)
         if key in seen:continue
         seen.add(key)
-        if path.is_relative_to(root):
+        if path.is_relative_to(root) or (exact is not None and key==exact_key):
             bind(path)
         else:
             name=path.name.lower()
@@ -322,9 +326,11 @@ def inventory(bootstrap,stage,role,plans):
                 if str(pathlib.Path(provider).resolve()) not in seen:todo.append({"path":provider})
             elif "resolvedPath" not in edge:
                 unresolved.append({"edge":list(marker),"code":"UNRESOLVED_NORMAL_OR_DELAY_PROVIDER"})
+    require(new_bytes<=cap,"NEW_HASH_READ_CAP")
+    require(exact is None or exact_key in files,"EXACT_PROVIDER_NOT_IN_ACTUAL_INVENTORY")
     require(not todo,"PROVIDER_FIXED_POINT_LIMIT")
     require(not unresolved,"PROVIDER_MAPPING_UNRESOLVED")
-    return {"consumingFiles":list(files.values()),"modules":modules,"peDependencies":pe_edges,
+    return {"exactProviderAttestation":exact,"consumingFiles":list(files.values()),"modules":modules,"peDependencies":pe_edges,
             "osBaseTCB":list(os_refs.values()),"windowsBuild":list(sys.getwindowsversion()),
             "newlyReadBytes":new_bytes,"unresolved":[],"completeCoverageForDeclaredInputGraph":True,
             "staticImportPlans":plans,"criticalSSH":{"bytes":861184,"sha256":bootstrap["sshKeygen"]["sha256"],"peImports":ssh_imports,"executed":False}}

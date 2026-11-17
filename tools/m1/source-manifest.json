@@ -1,9 +1,10 @@
 {
   "files": {
-    "aggregate_worker.py": "75a378d6ca5c200e6ac5327c25153ef3a7317bbb736a1dbe2830da70deee216d",
+    "aggregate_worker.py": "12e89bda441bb7891dd4f93f829a422a43cbe6f7462669c1134a9577d3cea1b6",
     "case-plan.json": "7ac106ea67b7e990dfa19a4b3a0ae33b941b7b86a00b986f8ef56350c2bddf3a",
     "controller11-linux.sh": "8b3d39dce8c2908d1f51fd218d4be7de2d99313bf7436fe82e8985d98ba1ff0f",
-    "controller11-win.ps1": "382422efdf69142f668a9442d1cba0e9d5d1562e2f28c659d8bc7174aa6fe5d8",
+    "controller11-win.ps1": "2b063a3501877673d84d4bdd338f3c8b5e786c97f5ff1af56b5a206e415e7486",
+    "exact_provider.py": "4649d3e112fa21553f8d38c5693f7561b711a135460e8451d16da837e558f3f5",
     "experiment.py": "bc0bcfcd9600baf991423ac49192f5f66f41cd37b98742142996d531609830e8",
     "fetch_extract.py": "db8351521b16da281a8e6774222a20e7d77077d31f3eb973b12de5061da991f7",
     "input-bindings.json": "bd9eade5efe8036815f9dc25f85a99ce1b329fd95e40388572d032b3a4abca92",
@@ -13,8 +14,9 @@
     "metadata/SHA256SUMS.txt.sig": "bf4ff680a2c4816b08044c47bb05882f6268576dea30bc1a14e275cfab66e840",
     "metadata/SIGNING-PUBLIC-KEY.pub": "cc7038b2d98f856af97b58eb06619ff441fbe9b178da5396f61d1ccdf7a65e7c",
     "preflight_witness.py": "d2d508c4b55b1718bf7e86cc17909e9f2b6da0c1e3e7e9721008bbbff64fbfa7",
-    "qualifier.py": "d608be0196ac84f73ef44354ffe266cea342785b46b69b5e17139c9534bbc980",
-    "support.py": "ac49b05fd42515bd39811fca4fa7e14806d1612f0e5c2f4912c173858b27f375"
+    "provider_file_reader.cs": "1f5b6315d820f4637f58aff25b8bf9f1e1b02f7b38389e51a4712e1c7629c507",
+    "qualifier.py": "d6d5fca2b304ca24fd77e96d098f544c05a429bb77904586b12d579807b6f36e",
+    "support.py": "313eb31d651007ad4ffbf8646fa5797131f6899ef8a46fbbf5e2bf46a0ede3ce"
   },
   "schema": "tail11-ci-source-manifest/v1"
 }
