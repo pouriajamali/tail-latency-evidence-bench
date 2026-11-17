@@ -1,3 +1,6 @@
 * text=auto eol=lf
 *.zip binary
 *.bin binary
+
+# M1 manifests and retained signature inputs bind exact bytes, including line endings.
+tools/m1/** -text

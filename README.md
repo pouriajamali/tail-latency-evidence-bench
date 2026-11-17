@@ -106,3 +106,5 @@ See [decisions](docs/ADR.md), [runbook/review](docs/RUNBOOK.md), [notices](NOTIC
 The current source expands compact C# layout for review. The published preview links identify its frozen runtime release. Formatting preserves complete syntax, token text and values, comments and directives; it does not introduce a runtime behavior or performance claim.
 
 To reproduce a published package, use its exact original runtime source: [v0.1.0-preview.1 source](https://github.com/pouriajamali/tail-latency-evidence-bench/tree/6158f7f8a9a8e4fd7c12ed575f427d7117b89801) (`6158f7f8a9a8e4fd7c12ed575f427d7117b89801`). Later `main` layout is reviewed separately from those frozen release commits.
+
+The bounded M1 attempt on 2026-11-17 stopped before qualification because Git normalized two hash-bound inputs. Exact-byte source packaging is corrected on this task branch; M1 remains HOLD and needs a separately authorized replacement validation. The published preview runtime and existing healthy evidence are unchanged.
