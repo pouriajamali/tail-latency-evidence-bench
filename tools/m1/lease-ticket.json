@@ -32,20 +32,20 @@
     "linux-100",
     "linux-101"
   ],
-  "nonce": "e532f7718f188aa0dd31876c71674da2",
-  "ownerPID": 36528,
-  "ownerStartIdentity": "FILETIME:134393970969003638",
+  "nonce": "96dcb35d55bf80a52bd4a517ddd6d5d2",
+  "ownerPID": 34528,
+  "ownerStartIdentity": "FILETIME:134393978129482792",
   "projectId": "11",
   "protocolSha256": "9120ca49a0d46673053aa0ec0cdbbc6f00731d71ea0b57ddab09e8fc3ac3ac8b",
   "purpose": "ONE_FIXED_RECORD_CAP_M1",
-  "replacementAuthorization": "EXPLICIT_HUMAN_ONE_REPLACEMENT_ONLY_SAME_CAPS_TRUST_AND_CANONICAL_LEASE",
-  "replacementForRunId": 44092163325,
+  "replacementAuthorization": "EXPLICIT_HUMAN_ONE_DIRECT_ENTRY_VALIDATION_SAME_CAPS_TRUST_AND_CANONICAL_LEASE",
+  "replacementForRunId": 44096975835,
   "repository": "pouriajamali/tail-latency-evidence-bench",
   "runtimeCommit": "6158f7f8a9a8e4fd7c12ed575f427d7117b89801",
   "schema": "tail11-canonical-ci-ticket/v1",
-  "sourceManifestSha256": "c43a1c209fbd401a05fba1520d6146544bb18bf4e2d30fc70cc37371eb32e1f0",
+  "sourceManifestSha256": "cae10de26a3a30d4b798a6157ab3adf0890b36f6754d35f448517709768df791",
   "window": {
-    "deadlineUnix": 1794923796,
-    "startUnix": 1794923496
+    "deadlineUnix": 1794924513,
+    "startUnix": 1794924213
   }
 }
