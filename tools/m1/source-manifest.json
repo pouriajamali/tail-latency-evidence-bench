@@ -1,19 +1,20 @@
 {
   "files": {
-    "aggregate_worker.py": "b3dc4d7fd8baec81671a7e9f118c8ce83e0d043e2fedc6eaff001cfcc622e4a8",
+    "aggregate_worker.py": "75a378d6ca5c200e6ac5327c25153ef3a7317bbb736a1dbe2830da70deee216d",
     "case-plan.json": "7ac106ea67b7e990dfa19a4b3a0ae33b941b7b86a00b986f8ef56350c2bddf3a",
-    "controller11-linux.sh": "3b020fe0054fd95a84ab9f6eba1f89ce801eaab4a70c36f4b9fa560c76c7a820",
-    "controller11-win.ps1": "689e4a8cb38c0148e675f5660a7f79aaf5a70798bd91bf91843d21023c351f4a",
+    "controller11-linux.sh": "8b3d39dce8c2908d1f51fd218d4be7de2d99313bf7436fe82e8985d98ba1ff0f",
+    "controller11-win.ps1": "382422efdf69142f668a9442d1cba0e9d5d1562e2f28c659d8bc7174aa6fe5d8",
     "experiment.py": "bc0bcfcd9600baf991423ac49192f5f66f41cd37b98742142996d531609830e8",
     "fetch_extract.py": "db8351521b16da281a8e6774222a20e7d77077d31f3eb973b12de5061da991f7",
     "input-bindings.json": "bd9eade5efe8036815f9dc25f85a99ce1b329fd95e40388572d032b3a4abca92",
     "job_bridge11.cs": "b58fbe31353d3b09cacfc3e98068e10d0c2789156737cf2f1d3d47e3b4b93feb",
+    "local_binding_checks.py": "24029982de27ae83c3ce6b83b7ee2dc9d8b8bec55303142cda7791d6c0f5e58f",
     "metadata/SHA256SUMS.txt": "7ed7c353458a935439066a6a1d205520e5610458ec346dd8dbbf5c8882d28709",
     "metadata/SHA256SUMS.txt.sig": "bf4ff680a2c4816b08044c47bb05882f6268576dea30bc1a14e275cfab66e840",
     "metadata/SIGNING-PUBLIC-KEY.pub": "cc7038b2d98f856af97b58eb06619ff441fbe9b178da5396f61d1ccdf7a65e7c",
     "preflight_witness.py": "d2d508c4b55b1718bf7e86cc17909e9f2b6da0c1e3e7e9721008bbbff64fbfa7",
-    "qualifier.py": "539ed05ee8efefa8ca547e23c659ab1af0b28525d64481ea03c0ac774e5f7960",
-    "support.py": "20f5e73ca80c4d88576204c95edbd9331451dfa5747ffa434f7aee1799b315cb"
+    "qualifier.py": "d608be0196ac84f73ef44354ffe266cea342785b46b69b5e17139c9534bbc980",
+    "support.py": "ac49b05fd42515bd39811fca4fa7e14806d1612f0e5c2f4912c173858b27f375"
   },
   "schema": "tail11-ci-source-manifest/v1"
 }

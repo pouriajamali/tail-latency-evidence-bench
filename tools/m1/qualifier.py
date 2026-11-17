@@ -207,6 +207,9 @@ def process_modules():
         "trust":"DATA_ONLY_NOT_ADMISSION"} for r in rows]
     return rows,resolve
 
+def os_base_provider(path):
+    return path.name.lower() in OS_BASE and str(path.parent).lower()==r"c:\windows\system32"
+
 def inventory(bootstrap,stage,role,plans):
     import pathlib,hashlib,json,stat,time
     soft_stop=time.monotonic()+16
@@ -301,7 +304,7 @@ def inventory(bootstrap,stage,role,plans):
             bind(path)
         else:
             name=path.name.lower()
-            require(name in OS_BASE and str(path.parent).lower()==r"c:\windows\system32",
+            require(os_base_provider(path),
                     "UNEXPECTED_OS_PROVIDER")
             # OS hardlinks are permitted only in this explicit actual module/build TCB.
             info=path.stat()

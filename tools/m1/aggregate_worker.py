@@ -23,7 +23,8 @@ def fresh(p,data):
 def bootstrap(args):
     need(args.attachment.resolve().is_relative_to(OUT.resolve()) and sha(args.attachment)==args.attachment_sha,"FRAME_HASH")
     a=read(args.attachment)
-    t=read(WORK/"lease-ticket.json",16384)
+    ticket=OUT/"local-ticket.json" if os.environ.get("TAIL11_EXECUTION")=="LOCAL_CANONICAL" else WORK/"lease-ticket.json"
+    t=read(ticket,16384)
     need(a["runNonce"]==t["nonce"] and a["executionWindow"]==t["window"] and
          t["window"]["startUnix"]<=time.time()<t["window"]["deadlineUnix"]-30,"WHOLE_CLOCK")
     need(t["window"]["deadlineUnix"]-t["window"]["startUnix"]==300,"NO_CLOCK_RESET")
@@ -52,8 +53,9 @@ def qualify(a,args):
     source_paths["oracle.py"]=str(ROOT/"tools/oracle.py")
     source_paths["verify_downloads.py"]=str(ROOT/"tools/verify_downloads.py")
     q.cache_policy(sys.pycache_prefix)
-    q.install_audit(str(Path(sys.executable).parent),str(OUT),list(source_paths.values())+
-                    [str(args.attachment),str(WORK/"source-manifest.json"),str(WORK/"lease-ticket.json"),
+    lane_reads=[a["canonicalProtocolPath"],a["canonicalLeasePath"]] if a.get("execution")=="LOCAL_CANONICAL" else []
+    q.install_audit(str(Path(sys.executable).parent),str(OUT),lane_reads+list(source_paths.values())+
+                    [str(args.attachment),str(WORK/"source-manifest.json"),str(s.ticket_path()),
                      os.environ["TAIL11_ROOT_PROFILE"],a["sshKeygen"]["path"]])
     started=time.monotonic()
     try:
@@ -92,7 +94,7 @@ def qualify(a,args):
             need(first["status"]=="QUALIFIER_ROLE_COMPLETE" and first["runNonce"]==a["runNonce"],"ROLE1")
             previous=first["consumingFiles"];used+=first["newlyReadBytes"]
         source_bytes+=2*sum((WORK/n).stat().st_size for n in a["sourceHashes"])
-        source_bytes+=3*sum(p.stat().st_size for p in (args.attachment,WORK/"source-manifest.json",WORK/"lease-ticket.json"))
+        source_bytes+=3*sum(p.stat().st_size for p in (args.attachment,WORK/"source-manifest.json",s.ticket_path()))
         b={"sourcePaths":source_paths,"qualifierPath":str(WORK/"qualifier.py"),
            "frozenVerifier":{"path":str(ROOT/"tools/verify_downloads.py"),"sha256":s.VERIFIER_SHA},
            "sshKeygen":a["sshKeygen"],"readBytesAlready":used+source_bytes,"priorConsumingFiles":previous}
@@ -120,9 +122,11 @@ def stage_inputs(a,args):
     s.load_frame(args.attachment,args.attachment_sha,rid=args.rid)
     s.actual_profile(a,args.rid);s.verify_current_modules(a)
     deadline=a["executionWindow"]["deadlineUnix"]-30
-    route={"mode":"PUBLIC_API_NO_AUTH","authorityBinding":{"path":str(WORK/"lease-ticket.json"),"sha256":sha(WORK/"lease-ticket.json")},
+    route={"mode":"PUBLIC_API_NO_AUTH","authorityBinding":{"path":str(s.ticket_path()),"sha256":sha(s.ticket_path())},
            "retainedSmallAssets":{n:str(WORK/"metadata"/n) for n,_,_ in stage.ASSETS[:3]}}
-    raw=stage.acquire(read(WORK/"input-bindings.json"),WORK/"inputs",OUT/"staging",deadline,route,args.rid)
+    inputs=WORK/"inputs"/args.rid
+    evidence=OUT/"staging"/args.rid
+    raw=stage.acquire(read(WORK/"input-bindings.json"),inputs,evidence,deadline,route,args.rid)
     archive=stage.ASSETS[3 if args.rid=="win-x64" else 4][0]
     verifier=ROOT/"tools/verify_downloads.py"
     need(sha(verifier)==s.VERIFIER_SHA,"FROZEN_VERIFIER")
@@ -131,12 +135,12 @@ def stage_inputs(a,args):
     os.environ["PATH"]=str(ssh.parent)
     need(not any((x/"ssh-keygen.exe").exists() for x in (Path(sys.executable).parent,WORK,Path("C:/Windows/System32"),Path("C:/Windows"))) if os.name=="nt" else ssh==Path("/usr/bin/ssh-keygen"),"SSH_RESOLUTION")
     experiment.DEADLINE=deadline
-    verifywork=OUT/"staging/actual-known-key"
+    verifywork=evidence/"actual-known-key"
     code,stdout,stderr=experiment.bounded_child([sys.executable,"-I","-S","-B",str(verifier),"--directory",str(raw),
       "--work",str(verifywork),"--trusted-fingerprint",s.FINGERPRINT,"--archive",archive])
     need(code==0,"SIGNATURE_HOLD")
-    (WORK/"inputs/verification").mkdir(parents=True,exist_ok=True)
-    result=stage.extract(args.rid,raw,WORK/"inputs",OUT/"staging",verifywork/"receipt.json",deadline)
+    (inputs/"verification").mkdir(parents=True,exist_ok=True)
+    result=stage.extract(args.rid,raw,inputs,evidence,verifywork/"receipt.json",deadline)
     fresh(OUT/args.rid/"staged-input.json",result)
     s.storage_guard()
 

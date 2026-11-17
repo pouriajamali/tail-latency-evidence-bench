@@ -36,7 +36,13 @@ def fresh(path,value,cap=1048576):
     b=(json.dumps(value,sort_keys=True,separators=(",",":"))+"\n").encode("utf-8")
     need(len(b)<=cap,"PROOF_CAP")
     with p.open("xb") as f:f.write(b);f.flush();os.fsync(f.fileno())
+def ticket_path():
+    mode=os.environ.get("TAIL11_EXECUTION","CI_HANDOFF")
+    need(mode in ("CI_HANDOFF","LOCAL_CANONICAL"),"EXECUTION_MODE_UNKNOWN")
+    return OUT/"local-ticket.json" if mode=="LOCAL_CANONICAL" else HERE/"lease-ticket.json"
+
 def validate_ticket(t,now):
+    need(t.get("execution","CI_HANDOFF") in ("CI_HANDOFF","LOCAL_CANONICAL"),"EXECUTION_MODE_UNKNOWN")
     need(t["schema"]=="tail11-canonical-ci-ticket/v1" and t["projectId"]=="11" and
          t["purpose"]=="ONE_FIXED_RECORD_CAP_M1" and t["limits"]==LIMITS,"TICKET_SCOPE")
     need(t["repository"]=="pouriajamali/tail-latency-evidence-bench" and
@@ -57,27 +63,31 @@ def source_binding(ticket):
     need(sha(ROOT/"tools/oracle.py")==ORACLE_SHA and sha(ROOT/"tools/verify_downloads.py")==VERIFIER_SHA,"FROZEN_TOOLS")
     return m["files"]
 def lane_guard(ticket,frame):
-    if os.name=="nt":
+    local=ticket.get("execution","CI_HANDOFF")=="LOCAL_CANONICAL"
+    need(local==(os.environ.get("TAIL11_EXECUTION","CI_HANDOFF")=="LOCAL_CANONICAL"),"EXECUTION_MODE_BINDING")
+    if os.name=="nt" and not local:
         # Signed source-commit ticket is the approved controller handoff, not a copied lease.
         need(frame["signedTicketVerified"] is True and frame["sourceCommit"]==os.environ["GITHUB_SHA"] and
              str(frame["runId"])==os.environ["GITHUB_RUN_ID"] and frame["ticketSha256"]==sha(HERE/"lease-ticket.json"),"CI_HANDOFF")
     else:
         protocol=pathlib.Path(frame["canonicalProtocolPath"]).resolve()
         lease_path=pathlib.Path(frame["canonicalLeasePath"]).resolve()
-        need(hashlib.sha256(str(protocol).encode()).hexdigest()==ticket["canonicalLinuxProtocolPathSha256"] and
-             hashlib.sha256(str(lease_path).encode()).hexdigest()==ticket["canonicalLinuxLeasePathSha256"],"CANONICAL_PATHS")
+        need(hashlib.sha256(str(protocol).encode()).hexdigest()==ticket["canonicalWindowsProtocolPathSha256" if os.name=="nt" else "canonicalLinuxProtocolPathSha256"] and
+             hashlib.sha256(str(lease_path).encode()).hexdigest()==ticket["canonicalWindowsLeasePathSha256" if os.name=="nt" else "canonicalLinuxLeasePathSha256"],"CANONICAL_PATHS")
         need(sha(protocol)==PROTOCOL_SHA,"CANONICAL_PROTOCOL")
         policy=read(protocol,32768)
-        need("11" in policy["participants"] and pathlib.Path(policy["canonicalLeaseLinux"]).resolve()==lease_path,"CANONICAL_POLICY")
+        need("11" in policy["participants"] and pathlib.Path(policy["canonicalLeaseWindows" if os.name=="nt" else "canonicalLeaseLinux"]).resolve()==lease_path and
+             (os.name!="nt" or pathlib.Path(policy["authoritativePolicy"]).resolve()==protocol),"CANONICAL_POLICY")
         lease=read(lease_path,8192)
         need(lease["projectId"]=="11" and lease["randomToken"]==ticket["nonce"] and
              lease["ownerPID"]==ticket["ownerPID"] and lease["ownerProcessStartIdentity"]==ticket["ownerStartIdentity"],"CANONICAL_OWNER")
 def load_frame(path,digest,phase=None,rid=None):
     p=pathlib.Path(path).resolve();need(OUT.resolve() in p.parents and sha(p)==digest,"FRAME_PATH")
-    a=read(p);t=validate_ticket(read(HERE/"lease-ticket.json",16384),int(time.time()))
+    a=read(p);t=validate_ticket(read(ticket_path(),16384),int(time.time()))
     need(a["schema"]=="tail11-ci-runtime/v1" and a["projectId"]=="11" and
          a["runNonce"]==t["nonce"] and a["executionWindow"]==t["window"] and a["limits"]==LIMITS,"FRAME_SCOPE")
     need(a["sourceHashes"]==source_binding(t),"FRAME_SOURCE")
+    need(a["ticketSha256"]==sha(ticket_path()),"FRAME_TICKET")
     lane_guard(t,a)
     if rid:need(rid==("win-x64" if os.name=="nt" else "linux-x64"),"PLATFORM")
     if phase in ("case","validate"):

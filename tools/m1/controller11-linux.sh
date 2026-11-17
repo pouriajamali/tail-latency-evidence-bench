@@ -20,7 +20,7 @@ systemd-run --user --quiet --wait --pipe --unit="$unit" \
  --property=TimeoutStopSec=1 --property=KillMode=control-group \
  --working-directory="$WORK" --setenv="TAIL11_ROOT_NONCE=$nonce" \
  --setenv="TAIL11_ROOT_UNIT=$unit" --setenv=WSL_DISTRO_NAME=Ubuntu-24.04 \
- --setenv=PYTHONDONTWRITEBYTECODE=1 --setenv="TMPDIR=$OUT/tmp" \
+ --setenv="TAIL11_EXECUTION=${TAIL11_EXECUTION:-CI_HANDOFF}" --setenv=PYTHONDONTWRITEBYTECODE=1 --setenv="TMPDIR=$OUT/tmp" \
  --setenv="TEMP=$OUT/tmp" --setenv="TMP=$OUT/tmp" \
  /usr/bin/python3 -I -S -B "$WORK/aggregate_worker.py" --attachment "$attachment" \
  --attachment-sha "$attachment_sha" --role linux-root --rid linux-x64
