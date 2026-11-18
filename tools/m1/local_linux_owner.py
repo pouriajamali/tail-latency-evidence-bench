@@ -6,8 +6,8 @@ O=R.parent/'outputs/wave4-m1-record-cap-20261116'
 D=R/'tools/m1'
 PROTOCOL=Path(r'E:\Codex WorkSpace\Git Projects\portfolio-management\development-management-20261110\wave2-state\LEASE-PROTOCOL.json')
 LEASE=PROTOCOL.with_name('LOCAL-FIXTURE-LEASE.json')
-RUN=O/'linux-owned-ssh-native-null-fix-20261118'
-MODE='signature'
+RUN=O/'linux-loader-static-file-once-20261118'
+MODE='loader-static'
 CLAIMED=False;TERMINAL=False;ticket=None;mono=None;child=None
 def need(v,c):
     if not v:raise RuntimeError(c)
@@ -41,7 +41,7 @@ def main():
     CLAIMED=True;started=time.time();mono=time.monotonic();ticket={'nonce':nonce,'ownerPID':os.getpid(),'ownerBirth':owner_birth,'window':{'startUnix':started,'deadlineUnix':started+300}}
     holder={'projectId':'11','randomToken':nonce,'ownerOS':'Windows','ownerPID':os.getpid(),'ownerProcessStartIdentity':owner_birth,'phase':'LINUX_SIGNATURE_ROLE_'+MODE.upper(),'startedAtUtc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime(started)),'receiptDirectory':str(RUN),'executionWindow':ticket['window']}
     with lf:lf.write((json.dumps(holder,sort_keys=True,indent=2)+'\n').encode());lf.flush();os.fsync(lf.fileno())
-    fresh(RUN/'lease-claimed.json',{'holder':holder,'postAtomicClaimClock':True,'window':ticket['window'],'cause':'Recorded native loader IRELATIVE resolver returned NULL; compare child slot to exact verified native zero instead of requiring an executable provider for a disabled optional slot; non-null targets retain all prior checks, no ignored relocation or healthy metadata replay','handoffSHA256':sha(O/'OWN02-TO-TAIL-LINUX-ROLE-HANDOFF-20261118.json'),'wholeSeconds':300,'authoritySHA256':sha(O/'LINUX-SIGNATURE-BROAD-CONTINUATION-AUTHORITY-20261118.json')})
+    fresh(RUN/'lease-claimed.json',{'holder':holder,'postAtomicClaimClock':True,'window':ticket['window'],'cause':'Need exact retained loader bytes for actual RVA222112 static analysis; ad-hoc WSL command timed out, independent05 host receipt now shows UbuntuStopped; use existing direct-file capped launcher for one236616B data-only read, ordinary existing Ubuntu start only, no SSH/metadata/test/recovery/reset','handoffSHA256':sha(O/'OWN02-TO-TAIL-LINUX-ROLE-HANDOFF-20261118.json'),'wholeSeconds':300,'authoritySHA256':sha(O/'LINUX-SIGNATURE-BROAD-CONTINUATION-AUTHORITY-20261118.json')})
     frame={'schema':'tail11-linux-role-frame/v1','mode':MODE,**ticket,'sourceDirectory':linux(D),'sourceHashes':m['files'],'sourceManifestSHA256':sha(D/'source-manifest.json'),'hostOutputLinuxPath':linux(RUN),'protocolLinuxPath':linux(PROTOCOL),'leaseLinuxPath':linux(LEASE),'limits':{'memory':536870912,'swap':0,'pids':64,'cpuQuota':200000,'cpuPeriod':100000,'whole':300,'work':270,'terminal':30,'role':20,'qualification':60,'read':67108864,'roleProof':262144,'allRoleProof':1048576,'scratch':1073741824}}
     frame['metadataInput']={'path':linux(O/'linux-role-metadata-exact-package-fix-20261118/metadata.json'),'sha256':'8b1d6345f7ae58a9357aa194ced570458c76e799d056fe8e034daa3c0f2b9bef'}
     fp=RUN/'frame.json';fresh(fp,frame);need(remaining()>60,'NO_TIME_FOR_ROLE')
@@ -49,9 +49,9 @@ def main():
     child=subprocess.Popen(argv,cwd=R,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.PIPE,creationflags=0x08000400)
     out,err=child.communicate(timeout=max(.001,remaining(2)));need(len(out)+len(err)<=262144,'SUPERVISOR_STDIO_CAP')
     terminal=read(RUN/'linux-role-terminal.json',262144);need(terminal['nonce']==ticket['nonce'] and terminal['frameSHA256']==sha(fp) and terminal['allOwnedTerminal'] is True and (terminal['originalWaitpidReturned'] is True or terminal.get('noOwnedChildCreated') is True) and terminal['cgroupEmpty'] and (terminal['cgroupRemoved'] or terminal.get('cgroupNeverCreated') is True),'ALL_OWNED_TERMINAL');TERMINAL=True
-    observation_name='metadata.json' if MODE=='metadata' else 'signature-proof.json'
+    observation_name={'metadata':'metadata.json','signature':'signature-proof.json','loader-static':'loader-static.json'}[MODE]
     observation=read(RUN/observation_name,262144) if (RUN/observation_name).exists() else None
-    fresh(RUN/'FINAL.json',{'schema':'tail11-linux-role-owner-final/v1','status':observation['status'] if child.returncode==0 and observation and observation['status'] in ('METADATA_COMPLETE_NOT_ADMISSION','QUALIFIED_LINUX_MANIFEST_SIGNATURE') else 'ROLE_HOLD','mode':MODE,'childPID':child.pid,'originalPopenWaitReturned':True,'returncode':child.returncode,'allOwnedTerminal':True,'window':ticket['window'],'terminalSHA256':sha(RUN/'linux-role-terminal.json'),'observationSHA256':sha(RUN/observation_name) if observation else None,'stdoutSHA256':hashlib.sha256(out).hexdigest(),'stderrSHA256':hashlib.sha256(err).hexdigest(),'stderrDiagnostic':err.decode('utf-8','replace')[:4096],'signatureInvocations':observation.get('signatureExecAttempts',0) if observation else 0,'nativeM1Calls':0,'Actions':0,'admissionClaimed':bool(observation and observation.get('admitted') is True and child.returncode==0)})
+    fresh(RUN/'FINAL.json',{'schema':'tail11-linux-role-owner-final/v1','status':observation['status'] if child.returncode==0 and observation and observation['status'] in ('METADATA_COMPLETE_NOT_ADMISSION','QUALIFIED_LINUX_MANIFEST_SIGNATURE','EXACT_LOADER_DATA_ONLY') else 'ROLE_HOLD','mode':MODE,'childPID':child.pid,'originalPopenWaitReturned':True,'returncode':child.returncode,'allOwnedTerminal':True,'window':ticket['window'],'terminalSHA256':sha(RUN/'linux-role-terminal.json'),'observationSHA256':sha(RUN/observation_name) if observation else None,'stdoutSHA256':hashlib.sha256(out).hexdigest(),'stderrSHA256':hashlib.sha256(err).hexdigest(),'stderrDiagnostic':err.decode('utf-8','replace')[:4096],'signatureInvocations':observation.get('signatureExecAttempts',0) if observation else 0,'nativeM1Calls':0,'Actions':0,'admissionClaimed':bool(observation and observation.get('admitted') is True and child.returncode==0)})
 try:main()
 except Exception as e:
     if child is None:TERMINAL=True

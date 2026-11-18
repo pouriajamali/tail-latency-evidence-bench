@@ -13,7 +13,7 @@ def proc(pid):
 def main():
     p=argparse.ArgumentParser();p.add_argument('--frame',required=True);p.add_argument('--frame-sha',required=True);a=p.parse_args();f=json.loads(Path(a.frame).read_bytes())
     need(sha(a.frame)==a.frame_sha and f['schema']=='tail11-linux-role-frame/v1' and os.getuid()==0,'FIXED_ROOT_LAUNCH')
-    need(f['mode'] in ('metadata','signature') and re.fullmatch('[0-9a-f]{32}',f['nonce']) is not None,'FIXED_ROLE')
+    need(f['mode'] in ('metadata','signature','loader-static') and re.fullmatch('[0-9a-f]{32}',f['nonce']) is not None,'FIXED_ROLE')
     need(time.time()<f['window']['deadlineUnix']-30 and f['window']['deadlineUnix']-f['window']['startUnix']==300,'WHOLE_CLOCK')
     source=Path(f['sourceDirectory']);out=Path(f['hostOutputLinuxPath']);need(out.is_dir(),'OWN_OUTPUT')
     for n,h in f['sourceHashes'].items():need(sha(source/n)==h,'SOURCE_BINDING')
@@ -30,7 +30,7 @@ def main():
         for n,v in {'cpu.max':'200000 100000','memory.max':'536870912','memory.swap.max':'0','pids.max':'64'}.items():(cg/n).write_text(v)
         need((cg/'cpu.max').read_text().strip()=='200000 100000' and (cg/'memory.max').read_text().strip()=='536870912' and (cg/'memory.swap.max').read_text().strip()=='0' and (cg/'pids.max').read_text().strip()=='64','ACTUAL_CAPS_BEFORE_FORK')
         gf=dict(f);gf['guestOutputPath']=str(guest);gp=guest/'frame.json';fresh(gp,gf);os.chown(gp,1000,1000)
-        module='linux_role_probe' if f['mode']=='metadata' else 'linux_ssh_role'
+        module={'metadata':'linux_role_probe','signature':'linux_ssh_role','loader-static':'linux_static_input'}[f['mode']]
         need(module+'.py' in f['sourceHashes'],'FIXED_ENTRY_SOURCE')
         child=os.fork()
         if child==0:
@@ -74,7 +74,7 @@ def main():
         end=min(time.time()+10,f['window']['deadlineUnix'])
         while (cg/'cgroup.procs').read_text().split() and time.time()<end:time.sleep(.01)
         empty=not (cg/'cgroup.procs').read_text().split();events=(cg/'cgroup.events').read_text().strip();need(empty and re.search(r'^populated 0$',events,re.M) is not None,'OWN_CGROUP_TERMINAL_UNKNOWN')
-        names=('metadata.json','profile.json','signature-proof.json','signature-controls.json','elf-closure.json')
+        names=('metadata.json','profile.json','signature-proof.json','signature-controls.json','elf-closure.json','loader-static.json','loader.elf')
         files={};total=0
         for name in names:
             src=guest/name

@@ -100,6 +100,22 @@ def biases(rows,images):
 def memory(fd,address,n):
     need(0<n<=16777216,'OWN_MEMORY_READ_BOUND');b=os.pread(fd,n,address);need(len(b)==n,'OWN_MEMORY_SHORT_READ');return b
 
+def hold_python_consumer(meta,owned,handles):
+    """Reuse the declared metadata set; check current file identities/hashes only."""
+    rows={r['path']:r for r in meta['pythonVendorFiles']};paths={str(Path(sys.executable).resolve())}
+    for mod in list(sys.modules.values()):
+        for value in (getattr(mod,'__file__',None),getattr(mod,'__cached__',None)):
+            if value and Path(value).is_file():paths.add(str(Path(value).resolve()))
+    held=[];read=0
+    for path in sorted(paths-owned):
+        need(path in rows,'UNDECLARED_PYTHON_CONSUMER_FILE');row=rows[path]
+        fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_CLOEXEC);handles.append(fd);st=os.fstat(fd)
+        need(stat.S_ISREG(st.st_mode) and st.st_uid==0 and not st.st_mode&0o022 and st.st_size==row['identity']['bytes'],'PYTHON_CONSUMER_FILE_IDENTITY')
+        body=os.pread(fd,st.st_size,0) if st.st_size else b'';read+=len(body)
+        need(len(body)==st.st_size and hashlib.sha256(body).hexdigest()==row['sha256'] and identity(st)==identity(os.fstat(fd)),'PYTHON_CONSUMER_FILE_HASH')
+        held.append({'path':path,'fd':fd,'identity':identity(st),'sha256':row['sha256']})
+    need(len(paths)<=256 and read<=33554432,'PYTHON_CONSUMER_BOUNDS');return held,read
+
 def binding_rows(trace,known):
     global LAST_ELF_EVENT
     result={};edges=[]
@@ -255,7 +271,9 @@ def attest(pid,images,held,trace,end):
                         if p==path and a<=where and where+8<=z:expected[where-a:where-a+8]=value
                     actual=memory(childfd,a,z-a)
                     if actual!=expected:
-                        first=next(i for i,(x,y) in enumerate(zip(actual,expected)) if x!=y);LAST_ELF_EVENT.update(firstMismatchVaddr=a-base[path]+first,actualHex=actual[first:first+8].hex(),expectedHex=bytes(expected[first:first+8]).hex())
+                        first=next(i for i,(x,y) in enumerate(zip(actual,expected)) if x!=y);where=a-base[path]+first
+                        owners=[{'name':s['name'],'value':s['value'],'size':s['size'],'version':s['version']} for s in im.symbols if s['name'] and s['section'] and s['value']<=where<s['value']+max(1,s['size'])]
+                        LAST_ELF_EVENT.update(firstMismatchVaddr=where,actualHex=actual[first:first+8].hex(),expectedHex=bytes(expected[first:first+8]).hex(),definedObjectOwners=owners[:8])
                         raise S.Hold('READONLY_ELF_IMAGE_MISMATCH')
                     robytes+=len(actual)
                     readonly.append({'path':path,'segmentVaddr':seg['vaddr'],'bytes':len(actual),'sha256':hashlib.sha256(actual).hexdigest()})
@@ -353,6 +371,8 @@ def main():
             held[path]={'identity':identity(st),'sha256':row['sha256'],'fd':fd};images[path]=Image(path,body)
         need(budget<=33554432,'ELF_FILE_READ_BOUND')
         vp=source.parent/'verify_downloads.py';need(S.sha(vp)==S.VERIFIER_SHA,'FROZEN_VERIFIER');sys.path.insert(0,str(source.parent));import verify_downloads
+        own={str((source/n).resolve()) for n in f['sourceHashes']}|{str(vp.resolve())}
+        consumer,consumer_bytes=hold_python_consumer(meta,own,handles);budget+=consumer_bytes
         inputs={};expected={'SHA256SUMS.txt':('7ed7c353458a935439066a6a1d205520e5610458ec346dd8dbbf5c8882d28709',373),'SHA256SUMS.txt.sig':('bf4ff680a2c4816b08044c47bb05882f6268576dea30bc1a14e275cfab66e840',294),'SIGNING-PUBLIC-KEY.pub':('cc7038b2d98f856af97b58eb06619ff441fbe9b178da5396f61d1ccdf7a65e7c',113)}
         for n,(h,size) in expected.items():
             b=(source/'metadata'/n).read_bytes();need(len(b)==size and hashlib.sha256(b).hexdigest()==h,'PUBLIC_SIGNATURE_INPUT');inputs[n]=b
@@ -367,6 +387,8 @@ def main():
         negative=child_run(argv,inputs['SHA256SUMS.txt'],guest,'changed-signature',images,held,end,False);need(negative['exitCode']!=0,'ALTERED_SIGNATURE_NOT_REJECTED');result['negativeSignature']=negative
         for path,row in held.items():
             st=os.fstat(row['fd']);need(identity(st)==row['identity'],'HELD_THROUGH_TERMINAL_IDENTITY');body=os.pread(row['fd'],st.st_size,0);budget+=len(body);need(hashlib.sha256(body).hexdigest()==row['sha256'],'HELD_THROUGH_TERMINAL_HASH')
+        for row in consumer:
+            st=os.fstat(row['fd']);need(identity(st)==row['identity'],'PYTHON_CONSUMER_TERMINAL_IDENTITY');body=os.pread(row['fd'],st.st_size,0) if st.st_size else b'';budget+=len(body);need(hashlib.sha256(body).hexdigest()==row['sha256'],'PYTHON_CONSUMER_TERMINAL_HASH')
         read_total=budget+positive['closure']['readOnlyBytes']+positive['closure']['validatedRelocations']*16+sum(r['traceAndOutputReadBytes'] for r in (positive,result['negativeManifest'],negative))+1048576
         need(read_total<=67108864 and time.time()<end,'SIGNATURE_ROLE_BOUNDS')
         result.update(status='QUALIFIED_LINUX_MANIFEST_SIGNATURE',admitted=True,fingerprint=fp,namespace='file',identity='pouriajamali',publicSignatureInputs={n:h for n,(h,_) in expected.items()},heldFilesThroughTerminal=True,readOnlyImageMatches=True,unresolved=[],metadataSHA256=f['metadataInput']['sha256'],sourceHashes=f['sourceHashes'],window=f['window'],roleSeconds=20-(end-time.time()),fileReadBytes=budget,readBytesWithConservativeReserve=read_total)
