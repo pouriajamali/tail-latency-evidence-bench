@@ -2,7 +2,7 @@
 from pathlib import Path
 import ctypes,hashlib,json,os,re,subprocess,time
 O=Path(r'E:\Codex WorkSpace\Git Projects\tail-latency-evidence-bench\outputs\wave4-m1-record-cap-20261116')
-A=O/'five-cert-flags-fixed-source-20261118';M=O/'five-cert-flags-fixed-once-20261118'
+A=O/'three-exact-cdp-source-20261118';M=O/'three-exact-cdp-once-20261118'
 R=Path(r'E:\Codex WorkSpace\Git Projects\tail-latency-evidence-bench\worktree-wave4-m1-20261117')
 PROTOCOL=Path(r'E:\Codex WorkSpace\Git Projects\portfolio-management\development-management-20261110\wave2-state\LEASE-PROTOCOL.json');LEASE=PROTOCOL.with_name('LOCAL-FIXTURE-LEASE.json')
 SCOPE=O/'OWNED-SSH-ALL-GAPS-TECHNICAL-SCOPE.json'
@@ -11,7 +11,7 @@ PS=Path(r'C:\Program Files\WindowsApps\OpenAI.CodexPrimaryRuntime.v26-1112-611-0
 OLD_TIMESTAMP_SOURCE=O/'two-expired-signers-timestamp-source-20261118/exact_two_timestamp_reader.cs'
 OLD_TIMESTAMP_INSPECTOR=O/'two-expired-signers-timestamp-source-20261118/two_timestamp_proofs.ps1'
 HANDOFF=O/'EXECUTION02-TO-TAIL-HANDOFF-20261118.json'
-AUTHORITY=O/'DIRECT-RETRY-FLAGS-FIX-20261118.json'
+AUTHORITY=O/'THREE-CDP-NETWORK-AUTHORITY-20261118.json'
 claimed=False;all_terminal=False;ticket=None;mono=None;child=None
 def need(v,c):
  if not v:raise RuntimeError(c)
@@ -55,6 +55,7 @@ def main():
  need(handoff['schema']=='execution02-to-tail-canonical-handoff/v1' and handoff['sourceThreadId']=='01a1c661-0902-70d3-8cef-74af44ffc600' and handoff['allOwnedTerminal'] is True and handoff['exactOwnLeaseReleased'] is True and handoff['projectId']=='02' and handoff['canonicalLeasePath']==str(LEASE),'EXPLICIT_IDENTITY_BOUND_HANDOFF_REQUIRED')
  need(authority['actionSHA256']==sha(A/'ACTION.json')=='d8a83d86c8db9dada60c697560e1c1983c12b4fa571ce78be6169d4fd2cb9f3f' and authority['clockStartsOnlyAfterAtomicClaim'] is True,'POST_CLAIM_CLOCK_AUTHORITY')
  need(sha(O/'TWO-EXPIRED-SIGNERS-TIMESTAMP-NEXT-ACTION.json')=='1d38f2af453d2664b15974b24381293f0b35f203a6d5e3a8040fdc6126232a32','EXACT_TIMESTAMP_AUTHORITY');scope=read(SCOPE,16384);need(scope['actionSHA256']==sha(ACTION)=='b1bb79cb22ec3f437280c0eaba45afb992a53c037f01e532dc0ebcfcda1666f0' and len(scope['exactAdditionalPaths'])==6,'EXACT_ALL_GAPS_SCOPE')
+ need(authority['networkActionSHA256']==sha(A/'NETWORK-ACTION.json')=='6e9c1da2b641c11068ddb21322a1a2f4c8f24e10e744777cc050c17281ffdff4','EXACT_THREE_GET_AUTHORITY')
  need(sha(PROTOCOL)=='9120ca49a0d46673053aa0ec0cdbbc6f00731d71ea0b57ddab09e8fc3ac3ac8b','CANONICAL_PROTOCOL')
  policy=read(PROTOCOL,32768);need('11' in policy['participants'] and policy['canonicalLeaseWindows']==str(LEASE) and policy['authoritativePolicy']==str(PROTOCOL),'CANONICAL_POLICY')
  nonce=os.urandom(16).hex();birth=owner_start()
@@ -79,9 +80,10 @@ def main():
   'preparedActionPath':str(ACTION),'preparedActionSha256':sha(ACTION),'protocolPath':str(PROTOCOL),'leasePath':str(LEASE),
   'providerReaderPath':str(A/'provider_file_reader.cs'),'providerReaderSha256':sha(A/'provider_file_reader.cs'),'crlProofPath':str(O/'eset-current-crl-once-20261117/provider-file-observation.json'),'crlProofSha256':sha(O/'eset-current-crl-once-20261117/provider-file-observation.json'),'sourcePath':str(A/'owned_ssh_all_gaps.py'),'sourceSha256':sha(A/'owned_ssh_all_gaps.py'),
   'inspectorPath':str(A/'owned_ssh_all_gaps.py'),'inspectorSha256':sha(A/'owned_ssh_all_gaps.py'),
-  'helperPath':str(A/'crypto_held_reader.py'),'helperSha256':sha(A/'crypto_held_reader.py'),'allHelpers':{str(A/n):sha(A/n) for n in ('six_held_readers.py','eset_held_reader.py','five_current_revocation.py','crl_der.py')},'exactAdditionalPaths':scope['exactAdditionalPaths'],'actionSHA256':sha(ACTION),'sixNativeSourcePath':str(OLD_TIMESTAMP_SOURCE),'sixNativeSourceSHA256':sha(OLD_TIMESTAMP_SOURCE),'sixNativeInspectorPath':str(OLD_TIMESTAMP_INSPECTOR),'sixNativeInspectorSHA256':sha(OLD_TIMESTAMP_INSPECTOR),'pwshPath':str(PS),'bridgePath':str(R/'tools/m1/job_bridge11.cs'),'fileProof':{'path':str(O/'libcrypto-exact-read-once-20261117/provider-file-observation.json'),'sha256':sha(O/'libcrypto-exact-read-once-20261117/provider-file-observation.json')},'catalogProof':{'path':str(O/'libcrypto-catalog-once-20261117/provider-file-observation.json'),'sha256':sha(O/'libcrypto-catalog-once-20261117/provider-file-observation.json')},'receiptPath':str(M/'provider-file-observation.json')}
+  'helperPath':str(A/'crypto_held_reader.py'),'helperSha256':sha(A/'crypto_held_reader.py'),'allHelpers':{str(A/n):sha(A/n) for n in ('six_held_readers.py','eset_held_reader.py','five_current_revocation.py','crl_der.py','exact_cdp_download.py')},'exactAdditionalPaths':scope['exactAdditionalPaths'],'actionSHA256':sha(ACTION),'sixNativeSourcePath':str(OLD_TIMESTAMP_SOURCE),'sixNativeSourceSHA256':sha(OLD_TIMESTAMP_SOURCE),'sixNativeInspectorPath':str(OLD_TIMESTAMP_INSPECTOR),'sixNativeInspectorSHA256':sha(OLD_TIMESTAMP_INSPECTOR),'pwshPath':str(PS),'bridgePath':str(R/'tools/m1/job_bridge11.cs'),'fileProof':{'path':str(O/'libcrypto-exact-read-once-20261117/provider-file-observation.json'),'sha256':sha(O/'libcrypto-exact-read-once-20261117/provider-file-observation.json')},'catalogProof':{'path':str(O/'libcrypto-catalog-once-20261117/provider-file-observation.json'),'sha256':sha(O/'libcrypto-catalog-once-20261117/provider-file-observation.json')},'receiptPath':str(M/'provider-file-observation.json')}
  frame.update(timestampActionPath=str(O/'TWO-EXPIRED-SIGNERS-TIMESTAMP-NEXT-ACTION.json'),timestampActionSHA256='1d38f2af453d2664b15974b24381293f0b35f203a6d5e3a8040fdc6126232a32',existingFileProofs=read(O/'TWO-EXPIRED-SIGNERS-TIMESTAMP-NEXT-ACTION.json')['existingFileProofs'],exactTimestampPaths=[r['path'] for r in read(O/'TWO-EXPIRED-SIGNERS-TIMESTAMP-NEXT-ACTION.json')['exactFailedInputs']])
  frame.update(revocationActionPath=str(A/'ACTION.json'),revocationActionSHA256=sha(A/'ACTION.json'),existingTimestampProofSHA256='994401e2a42138ccb823d525a8dbdb74785cafc2bf17cfdd51a9f34c5919febe')
+ frame.update(downloadActionPath=str(A/'NETWORK-ACTION.json'),downloadActionSHA256=sha(A/'NETWORK-ACTION.json'),downloadSourcePath=str(A/'exact_cdp_download.py'),downloadSourceSHA256=sha(A/'exact_cdp_download.py'))
  fresh(M/'permit.json',frame);fresh(M/'once-intent.json',{'attempts':1,'dataOnly':True,'revocationCertificateCount':5,'conditionalMappingFileCount':6,'timestampReplays':0,'sourceHashes':{p.name:sha(p) for p in A.iterdir() if p.is_file()},'managerSha256':sha(__file__),'window':ticket['window'],'GitHubActions':0})
  state('EXACT_PROVIDER_DATA_READ_RUNNING')
  child=subprocess.Popen([str(PS),'-NoProfile','-NonInteractive','-File',str(A/'provider_read_controller.ps1')],cwd=R,stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,creationflags=0x08000000)

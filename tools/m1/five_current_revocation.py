@@ -1,4 +1,4 @@
-"""Exact catalog metadata/cache lookup prefix ran; no CRL artifact was available for acceptance."""
+"""Exact provided CRL proof: four certificates passed; one lacked required nextUpdate."""
 from pathlib import Path
 import ctypes,contextlib,base64,hashlib,json,os,time,struct,datetime
 import crl_der as D
@@ -104,6 +104,8 @@ def entry(f):
  action=S.read(f['revocationActionPath']);D.need(S.sha(f['revocationActionPath'])==f['revocationActionSHA256'],'REVOCATION_ACTION')
  result={'schema':'tail11-five-current-crl-artifacts/v1','status':'HOLD','artifacts':[],'records':[],'cacheRequests':[],'networkRequests':0,'clockTrustStoreCacheOrProtectionChanged':False,'healthyTestsReplayed':0,'timestampValidationsReplayed':0,'nonce':f['nonce'],'actionSHA256':f['revocationActionSHA256']}
  out=Path(f['receiptPath']).parent;native=Native();io=native.reads();contexts=[]
+ provided=S.read(f['providedArtifactProofPath'],65536);D.need(S.sha(f['providedArtifactProofPath'])==f['providedArtifactProofSHA256'] and provided['actionSHA256']=='6e9c1da2b641c11068ddb21322a1a2f4c8f24e10e744777cc050c17281ffdff4' and provided['nonce']==f['nonce'] and provided['withinRoleCap'] is True,'PROVIDED_ARTIFACT_MANIFEST');result['networkRequests']=provided['networkRequestsKnown'];result['networkRequestsUpperBound']=provided['networkRequestsUpperBound'];result['providedObjectReads']=[]
+ provided_by_url={r['url']:r for r in provided['rows']};D.need(len(provided_by_url)==3,'THREE_EXACT_PROVIDED_OBJECT_RESULTS')
  try:
   for key in ('gap','timestamps','catalogEvidence','rootDER'):D.need(S.sha(action[key]['path'])==action[key]['sha256'],'PRIOR_EXACT_METADATA_HASH')
   old=S.read(action['timestamps']['path']);gap=S.read(action['gap']['path']);prior=S.read(action['catalogEvidence']['path'])
@@ -126,14 +128,16 @@ def entry(f):
     for urlb in uris:
      clock();url=urlb.decode('ascii')
      if url not in requests:
-      D.need(len(requests)<5,'CACHE_REQUEST_COUNT_CAP');body,err=native.cached(url);requests[url]=(body,err);result['cacheRequests'].append({'url':url,'flags':CACHE_RETRIEVAL_FLAGS,'maximumBytes':1048576,'cacheOnly':True,'success':body is not None,'error':err})
+      D.need(len(requests)<3 and url in provided_by_url,'EXACT_APPROVED_PROVIDED_URL');item=provided_by_url[url];body=None;err=item.get('code','UNAVAILABLE')
+      if item['status']=='HTTP200_BOUNDED_BYTES_NOT_YET_CRL_ACCEPTED':
+       pp=Path(item['path']);D.need(pp.parent==out and pp.name=='download-'+str(item['index'])+'.der' and 0<item['bytes']<=1048576,'PRIVATE_ARTIFACT_PATH_AND_SIZE');body=S.raw(pp,1048576);D.need(len(body)==item['bytes'] and D.sha(body)==item['sha256'],'PRODUCER_CONSUMER_ARTIFACT_HASH');err=0
+      requests[url]=(body,err);result['providedObjectReads'].append({'url':url,'success':body is not None,'producerStatus':item['status'],'code':err})
       if body is not None:
        D.need(len(result['artifacts'])<5 and artifactBytes+len(body)<=5242880,'FIVE_ARTIFACT_5M_CAP');artifactBytes+=len(body)
-       fp=out/('current-revocation-artifact-'+str(len(result['artifacts']))+'.der')
-       with fp.open('xb') as w:w.write(body);w.flush();os.fsync(w.fileno())
-       result['artifacts'].append({'path':str(fp),'bytes':len(body),'sha256':D.sha(body),'sourceSignedCDPURL':url})
+       fp=Path(item['path'])
+       result['artifacts'].append({'path':str(fp),'bytes':len(body),'sha256':D.sha(body),'sourceSignedCDPURL':url,'producerReceiptSHA256':item.get('receiptSHA256')})
      body,err=requests[url]
-     if body is None:record['attempts'].append({'url':url,'code':'EXACT_CACHE_OBJECT_UNAVAILABLE','nativeError':err});continue
+     if body is None:record['attempts'].append({'url':url,'code':'EXACT_PROVIDED_OBJECT_UNAVAILABLE','nativeError':err});continue
      try:
       now=int(time.time());rc=D.crl_data(body,now);D.need(rc['thisUpdate']<=now<rc['nextUpdate'],'CURRENT_CRL_INTERVAL');D.need(rc['issuerDER']==issuer['subjectDER'] and rc['AKI']==issuer['SKI'],'CRL_ISSUER_KEY_BINDING')
       D.need(not rc['scopeURIs'] or bool(set(uris)&set(rc['scopeURIs'])),'SIGNED_CDP_IDP_SCOPE')
