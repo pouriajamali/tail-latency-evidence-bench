@@ -6,8 +6,8 @@ O=R.parent/'outputs/wave4-m1-record-cap-20261116'
 D=R/'tools/m1'
 PROTOCOL=Path(r'E:\Codex WorkSpace\Git Projects\portfolio-management\development-management-20261110\wave2-state\LEASE-PROTOCOL.json')
 LEASE=PROTOCOL.with_name('LOCAL-FIXTURE-LEASE.json')
-RUN=O/'linux-loader-static-file-once-20261118'
-MODE='loader-static'
+RUN=O/'windows-official-debug-after-product04-terminal-20261118'
+MODE='windows-data'
 CLAIMED=False;TERMINAL=False;ticket=None;mono=None;child=None
 def need(v,c):
     if not v:raise RuntimeError(c)
@@ -29,8 +29,8 @@ def remaining(reserve=30):return min(ticket['window']['deadlineUnix']-time.time(
 def main():
     global CLAIMED,TERMINAL,ticket,mono,child
     need(not RUN.exists(),'NO_PHASE_REPLAY');RUN.mkdir()
-    h=read(O/'OWN02-TO-TAIL-LINUX-ROLE-HANDOFF-20261118.json',16384)
-    need(h['sourceThreadId']=='01a1c661-0902-70d3-8cef-74af44ffc600' and h['actualTerminalReleaseEvent'] is True and sha(h['releaseReceipt']['path'])==h['releaseReceipt']['sha256'],'02_HANDOFF')
+    h=read(O/'OWN04-PRODUCT05-TO-TAIL-DATA-HANDOFF-20261118.json',16384)
+    need(h['sourceThreadId']=='01a1c661-2773-7f81-9ae7-c5756abd8095' and h['actualTerminalReleaseEvent'] is True and sha(h['releaseReceipt']['path'])==h['releaseReceipt']['sha256'],'04_STATIC_HANDOFF')
     need(sha(PROTOCOL)=='9120ca49a0d46673053aa0ec0cdbbc6f00731d71ea0b57ddab09e8fc3ac3ac8b','CANONICAL_PROTOCOL')
     m=read(D/'source-manifest.json');need(len(m['files'])<=32,'SOURCE_SET')
     for n,hv in m['files'].items():need(sha(D/n)==hv,'SOURCE_BINDING')
@@ -39,19 +39,28 @@ def main():
     except FileExistsError:
         fresh(RUN/'FINAL.json',{'status':'BUSY_WINDOW_NOT_STARTED','holder':read(LEASE,16384),'claimAttempts':1,'windowStarted':False,'targetCalls':0,'allOwnedTerminal':True});return
     CLAIMED=True;started=time.time();mono=time.monotonic();ticket={'nonce':nonce,'ownerPID':os.getpid(),'ownerBirth':owner_birth,'window':{'startUnix':started,'deadlineUnix':started+300}}
-    holder={'projectId':'11','randomToken':nonce,'ownerOS':'Windows','ownerPID':os.getpid(),'ownerProcessStartIdentity':owner_birth,'phase':'LINUX_SIGNATURE_ROLE_'+MODE.upper(),'startedAtUtc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime(started)),'receiptDirectory':str(RUN),'executionWindow':ticket['window']}
+    holder={'projectId':'11','randomToken':nonce,'ownerOS':'Windows','ownerPID':os.getpid(),'ownerProcessStartIdentity':owner_birth,'phase':('WINDOWS_RETAINED_DATA_ONLY' if MODE=='windows-data' else 'LINUX_SIGNATURE_ROLE_'+MODE.upper()),'startedAtUtc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime(started)),'receiptDirectory':str(RUN),'executionWindow':ticket['window']}
     with lf:lf.write((json.dumps(holder,sort_keys=True,indent=2)+'\n').encode());lf.flush();os.fsync(lf.fileno())
-    fresh(RUN/'lease-claimed.json',{'holder':holder,'postAtomicClaimClock':True,'window':ticket['window'],'cause':'Need exact retained loader bytes for actual RVA222112 static analysis; ad-hoc WSL command timed out, independent05 host receipt now shows UbuntuStopped; use existing direct-file capped launcher for one236616B data-only read, ordinary existing Ubuntu start only, no SSH/metadata/test/recovery/reset','handoffSHA256':sha(O/'OWN02-TO-TAIL-LINUX-ROLE-HANDOFF-20261118.json'),'wholeSeconds':300,'authoritySHA256':sha(O/'LINUX-SIGNATURE-BROAD-CONTINUATION-AUTHORITY-20261118.json')})
+    fresh(RUN/'lease-claimed.json',{'holder':holder,'postAtomicClaimClock':True,'window':ticket['window'],'cause':'Actual capped Windows retained-only read timed out20s before any HTTP intent, all owned terminal/active0; do not replay UNC. Obtain one replacement official1MiB/5s debug input through same Windows Job, retain prior availability/requestUNKNOWN rather than claiming absence; no accepted closed artifact is redownloaded and no trust/validation/cap changes','handoffSHA256':sha(O/'OWN04-PRODUCT05-TO-TAIL-DATA-HANDOFF-20261118.json'),'wholeSeconds':300,'authoritySHA256':sha(O/'LINUX-SIGNATURE-BROAD-CONTINUATION-AUTHORITY-20261118.json')})
     frame={'schema':'tail11-linux-role-frame/v1','mode':MODE,**ticket,'sourceDirectory':linux(D),'sourceHashes':m['files'],'sourceManifestSHA256':sha(D/'source-manifest.json'),'hostOutputLinuxPath':linux(RUN),'protocolLinuxPath':linux(PROTOCOL),'leaseLinuxPath':linux(LEASE),'limits':{'memory':536870912,'swap':0,'pids':64,'cpuQuota':200000,'cpuPeriod':100000,'whole':300,'work':270,'terminal':30,'role':20,'qualification':60,'read':67108864,'roleProof':262144,'allRoleProof':1048576,'scratch':1073741824}}
     frame['metadataInput']={'path':linux(O/'linux-role-metadata-exact-package-fix-20261118/metadata.json'),'sha256':'8b1d6345f7ae58a9357aa194ced570458c76e799d056fe8e034daa3c0f2b9bef'}
+    frame['transport']='EXISTING_WINDOWS_JOB_DATA_ONLY' if MODE=='windows-data' else 'EXISTING_UBUNTU_USER_SUDO_N'
+    frame.update(sourceDirectoryWindows=str(D),hostOutputWindowsPath=str(RUN),protocolWindowsPath=str(PROTOCOL),leaseWindowsPath=str(LEASE),supportDirectory=str(D),pythonPath=r'C:\Users\Office\AppData\Local\Programs\Python\Python312\python.exe',inspectorPath=str(D/'windows_retained_input.py'))
+    frame['retainedUnavailableReceipt']={'path':str(O/'windows-retained-debug-frame-binding-fix-20261118/terminal-retained-and-one-official-debug-data.json'),'sha256':'57d2ae654b4efc0a69d0b7bcf9283683788dfdffdaf25b0d616b5f7760053b17','oldSourceSHA256':'a33e0917f5aa16abf3a011bf71722779189a11b7a998a616299d44b7ceea5749'}
     fp=RUN/'frame.json';fresh(fp,frame);need(remaining()>60,'NO_TIME_FOR_ROLE')
-    argv=[r'C:\Windows\System32\wsl.exe','--distribution','Ubuntu-24.04','--user','root','--exec','/usr/bin/python3','-I','-S','-B',linux(D/'linux_cgroup_launcher.py'),'--frame',linux(fp),'--frame-sha',sha(fp)]
+    argv=[r'C:\Windows\System32\wsl.exe','--distribution','Ubuntu-24.04','--user','ubuntu','--exec','/usr/bin/sudo','-n','/usr/bin/python3','-I','-S','-B',linux(D/'linux_cgroup_launcher.py'),'--frame',linux(fp),'--frame-sha',sha(fp)]
+    if MODE=='windows-data':
+        ps=Path(r'C:\Program Files\WindowsApps\OpenAI.CodexPrimaryRuntime.v26-1112-611-0_26.1112.611.0_x64__3k8sg7r9htsxt\dependencies\native\powershell\pwsh.exe');need(sha(ps)=='2a6769a3330dc1084d0154bfde7d164ab750ca7f700f313f9d417c1be78b2233','CRITICAL_POWERSHELL');argv=[str(ps),'-NoProfile','-NonInteractive','-File',str(D/'windows_data_controller.ps1'),'-FramePath',str(fp),'-FrameSha',sha(fp),'-ExpectedNonce',ticket['nonce']]
     child=subprocess.Popen(argv,cwd=R,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.PIPE,creationflags=0x08000400)
     out,err=child.communicate(timeout=max(.001,remaining(2)));need(len(out)+len(err)<=262144,'SUPERVISOR_STDIO_CAP')
-    terminal=read(RUN/'linux-role-terminal.json',262144);need(terminal['nonce']==ticket['nonce'] and terminal['frameSHA256']==sha(fp) and terminal['allOwnedTerminal'] is True and (terminal['originalWaitpidReturned'] is True or terminal.get('noOwnedChildCreated') is True) and terminal['cgroupEmpty'] and (terminal['cgroupRemoved'] or terminal.get('cgroupNeverCreated') is True),'ALL_OWNED_TERMINAL');TERMINAL=True
-    observation_name={'metadata':'metadata.json','signature':'signature-proof.json','loader-static':'loader-static.json'}[MODE]
+    fresh(RUN/'launcher-result.json',{'pid':child.pid,'originalPopenWaitReturned':True,'returncode':child.returncode,'stdoutBytes':len(out),'stderrBytes':len(err),'stdoutDiagnostic':out.decode('utf-8','replace')[:4096],'stderrDiagnostic':err.decode('utf-8','replace')[:4096]})
+    terminal=read(RUN/('windows-data-terminal.json' if MODE=='windows-data' else 'linux-role-terminal.json'),262144)
+    need(terminal['nonce']==ticket['nonce'] and terminal['allOwnedTerminal'] is True,'ALL_OWNED_TERMINAL')
+    if MODE!='windows-data':need(terminal['frameSHA256']==sha(fp) and (terminal['originalWaitpidReturned'] is True or terminal.get('noOwnedChildCreated') is True) and terminal['cgroupEmpty'] and (terminal['cgroupRemoved'] or terminal.get('cgroupNeverCreated') is True),'LINUX_ALL_OWNED_TERMINAL')
+    TERMINAL=True
+    observation_name={'metadata':'metadata.json','signature':'signature-proof.json','loader-static':'loader-static.json','loader-symbols':'loader-symbols.json','loader-debug':'loader-symbols.json','windows-data':'windows-retained-input.json'}[MODE]
     observation=read(RUN/observation_name,262144) if (RUN/observation_name).exists() else None
-    fresh(RUN/'FINAL.json',{'schema':'tail11-linux-role-owner-final/v1','status':observation['status'] if child.returncode==0 and observation and observation['status'] in ('METADATA_COMPLETE_NOT_ADMISSION','QUALIFIED_LINUX_MANIFEST_SIGNATURE','EXACT_LOADER_DATA_ONLY') else 'ROLE_HOLD','mode':MODE,'childPID':child.pid,'originalPopenWaitReturned':True,'returncode':child.returncode,'allOwnedTerminal':True,'window':ticket['window'],'terminalSHA256':sha(RUN/'linux-role-terminal.json'),'observationSHA256':sha(RUN/observation_name) if observation else None,'stdoutSHA256':hashlib.sha256(out).hexdigest(),'stderrSHA256':hashlib.sha256(err).hexdigest(),'stderrDiagnostic':err.decode('utf-8','replace')[:4096],'signatureInvocations':observation.get('signatureExecAttempts',0) if observation else 0,'nativeM1Calls':0,'Actions':0,'admissionClaimed':bool(observation and observation.get('admitted') is True and child.returncode==0)})
+    fresh(RUN/'FINAL.json',{'schema':'tail11-linux-role-owner-final/v1','status':observation['status'] if child.returncode==0 and observation and observation['status'] in ('METADATA_COMPLETE_NOT_ADMISSION','QUALIFIED_LINUX_MANIFEST_SIGNATURE','EXACT_LOADER_DATA_ONLY','EXACT_UBUNTU_SYMBOL_SECTIONS_DATA_ONLY','EXACT_DEBUG_SYMBOL_DATA_ONLY') else 'ROLE_HOLD','mode':MODE,'childPID':child.pid,'originalPopenWaitReturned':True,'returncode':child.returncode,'allOwnedTerminal':True,'window':ticket['window'],'terminalSHA256':sha(RUN/('windows-data-terminal.json' if MODE=='windows-data' else 'linux-role-terminal.json')),'observationSHA256':sha(RUN/observation_name) if observation else None,'stdoutSHA256':hashlib.sha256(out).hexdigest(),'stderrSHA256':hashlib.sha256(err).hexdigest(),'stderrDiagnostic':err.decode('utf-8','replace')[:4096],'signatureInvocations':observation.get('signatureExecAttempts',0) if observation else 0,'nativeM1Calls':0,'Actions':0,'admissionClaimed':bool(observation and observation.get('admitted') is True and child.returncode==0)})
 try:main()
 except Exception as e:
     if child is None:TERMINAL=True

@@ -50,7 +50,7 @@ def validate_ticket(t,now):
     need(t["protocolSha256"]==PROTOCOL_SHA and t["canonicalClaim"]=="LOCAL_CREATE_NEW_STILL_HELD","TICKET_LANE")
     need(type(t["nonce"]) is str and re.fullmatch("[0-9a-f]{32}",t["nonce"]),"NONCE")
     start,end=t["window"]["startUnix"],t["window"]["deadlineUnix"]
-    need(type(start) is int and type(end) is int and end-start==300 and start<=now<end-30,"WHOLE_CLOCK")
+    need(type(start) in (int,float) and type(end) in (int,float) and -float("inf")<start<float("inf") and -float("inf")<end<float("inf") and end-start==300 and start<=now<end-30,"WHOLE_CLOCK")
     need(t["nativeOrder"]==["win-99","win-100","win-101","linux-99","linux-100","linux-101"],"CASE_ORDER")
     need(t["runtimeCommit"]==PIN and t["casePlanSha256"]=="7ac106ea67b7e990dfa19a4b3a0ae33b941b7b86a00b986f8ef56350c2bddf3a","FROZEN_INPUT")
     return t
@@ -83,7 +83,7 @@ def lane_guard(ticket,frame):
              lease["ownerPID"]==ticket["ownerPID"] and lease["ownerProcessStartIdentity"]==ticket["ownerStartIdentity"],"CANONICAL_OWNER")
 def load_frame(path,digest,phase=None,rid=None):
     p=pathlib.Path(path).resolve();need(OUT.resolve() in p.parents and sha(p)==digest,"FRAME_PATH")
-    a=read(p);t=validate_ticket(read(ticket_path(),16384),int(time.time()))
+    a=read(p);t=validate_ticket(read(ticket_path(),16384),time.time())
     need(a["schema"]=="tail11-ci-runtime/v1" and a["projectId"]=="11" and
          a["runNonce"]==t["nonce"] and a["executionWindow"]==t["window"] and a["limits"]==LIMITS,"FRAME_SCOPE")
     need(a["sourceHashes"]==source_binding(t),"FRAME_SOURCE")

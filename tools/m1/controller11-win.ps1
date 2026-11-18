@@ -44,9 +44,11 @@ try{
  Need ($t.repository -ceq 'pouriajamali/tail-latency-evidence-bench' -and $env:GITHUB_REPOSITORY -ceq $t.repository -and $env:GITHUB_REF -ceq ('refs/heads/'+$t.branch) -and $env:GITHUB_ACTOR -ceq $t.actor) 'CI_IDENTITY'
  Need ($env:GITHUB_EVENT_NAME -ceq 'workflow_dispatch' -and $env:GITHUB_RUN_ATTEMPT -ceq '1' -and $sourceCommit -cmatch '^[0-9a-f]{40}$') 'SINGLE_DISPATCH'
  }
- $start=[long]$t.window.startUnix;$deadline=[long]$t.window.deadlineUnix
+ Need (($t.window.startUnix -is [long] -or $t.window.startUnix -is [int] -or $t.window.startUnix -is [double]) -and ($t.window.deadlineUnix -is [long] -or $t.window.deadlineUnix -is [int] -or $t.window.deadlineUnix -is [double])) 'FINITE_CLOCK_TYPES'
+ $start=[double]$t.window.startUnix;$deadline=[double]$t.window.deadlineUnix
+ Need (-not [double]::IsNaN($start) -and -not [double]::IsInfinity($start) -and -not [double]::IsNaN($deadline) -and -not [double]::IsInfinity($deadline)) 'FINITE_CLOCK'
  function TimeLeft([int]$reserve=30){[Math]::Max(0,[Math]::Min($deadline-[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()/1000.0-$reserve,$deadline-$entryUtc-$entryWatch.Elapsed.TotalSeconds-$reserve))}
- Need ($deadline-$start -eq 300 -and [DateTimeOffset]::UtcNow.ToUnixTimeSeconds() -ge $start -and (TimeLeft) -gt 0) 'WHOLE_CLOCK'
+ Need ($deadline-$start -eq 300 -and ([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()/1000.0) -ge $start -and (TimeLeft) -gt 0) 'WHOLE_CLOCK'
  $expectedLimits=@{memory=536870912;active=16;cpuRate=1000;affinityMax=2;whole=300;work=270;terminal=30;role=20;qualification=60;scratch=1073741824;proof=8388608;read=67108864;files=256;roleProof=262144;allRoleProof=1048576}
  Need ($t.limits.Count -eq $expectedLimits.Count) 'LIMITS'
  foreach($k in $expectedLimits.Keys){Need ($t.limits[$k] -eq $expectedLimits[$k]) 'LIMITS'}

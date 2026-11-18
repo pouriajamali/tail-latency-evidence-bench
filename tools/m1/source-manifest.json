@@ -3,18 +3,19 @@
     "aggregate_worker.py": "7db7720fd014eede89fb90236e4f936ef1f79157e6402fc8d50f57a8eeb2403e",
     "case-plan.json": "7ac106ea67b7e990dfa19a4b3a0ae33b941b7b86a00b986f8ef56350c2bddf3a",
     "controller11-linux.sh": "8b3d39dce8c2908d1f51fd218d4be7de2d99313bf7436fe82e8985d98ba1ff0f",
-    "controller11-win.ps1": "da03019af3bc4bd25142b88619305dd46db66978bd7a7a062ef11ea0255a0e2b",
+    "controller11-win.ps1": "752af152eeb582c7f1d63e9738572985a09eb0d1e31db57f0efc88ca7f0f7d15",
     "exact_provider.py": "892332b52455e41c94e10419c6c8bb040fa16ee64aea155531840f517f67f1f8",
     "experiment.py": "bc0bcfcd9600baf991423ac49192f5f66f41cd37b98742142996d531609830e8",
     "fetch_extract.py": "db8351521b16da281a8e6774222a20e7d77077d31f3eb973b12de5061da991f7",
     "input-bindings.json": "bd9eade5efe8036815f9dc25f85a99ce1b329fd95e40388572d032b3a4abca92",
     "job_bridge11.cs": "b58fbe31353d3b09cacfc3e98068e10d0c2789156737cf2f1d3d47e3b4b93feb",
-    "linux_cgroup_launcher.py": "df1f2b8d28efe1a67192815e29a55dfb80d23ef1cf4c06443665945e212a2a66",
+    "linux_cgroup_launcher.py": "98ea3ff6e67b8c631a8113d8fa130ebb3904234b92e006322e6472f9a53aae52",
+    "linux_loader_symbols.py": "3e61717c883079b3d41dc07dffd1cd40112173ba7f349905fc34fae279e474bd",
     "linux_role_probe.py": "b1b3913a5f4e1d8357eaa0870afd15b1dda6ff0603400c34309d54ec34332604",
     "linux_ssh_role.py": "545442962ef0aa05f406bb35a18afc239612fbffe1ee8b04af02050f9a8c34d7",
     "linux_static_input.py": "9f3048b544b68b0344ff4fdcb48bea396ca01b3f0b1f4ab06b70e5dd7d24aeb4",
     "local_binding_checks.py": "24029982de27ae83c3ce6b83b7ee2dc9d8b8bec55303142cda7791d6c0f5e58f",
-    "local_linux_owner.py": "5fecd265448557888185f59b2d51d0cf48ced01faf2c2d2644102cf28527bd43",
+    "local_linux_owner.py": "0c054ea179007915a395958ffcd89e65131fc644d5e82f92771eddf8de9fec8c",
     "metadata/SHA256SUMS.txt": "7ed7c353458a935439066a6a1d205520e5610458ec346dd8dbbf5c8882d28709",
     "metadata/SHA256SUMS.txt.sig": "bf4ff680a2c4816b08044c47bb05882f6268576dea30bc1a14e275cfab66e840",
     "metadata/SIGNING-PUBLIC-KEY.pub": "cc7038b2d98f856af97b58eb06619ff441fbe9b178da5396f61d1ccdf7a65e7c",
@@ -22,7 +23,9 @@
     "preflight_witness.py": "d2d508c4b55b1718bf7e86cc17909e9f2b6da0c1e3e7e9721008bbbff64fbfa7",
     "provider_file_reader.cs": "1f5b6315d820f4637f58aff25b8bf9f1e1b02f7b38389e51a4712e1c7629c507",
     "qualifier.py": "dff0e813e2e0700694f236b5eb22b39c9657d4763f9fda79b661650e0e36c098",
-    "support.py": "313eb31d651007ad4ffbf8646fa5797131f6899ef8a46fbbf5e2bf46a0ede3ce"
+    "support.py": "2100f4d0d495c2c9c2bdf69ff35a172e698ad431d65e6e3239577da04246c37e",
+    "windows_data_controller.ps1": "239a01232336b566b66a1e78a3f2a3de9f1b34239fe817af070f8dcd16b857ac",
+    "windows_retained_input.py": "6b64ef598ef2d2c0c90532b041e1d75cc2c5a9480131260280d8d625b226aeee"
   },
   "schema": "tail11-ci-source-manifest/v1"
 }
