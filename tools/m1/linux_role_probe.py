@@ -4,6 +4,8 @@ import argparse,hashlib,json,os,re,stat,struct,subprocess,sys,time
 import base64,ctypes,ctypes.wintypes,copy,importlib.util,resource,select,signal,ssl
 import support as S
 COMMAND_TERMINALS=[]
+FAILED_VENDOR=None
+VENDOR_PROGRESS=[]
 
 def need(v,c):
     if not v: raise S.Hold(c)
@@ -45,20 +47,29 @@ def elf(data):
 def identity(st):return {'dev':st.st_dev,'ino':st.st_ino,'bytes':st.st_size,'mtimeNs':st.st_mtime_ns,'ctimeNs':st.st_ctime_ns,'mode':stat.S_IMODE(st.st_mode),'uid':st.st_uid,'gid':st.st_gid,'links':st.st_nlink}
 
 def held_vendor(path,budget):
+    global FAILED_VENDOR
     p=Path(path).resolve(strict=True)
     need(str(p).startswith(('/usr/bin/','/usr/lib/','/lib/')),'VENDOR_PATH_SCOPE')
     fd=os.open(p,os.O_RDONLY|os.O_NOFOLLOW|os.O_CLOEXEC)
     with os.fdopen(fd,'rb') as f:
-        first=os.fstat(f.fileno());need(stat.S_ISREG(first.st_mode) and first.st_uid==0 and not first.st_mode&0o022 and 0<first.st_size<=16777216,'ROOT_OWNED_NONWRITABLE_VENDOR')
+        first=os.fstat(f.fileno())
+        predicates={'regular':stat.S_ISREG(first.st_mode),'rootOwned':first.st_uid==0,'notGroupOrWorldWritable':not first.st_mode&0o022,'sizeBounded':0<=first.st_size<=16777216,'nonemptyOrPythonSource':first.st_size>0 or p.suffix=='.py'}
+        if not all(predicates.values()):
+            FAILED_VENDOR={'path':str(p),'identity':identity(first),'predicates':predicates}
+            raise S.Hold('ROOT_OWNED_NONWRITABLE_VENDOR')
         need(budget[0]+first.st_size<=67108864,'VENDOR_READ64M');data=f.read(first.st_size);need(len(data)==first.st_size and identity(first)==identity(os.fstat(f.fileno())),'VENDOR_STABILITY');budget[0]+=len(data)
-    return {'path':str(p),'identity':identity(first),'sha256':hashlib.sha256(data).hexdigest(),'installedMD5':hashlib.md5(data).hexdigest()},data
+    row={'path':str(p),'identity':identity(first),'sha256':hashlib.sha256(data).hexdigest(),'installedMD5':hashlib.md5(data).hexdigest()};VENDOR_PROGRESS.append(row)
+    return row,data
 
 def bounded_command(argv,end,cap=65536):
     need(time.time()<end,'METADATA_CLOCK')
     p=subprocess.Popen(argv,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={'PATH':'/usr/bin:/bin','LANG':'C','LC_ALL':'C'})
     try:out,err=p.communicate(timeout=max(.001,min(10,end-time.time())))
     except subprocess.TimeoutExpired:
-        p.kill();p.communicate(timeout=2);raise S.Hold('METADATA_COMMAND_TIMEOUT')
+        p.kill();out,err=p.communicate(timeout=2)
+        need(len(out)+len(err)<=cap,'METADATA_STDIO_CAP')
+        COMMAND_TERMINALS.append({'argv':argv,'pid':p.pid,'originalPopenWaitReturned':True,'exitCode':p.returncode,'timedOut':True,'stdoutDiagnostic':out.decode('utf-8','replace')[:8192],'stderrDiagnostic':err.decode('utf-8','replace')[:8192]})
+        raise S.Hold('METADATA_COMMAND_TIMEOUT')
     need(len(out)+len(err)<=cap,'METADATA_STDIO_CAP')
     terminal={'argv':argv,'pid':p.pid,'originalPopenWaitReturned':True,'exitCode':p.returncode,'stdoutBytes':len(out),'stderrBytes':len(err),'stdoutSHA256':hashlib.sha256(out).hexdigest(),'stderrSHA256':hashlib.sha256(err).hexdigest()}
     COMMAND_TERMINALS.append(terminal)
@@ -103,11 +114,13 @@ def main():
         for path in sorted(paths):
             if str(Path(path).resolve()) in files:continue
             row,body=held_vendor(path,budget);files[row['path']]=row;elfs[row['path']]=elf(body)
-        owners,ownerterm=bounded_command(['/usr/bin/dpkg-query','-S']+sorted(paths),end)
+        # Search only exact installed package records for the observed closure.
+        # A machine-wide dpkg -S scan consumed its command cap in the retained run.
+        vendor_packages={'ssh-keygen':'openssh-client','ld-linux-x86-64.so.2':'libc6:amd64','libc.so.6':'libc6:amd64','libcrypto.so.3':'libssl3t64:amd64','libpcre2-8.so.0.11.2':'libpcre2-8-0:amd64','libselinux.so.1':'libselinux1:amd64'}
         packages={}
-        for line in owners.splitlines():
-            pkg,sep,path=line.rpartition(': ');need(sep and pkg and path.startswith('/'),'PACKAGE_OWNER_FORMAT');packages[str(Path(path).resolve())]=pkg
-        need(all(p in packages for p in files),'VENDOR_PACKAGE_OWNER_REQUIRED')
+        for path in files:
+            need(Path(path).name in vendor_packages,'UNDECLARED_VENDOR_PACKAGE_HOLD')
+            packages[path]=vendor_packages[Path(path).name]
         for path,row in files.items():
             pkg=packages[path];need(re.fullmatch('[a-zA-Z0-9.+:-]+',pkg) is not None,'PACKAGE_NAME')
             db=Path('/var/lib/dpkg/info')/(pkg+'.md5sums')
@@ -123,9 +136,9 @@ def main():
         versions,versionterm=bounded_command(['/usr/bin/dpkg-query','-W','-f=${Package}\t${Version}\t${Architecture}\t${Status}\n']+sorted(set(packages.values())),end)
         need(all(line.endswith('install ok installed') for line in versions.splitlines()),'INSTALLED_PACKAGE_STATUS')
         need(time.time()<end and time.monotonic()-start<=20,'METADATA_ROLE20')
-        result.update(status='METADATA_COMPLETE_NOT_ADMISSION',admitted=False,files=list(files.values()),pythonVendorFiles=list(vendor_modules.values()),elfHeaders=elfs,loaderListing=listing,packageVersions=versions,readBytes=budget[0],terminals=[term,ownerterm,versionterm],roleSeconds=time.monotonic()-start,toolPresent=True,sourceHashes=f['sourceHashes'])
+        result.update(status='METADATA_COMPLETE_NOT_ADMISSION',admitted=False,files=list(files.values()),pythonVendorFiles=list(vendor_modules.values()),elfHeaders=elfs,loaderListing=listing,packageVersions=versions,packageOwnerMethod='EXACT_DECLARED_INSTALLED_MD5_DATABASE_RECORD_NOT_PUBLISHER_AUTHENTICATION',readBytes=budget[0],terminals=[term,versionterm],roleSeconds=time.monotonic()-start,toolPresent=True,sourceHashes=f['sourceHashes'])
     except Exception as e:
-        result.update(code=str(e) if isinstance(e,S.Hold) else 'LINUX_METADATA_HOLD',exceptionType=type(e).__name__,commandTerminals=COMMAND_TERMINALS)
+        result.update(code=str(e) if isinstance(e,S.Hold) else 'LINUX_METADATA_HOLD',exceptionType=type(e).__name__,commandTerminals=COMMAND_TERMINALS,failedVendor=FAILED_VENDOR,retainedVendorProgress=VENDOR_PROGRESS)
     S.fresh(out/'metadata.json',result,cap=262144)
     if result['status']!='METADATA_COMPLETE_NOT_ADMISSION':raise SystemExit(1)
 

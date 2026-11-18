@@ -6,7 +6,7 @@ O=R.parent/'outputs/wave4-m1-record-cap-20261116'
 D=R/'tools/m1'
 PROTOCOL=Path(r'E:\Codex WorkSpace\Git Projects\portfolio-management\development-management-20261110\wave2-state\LEASE-PROTOCOL.json')
 LEASE=PROTOCOL.with_name('LOCAL-FIXTURE-LEASE.json')
-RUN=O/'linux-role-metadata-after04-release-20261118'
+RUN=O/'linux-role-metadata-exact-package-fix-20261118'
 MODE='metadata'
 CLAIMED=False;TERMINAL=False;ticket=None;mono=None;child=None
 def need(v,c):
@@ -29,8 +29,8 @@ def remaining(reserve=30):return min(ticket['window']['deadlineUnix']-time.time(
 def main():
     global CLAIMED,TERMINAL,ticket,mono,child
     need(not RUN.exists(),'NO_PHASE_REPLAY');RUN.mkdir()
-    h=read(O/'OWN04-TO-TAIL-LINUX-HANDOFF-20261118.json',16384)
-    need(h['sourceThreadId']=='01a1c661-2773-7f81-9ae7-c5756abd8095' and h['actualTerminalReleaseEvent'] is True and sha(h['releaseReceipt']['path'])==h['releaseReceipt']['sha256'],'04_HANDOFF')
+    h=read(O/'OWN02-TO-TAIL-LINUX-ROLE-HANDOFF-20261118.json',16384)
+    need(h['sourceThreadId']=='01a1c661-0902-70d3-8cef-74af44ffc600' and h['actualTerminalReleaseEvent'] is True and sha(h['releaseReceipt']['path'])==h['releaseReceipt']['sha256'],'02_HANDOFF')
     need(sha(PROTOCOL)=='9120ca49a0d46673053aa0ec0cdbbc6f00731d71ea0b57ddab09e8fc3ac3ac8b','CANONICAL_PROTOCOL')
     m=read(D/'source-manifest.json');need(len(m['files'])<=32,'SOURCE_SET')
     for n,hv in m['files'].items():need(sha(D/n)==hv,'SOURCE_BINDING')
@@ -41,7 +41,7 @@ def main():
     CLAIMED=True;started=time.time();mono=time.monotonic();ticket={'nonce':nonce,'ownerPID':os.getpid(),'ownerBirth':owner_birth,'window':{'startUnix':started,'deadlineUnix':started+300}}
     holder={'projectId':'11','randomToken':nonce,'ownerOS':'Windows','ownerPID':os.getpid(),'ownerProcessStartIdentity':owner_birth,'phase':'LINUX_SIGNATURE_ROLE_'+MODE.upper(),'startedAtUtc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime(started)),'receiptDirectory':str(RUN),'executionWindow':ticket['window']}
     with lf:lf.write((json.dumps(holder,sort_keys=True,indent=2)+'\n').encode());lf.flush();os.fsync(lf.fileno())
-    fresh(RUN/'lease-claimed.json',{'holder':holder,'postAtomicClaimClock':True,'window':ticket['window'],'cause':'Identity-bound actual04 terminal/release event changed BUSY input; metadata never executed; existing broad continuation and explicit human retry','handoffSHA256':sha(O/'OWN04-TO-TAIL-LINUX-HANDOFF-20261118.json'),'wholeSeconds':300,'authoritySHA256':sha(O/'LINUX-SIGNATURE-BROAD-CONTINUATION-AUTHORITY-20261118.json')})
+    fresh(RUN/'lease-claimed.json',{'holder':holder,'postAtomicClaimClock':True,'window':ticket['window'],'cause':'Causal removal of machine-wide dpkg-query -S scan after its metadata timeout; read only six exact observed file/package MD5 records; root identity, ELF, role20 and all other caps unchanged; no SDK/native/healthy test','handoffSHA256':sha(O/'OWN02-TO-TAIL-LINUX-ROLE-HANDOFF-20261118.json'),'wholeSeconds':300,'authoritySHA256':sha(O/'LINUX-SIGNATURE-BROAD-CONTINUATION-AUTHORITY-20261118.json')})
     frame={'schema':'tail11-linux-role-frame/v1','mode':MODE,**ticket,'sourceDirectory':linux(D),'sourceHashes':m['files'],'sourceManifestSHA256':sha(D/'source-manifest.json'),'hostOutputLinuxPath':linux(RUN),'protocolLinuxPath':linux(PROTOCOL),'leaseLinuxPath':linux(LEASE),'limits':{'memory':536870912,'swap':0,'pids':64,'cpuQuota':200000,'cpuPeriod':100000,'whole':300,'work':270,'terminal':30,'role':20,'qualification':60,'read':67108864,'roleProof':262144,'allRoleProof':1048576,'scratch':1073741824}}
     fp=RUN/'frame.json';fresh(fp,frame);need(remaining()>60,'NO_TIME_FOR_ROLE')
     argv=[r'C:\Windows\System32\wsl.exe','--distribution','Ubuntu-24.04','--user','root','--exec','/usr/bin/python3','-I','-S','-B',linux(D/'linux_cgroup_launcher.py'),'--frame',linux(fp),'--frame-sha',sha(fp)]
