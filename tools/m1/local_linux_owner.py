@@ -6,7 +6,7 @@ O=R.parent/'outputs/wave4-m1-record-cap-20261116'
 D=R/'tools/m1'
 PROTOCOL=Path(r'E:\Codex WorkSpace\Git Projects\portfolio-management\development-management-20261110\wave2-state\LEASE-PROTOCOL.json')
 LEASE=PROTOCOL.with_name('LOCAL-FIXTURE-LEASE.json')
-RUN=O/'linux-owned-ssh-closure-once-20261118'
+RUN=O/'linux-owned-ssh-native-null-fix-20261118'
 MODE='signature'
 CLAIMED=False;TERMINAL=False;ticket=None;mono=None;child=None
 def need(v,c):
@@ -41,7 +41,7 @@ def main():
     CLAIMED=True;started=time.time();mono=time.monotonic();ticket={'nonce':nonce,'ownerPID':os.getpid(),'ownerBirth':owner_birth,'window':{'startUnix':started,'deadlineUnix':started+300}}
     holder={'projectId':'11','randomToken':nonce,'ownerOS':'Windows','ownerPID':os.getpid(),'ownerProcessStartIdentity':owner_birth,'phase':'LINUX_SIGNATURE_ROLE_'+MODE.upper(),'startedAtUtc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime(started)),'receiptDirectory':str(RUN),'executionWindow':ticket['window']}
     with lf:lf.write((json.dumps(holder,sort_keys=True,indent=2)+'\n').encode());lf.flush();os.fsync(lf.fileno())
-    fresh(RUN/'lease-claimed.json',{'holder':holder,'postAtomicClaimClock':True,'window':ticket['window'],'cause':'First actual independent Linux OpenSSH image/import-slot qualification on six already observed files; reuse successful metadata, no metadata or Windows healthy replay; native crypto only under role20/qualification60/whole300 caps','handoffSHA256':sha(O/'OWN02-TO-TAIL-LINUX-ROLE-HANDOFF-20261118.json'),'wholeSeconds':300,'authoritySHA256':sha(O/'LINUX-SIGNATURE-BROAD-CONTINUATION-AUTHORITY-20261118.json')})
+    fresh(RUN/'lease-claimed.json',{'holder':holder,'postAtomicClaimClock':True,'window':ticket['window'],'cause':'Recorded native loader IRELATIVE resolver returned NULL; compare child slot to exact verified native zero instead of requiring an executable provider for a disabled optional slot; non-null targets retain all prior checks, no ignored relocation or healthy metadata replay','handoffSHA256':sha(O/'OWN02-TO-TAIL-LINUX-ROLE-HANDOFF-20261118.json'),'wholeSeconds':300,'authoritySHA256':sha(O/'LINUX-SIGNATURE-BROAD-CONTINUATION-AUTHORITY-20261118.json')})
     frame={'schema':'tail11-linux-role-frame/v1','mode':MODE,**ticket,'sourceDirectory':linux(D),'sourceHashes':m['files'],'sourceManifestSHA256':sha(D/'source-manifest.json'),'hostOutputLinuxPath':linux(RUN),'protocolLinuxPath':linux(PROTOCOL),'leaseLinuxPath':linux(LEASE),'limits':{'memory':536870912,'swap':0,'pids':64,'cpuQuota':200000,'cpuPeriod':100000,'whole':300,'work':270,'terminal':30,'role':20,'qualification':60,'read':67108864,'roleProof':262144,'allRoleProof':1048576,'scratch':1073741824}}
     frame['metadataInput']={'path':linux(O/'linux-role-metadata-exact-package-fix-20261118/metadata.json'),'sha256':'8b1d6345f7ae58a9357aa194ced570458c76e799d056fe8e034daa3c0f2b9bef'}
     fp=RUN/'frame.json';fresh(fp,frame);need(remaining()>60,'NO_TIME_FOR_ROLE')

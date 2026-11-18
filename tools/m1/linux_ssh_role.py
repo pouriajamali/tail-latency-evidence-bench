@@ -5,13 +5,23 @@ import support as S
 from linux_role_probe import elf,identity
 LAST_ELF_EVENT={}
 OWNED_CHILDREN=[]
+KERNEL_WITNESS=None
 
 def need(v,c):
     if not v:raise S.Hold(c)
 
 class Image:
     def __init__(self,path,body):
-        self.path=path;self.body=body;self.header=elf(body);self.symbols=[];self.relocs=[];self.versions={0:None,1:None}
+        self.path=path;self.body=body;self.header=elf(body);self.symbols=[];self.relocs=[];self.versions={0:None,1:None};self.dynamic=[];self.dynamicVA=None;self.dynamicWritable=False
+        po=struct.unpack_from('<Q',body,32)[0];ps,pn=struct.unpack_from('<HH',body,54)
+        for i in range(pn):
+            kind,flags,p,va,_,fs,_,_=struct.unpack_from('<IIQQQQQQ',body,po+i*ps)
+            if kind!=2:continue
+            self.dynamicVA=va;self.dynamicWritable=bool(flags&2)
+            for k in range(0,fs,16):
+                tag,value=struct.unpack_from('<qQ',body,p+k)
+                if not tag:break
+                self.dynamic.append({'tag':tag,'value':value,'slotVA':va+k+8})
         off=struct.unpack_from('<Q',body,40)[0];size,count=struct.unpack_from('<HH',body,58)
         need(size==64 and 0<count<8192 and off+size*count<=len(body),'ELF_SECTION_BOUND')
         sections=[struct.unpack_from('<IIQQQQIIQQ',body,off+i*64) for i in range(count)]
@@ -53,6 +63,17 @@ class Image:
             for p in range(0,len(data),24):
                 address,info,addend=struct.unpack_from('<QQq',data,p);sym=info>>32;need(sym<len(self.symbols),'ELF_RELOCATION_SYMBOL')
                 self.relocs.append({'offset':address,'type':info&0xffffffff,'symbol':sym,'addend':addend})
+        for s in sections:
+            if s[1]!=19:continue
+            data=section(s);need(s[9]==8 and len(data)%8==0,'ELF_RELR_BOUND');cursor=None
+            for (entry,) in struct.iter_unpack('<Q',data):
+                if entry&1:
+                    need(cursor is not None,'ELF_RELR_BITMAP_BASE');where=[cursor+i*8 for i in range(63) if (entry>>(i+1))&1];cursor+=63*8
+                else:where=[entry];cursor=entry+8
+                for address in where:
+                    segments=[x for x in self.header['loads'] if x['vaddr']<=address and address+8<=x['vaddr']+x['filesz']];need(len(segments)==1,'ELF_RELR_FILE_ADDEND')
+                    x=segments[0];value=struct.unpack_from('<Q',body,x['offset']+address-x['vaddr'])[0];self.relocs.append({'offset':address,'type':8,'symbol':0,'addend':value,'encoding':'RELR'})
+        need(len(self.relocs)<=20000 and len({r['offset'] for r in self.relocs})==len(self.relocs),'ELF_RELOCATION_UNIQUE')
 
 def maps(pid,known=None):
     raw=(Path('/proc')/str(pid)/'maps').read_bytes();need(len(raw)<=262144,'OWN_MAP_CAP');rows=[]
@@ -80,20 +101,26 @@ def memory(fd,address,n):
     need(0<n<=16777216,'OWN_MEMORY_READ_BOUND');b=os.pread(fd,n,address);need(len(b)==n,'OWN_MEMORY_SHORT_READ');return b
 
 def binding_rows(trace,known):
+    global LAST_ELF_EVENT
     result={};edges=[]
     pattern=re.compile(r"binding file (.+?) \[0\] to (.+?) \[0\]: (?:normal|protected) symbol [`']([^']+)'(?: \[([^]]+)\])?")
     for line in trace.splitlines():
         m=pattern.search(line)
         if not m:continue
-        src,dst,name,version=m.groups();src=str(Path(src).resolve());dst=str(Path(dst).resolve());need(src in known and dst in known,'UNKNOWN_NATIVE_BINDING_PROVIDER')
+        src,dst,name,version=m.groups()
+        LAST_ELF_EVENT={'phase':'NATIVE_BINDING','from':src,'provider':dst,'symbol':name,'version':version}
+        if src==dst=='linux-vdso.so.1':
+            need(KERNEL_WITNESS and version=='LINUX_2.6' and name in KERNEL_WITNESS['verifiedSymbols'],'ACTUAL_KERNEL_VDSO_SELF_BINDING_REQUIRED')
+            continue
+        src=str(Path(src).resolve());dst=str(Path(dst).resolve());need(src in known and dst in known,'UNKNOWN_NATIVE_BINDING_PROVIDER')
         key=(src,name,version);result.setdefault(key,set()).add(dst)
     need(len(result)<=20000,'BINDING_COUNT')
     for key,providers in result.items():need(len(providers)==1,'AMBIGUOUS_NATIVE_BINDING')
     return {key:next(iter(v)) for key,v in result.items()}
 
 def attest(pid,images,held,trace,end):
-    global LAST_ELF_EVENT
-    rows,mapsha=maps(pid,held);base=biases(rows,images);native=binding_rows(trace,images)
+    global LAST_ELF_EVENT,KERNEL_WITNESS
+    rows,mapsha=maps(pid,held);base=biases(rows,images)
     parentrows,_=maps(os.getpid());parentbase={}
     for path,im in images.items():
         candidates=[m for m in parentrows if m['path']==path and m['offset']==0]
@@ -101,7 +128,7 @@ def attest(pid,images,held,trace,end):
     lib=ctypes.CDLL(None);lib.dlvsym.argtypes=[ctypes.c_void_p,ctypes.c_char_p,ctypes.c_char_p];lib.dlvsym.restype=ctypes.c_void_p
     lib.dlsym.argtypes=[ctypes.c_void_p,ctypes.c_char_p];lib.dlsym.restype=ctypes.c_void_p
     childfd=os.open('/proc/'+str(pid)+'/mem',os.O_RDONLY|os.O_CLOEXEC);parentfd=os.open('/proc/self/mem',os.O_RDONLY|os.O_CLOEXEC)
-    count=robytes=0;details=[];patched={};readonly=[];checked=set()
+    count=robytes=0;details=[];patched={};readonly=[];checked=set();dynamic_count=0;resolver_code_verified=set()
     def in_rx(value,path,b=base,rs=rows):return any(m['path']==path and 'x' in m['perms'] and m['start']<=value<m['end'] for m in rs)
     def exported(src,s):
         key=(src,s['name'],s['version']);dst=native.get(key)
@@ -115,10 +142,50 @@ def attest(pid,images,held,trace,end):
         if typ==10:
             need(dst in parentbase,'IFUNC_NATIVE_REFERENCE_NOT_MAPPED')
             reference=lib.dlvsym(None,s['name'].encode(),s['version'].encode()) if s['version'] else lib.dlsym(None,s['name'].encode())
-            need(reference and in_rx(reference,dst,parentbase,parentrows),'IFUNC_NATIVE_PROVIDER')
-            target=base[dst]+reference-parentbase[dst]
+            need(reference,'IFUNC_NATIVE_REFERENCE')
+            if in_rx(reference,dst,parentbase,parentrows):target=base[dst]+reference-parentbase[dst]
+            else:
+                aliases={'time':'__vdso_time','gettimeofday':'__vdso_gettimeofday','clock_gettime':'__vdso_clock_gettime','clock_getres':'__vdso_clock_getres','getcpu':'__vdso_getcpu'}
+                alias=aliases.get(s['name']);need(KERNEL_WITNESS and alias in KERNEL_WITNESS['symbolRVAs'],'IFUNC_NATIVE_PROVIDER')
+                rva=KERNEL_WITNESS['symbolRVAs'][alias]
+                need(reference==KERNEL_WITNESS['parentStart']+rva,'IFUNC_EXACT_KERNEL_SYMBOL')
+                target=KERNEL_WITNESS['childStart']+rva
         return dst,typ,target
     try:
+        def vdso(who,rs,fd):
+            raw=(Path('/proc')/str(who)/'auxv').read_bytes();need(len(raw)<=16384 and len(raw)%16==0,'OWN_AUXV_BOUND')
+            values=dict(struct.iter_unpack('<QQ',raw));v=[m for m in rs if m['kernelName']=='[vdso]']
+            need(len(v)==1 and values.get(33)==v[0]['start'] and v[0]['perms'].startswith('r-x') and v[0]['path'] is None,'ACTUAL_AT_SYSINFO_EHDR')
+            m=v[0];need(0<m['end']-m['start']<=65536,'ACTUAL_VDSO_BOUND');body=memory(fd,m['start'],m['end']-m['start'])
+            return Image('linux-vdso.so.1',body),body
+        vi,vb=vdso(pid,rows,childfd);pi,pb=vdso(os.getpid(),parentrows,parentfd);need(vb==pb,'SAME_ACTUAL_KERNEL_VDSO_IMAGE')
+        names=('__vdso_clock_gettime','__vdso_gettimeofday','__vdso_time','__vdso_getcpu','__vdso_clock_getres')
+        for name in names:need(len([s for s in vi.symbols if s['name']==name and s['section'] and s['type']==2 and s['version']=='LINUX_2.6'])==1,'ACTUAL_VDSO_SYMBOL_DEFINITION')
+        KERNEL_WITNESS={'kind':'EXISTING_KERNEL_TCB_VDSO_NOT_FILE_PROVIDER','bootId':Path('/proc/sys/kernel/random/boot_id').read_text().strip(),'actualAuxv33Matches':True,'childMatchesParentKernelBytes':True,'sha256':hashlib.sha256(vb).hexdigest(),'bytes':len(vb),'verifiedSymbols':list(names),'symbolRVAs':{n:next(s['value'] for s in vi.symbols if s['name']==n and s['section']) for n in names},'parentStart':next(m['start'] for m in parentrows if m['kernelName']=='[vdso]'),'childStart':next(m['start'] for m in rows if m['kernelName']=='[vdso]')}
+        native=binding_rows(trace,images)
+        loader=next(p for p in images if Path(p).name=='ld-linux-x86-64.so.2')
+        def loader_symbol(name):
+            syms=[s for s in images[loader].symbols if s['name']==name and s['section']];need(len({s['value'] for s in syms})==1,'EXACT_LOADER_EXPORT');return base[loader]+syms[0]['value']
+        debug=loader_symbol('_r_debug');version,linkmap,brk,state,ldbase=struct.unpack('<I4xQQI4xQ',memory(childfd,debug,40))
+        need(version in (1,2) and brk==loader_symbol('_dl_debug_state') and state==0 and ldbase==base[loader],'ACTUAL_LOADER_DEBUG_STATE')
+        link_rows=[];seen_links=set();previous=0
+        def c_string(address):
+            data=bytearray()
+            for i in range(512):
+                b=memory(childfd,address+i,1)
+                if b==b'\0':return data.decode('ascii')
+                data.extend(b)
+            raise S.Hold('ACTUAL_LINK_MAP_NAME_BOUND')
+        while linkmap:
+            need(linkmap not in seen_links and len(seen_links)<16,'ACTUAL_LINK_MAP_BOUND');seen_links.add(linkmap)
+            addr,nameptr,dyn,nxt,prev=struct.unpack('<QQQQQ',memory(childfd,linkmap,40));need(prev==previous,'ACTUAL_LINK_MAP_PREVIOUS')
+            name=c_string(nameptr) if nameptr else ''
+            if name=='linux-vdso.so.1':need(addr==KERNEL_WITNESS['childStart'] and dyn==addr+vi.dynamicVA,'ACTUAL_KERNEL_LINK_MAP');canonical=name
+            else:
+                canonical=str(Path(name).resolve()) if name else '/usr/bin/ssh-keygen'
+                need(canonical in images and addr==base[canonical] and dyn==addr+images[canonical].dynamicVA,'ACTUAL_FILE_LINK_MAP')
+            link_rows.append(canonical);previous=linkmap;linkmap=nxt
+        need(len(link_rows)==len(set(link_rows)) and set(link_rows)==set(images)|{'linux-vdso.so.1'},'ACTUAL_LINK_MAP_CLOSURE')
         for path,im in images.items():
             need(time.time()<end,'SIGNATURE_ROLE20')
             for r in im.relocs:
@@ -131,8 +198,26 @@ def attest(pid,images,held,trace,end):
                 if typ==8:expected=(base[path]+r['addend'])&((1<<64)-1)
                 elif typ==37:
                     need(path in parentbase,'IRELATIVE_NATIVE_REFERENCE_NOT_MAPPED')
-                    pv=struct.unpack('<Q',memory(parentfd,parentbase[path]+r['offset'],8))[0]
-                    need(in_rx(pv,path,parentbase,parentrows),'IRELATIVE_NATIVE_PROVIDER');expected=base[path]+pv-parentbase[path]
+                    resolver=parentbase[path]+r['addend'];need(in_rx(resolver,path,parentbase,parentrows),'IRELATIVE_NATIVE_RESOLVER_RX')
+                    if path not in resolver_code_verified:
+                        need(identity(Path(path).stat())==held[path]['identity'],'NATIVE_RESOLVER_FILE_IDENTITY')
+                        for seg in im.header['loads']:
+                            if not seg['flags']&1:continue
+                            code=memory(parentfd,parentbase[path]+seg['vaddr'],seg['filesz'])
+                            need(code==im.body[seg['offset']:seg['offset']+seg['filesz']],'NATIVE_RESOLVER_CODE_BYTES')
+                        resolver_code_verified.add(path)
+                    # AMD64 R_IRELATIVE is a native no-argument resolver call.
+                    # A previously relocated parent slot is not its canonical result.
+                    pv=ctypes.CFUNCTYPE(ctypes.c_void_p)(resolver)()
+                    targets=[p for p in parentbase if pv and in_rx(pv,p,parentbase,parentrows)]
+                    LAST_ELF_EVENT.update(nativeResult=pv,nativeFileTargets=targets)
+                    if pv is None:expected=0
+                    elif len(targets)==1:
+                        provider=targets[0];expected=base[provider]+pv-parentbase[provider]
+                    else:
+                        need(not targets and KERNEL_WITNESS,'IRELATIVE_NATIVE_PROVIDER')
+                        rvas=[v for v in KERNEL_WITNESS['symbolRVAs'].values() if pv==KERNEL_WITNESS['parentStart']+v]
+                        need(len(rvas)==1,'IRELATIVE_EXACT_KERNEL_SYMBOL');expected=KERNEL_WITNESS['childStart']+rvas[0]
                 elif typ in (1,5,6,7):
                     dst,kind,target=exported(path,s)
                     if typ==5:
@@ -146,6 +231,17 @@ def attest(pid,images,held,trace,end):
                 actual=struct.unpack('<Q',memory(childfd,address,8))[0];need(actual==expected,'ACTUAL_ELF_RELOCATION_SLOT_MISMATCH')
                 patched[(path,address)]=struct.pack('<Q',expected);count+=1
                 if imported:details.append({'from':path,'name':s['name'],'version':s['version'],'provider':dst,'relocationType':typ,'actualMatches':True})
+            # Exact glibc dynamic-pointer adjustments, not masked bytes.
+            pointer_tags={3,4,5,6,7,17,23,36,0x6ffffef5,0x6ffffff0}
+            for d in im.dynamic:
+                tag=d['tag'];value=d['value'];address=base[path]+d['slotVA']
+                if tag==21:
+                    need(path=='/usr/bin/ssh-keygen' and value==0,'DT_DEBUG_SCOPE');expected=debug
+                elif im.dynamicWritable and base[path] and tag in pointer_tags and (value or tag not in (7,17)):expected=base[path]+value
+                else:continue
+                LAST_ELF_EVENT={'path':path,'phase':'TYPED_DYNAMIC_POINTER','tag':tag,'slotVA':d['slotVA']}
+                need(struct.unpack('<Q',memory(childfd,address,8))[0]==expected,'ACTUAL_DYNAMIC_POINTER_MISMATCH')
+                patched[(path,address)]=struct.pack('<Q',expected);dynamic_count+=1
             for seg in im.header['loads']:
                 lo=base[path]+seg['vaddr'];hi=lo+seg['memsz']
                 for m in rows:
@@ -157,7 +253,11 @@ def attest(pid,images,held,trace,end):
                     expected=bytearray(im.body[seg['offset']+offset:seg['offset']+offset+filebytes]+bytes(z-a-filebytes))
                     for (p,where),value in patched.items():
                         if p==path and a<=where and where+8<=z:expected[where-a:where-a+8]=value
-                    actual=memory(childfd,a,z-a);need(actual==expected,'READONLY_ELF_IMAGE_MISMATCH');robytes+=len(actual)
+                    actual=memory(childfd,a,z-a)
+                    if actual!=expected:
+                        first=next(i for i,(x,y) in enumerate(zip(actual,expected)) if x!=y);LAST_ELF_EVENT.update(firstMismatchVaddr=a-base[path]+first,actualHex=actual[first:first+8].hex(),expectedHex=bytes(expected[first:first+8]).hex())
+                        raise S.Hold('READONLY_ELF_IMAGE_MISMATCH')
+                    robytes+=len(actual)
                     readonly.append({'path':path,'segmentVaddr':seg['vaddr'],'bytes':len(actual),'sha256':hashlib.sha256(actual).hexdigest()})
             checked.add(path)
         need(checked==set(images),'ACTUAL_CLOSURE_INCOMPLETE')
@@ -168,7 +268,7 @@ def attest(pid,images,held,trace,end):
                 matches=[p for p in images if Path(p).name==name or (name.startswith('libpcre2-8.so.') and Path(p).name==name+'.11.2')]
                 need(len(matches)==1,'ACTUAL_DT_NEEDED_UNRESOLVED');needed.append({'from':path,'name':name,'provider':matches[0],'resolved':True})
         encoded=json.dumps(details,sort_keys=True,separators=(',',':')).encode()
-        return {'schema':'tail11-owned-linux-elf-closure/v1','actualChildPID':pid,'mapsSHA256':mapsha,'mappedFiles':sorted(checked),'normalImportEdges':needed,'validatedRelocations':count,'validatedImportSlots':len(details),'slotEvidenceSHA256':hashlib.sha256(encoded).hexdigest(),'readOnlyLoads':readonly,'readOnlyBytes':robytes,'readOnlyImageMatches':True,'unresolved':[]}
+        return {'schema':'tail11-owned-linux-elf-closure/v1','actualChildPID':pid,'mapsSHA256':mapsha,'mappedFiles':sorted(checked),'normalImportEdges':needed,'validatedRelocations':count,'validatedDynamicPointers':dynamic_count,'actualLinkMap':link_rows,'validatedImportSlots':len(details),'slotEvidenceSHA256':hashlib.sha256(encoded).hexdigest(),'readOnlyLoads':readonly,'readOnlyBytes':robytes,'readOnlyImageMatches':True,'kernelVDSO':KERNEL_WITNESS,'unresolved':[]}
     finally:os.close(childfd);os.close(parentfd)
 
 def child_run(argv,data,guest,nonce,images,held,end,qualify):
