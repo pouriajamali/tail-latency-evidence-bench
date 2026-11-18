@@ -11,3 +11,6 @@ Local Linux cross-built archives are explicitly local candidates, executed nativ
 
 
 2026-11-18 source/evidence update: one owner-authorized fresh bounded timestamp supplement authenticated both exact file timestamps and passed independent signer/timestamp chains at those times. Current native revocation result0/freshness metadata was retained, but signed CRL/OCSP validity intervals were not captured by the wrapper; strict current-revocation proof remains HOLD. No new SSH/mapping/native M1 case ran, both windows remain consumed without reset, and healthy proofs were reused. Source adds the exact two-file capture and prepared conditional branch with the owned-SSH profile still HOLD. No runtime binary or preview asset changed, no duplicate release was created, and CI was not run per owner instruction.
+
+
+2026-11-18 five-artifact continuation: source preparation completed, but the canonical lane stayed BUSY before any target child. Two bounded owner waits shared the same immutable 300-second window; no artifact, revocation validation, SSH, image observation or native M1 run started, and another participant's lease was preserved. The cache-only helper remains prepared/unvalidated and the role profile remains HOLD. Prior timestamp/healthy evidence and existing preview assets are unchanged; no duplicate release or Actions run was created.

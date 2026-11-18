@@ -50,6 +50,23 @@
   "currentFileProofResult": "FOUR_NATIVE_SIGNATURE_CURRENT_CHAIN_PASS_TWO_CURRENT_CHAIN_NOT_TIME_VALID",
   "currentRevocationCaptureLimitation": "Independent current Offline/NoFlag chain native revocation info exists with result0 and freshness817s for all five distinct nonroot certificates. pCrlInfo is null; CRL/OCSP artifact kind, signed response and validity intervals were not captured. Strict supplement accepts neither absent interval proof nor an assumed OCSP classification. This does not establish missing/invalid cache data or revocation.",
   "fingerprint": "SHA256:AgU5bZlJSjUu0KsWMmVEEr+BfXpcMVNroTA33bHcQdU",
+  "fiveCertRevocationAttempt": {
+    "anotherCanonicalParticipantLeasePreserved": true,
+    "artifactBytesRead": 0,
+    "newArtifacts": 0,
+    "newSSH": 0,
+    "ownLeaseClaimed": false,
+    "ownerWaitsSameDeadline": 2,
+    "preparedActionSHA256": "d8a83d86c8db9dada60c697560e1c1983c12b4fa571ce78be6169d4fd2cb9f3f",
+    "preparedHelperRuntimeValidated": false,
+    "sameWindowClockReset": false,
+    "state": "NOT_STARTED_CANONICAL_BUSY",
+    "targetChildrenStarted": 0,
+    "window": {
+      "deadlineUnix": 1795002366,
+      "startUnix": 1795002066
+    }
+  },
   "freshWindowChangedSSHInvocations": 0,
   "globalFullClosureQualified": false,
   "healthyReplay": 0,
