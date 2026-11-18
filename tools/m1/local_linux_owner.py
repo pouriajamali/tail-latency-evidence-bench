@@ -6,7 +6,7 @@ O=R.parent/'outputs/wave4-m1-record-cap-20261116'
 D=R/'tools/m1'
 PROTOCOL=Path(r'E:\Codex WorkSpace\Git Projects\portfolio-management\development-management-20261110\wave2-state\LEASE-PROTOCOL.json')
 LEASE=PROTOCOL.with_name('LOCAL-FIXTURE-LEASE.json')
-RUN=O/'windows-official-debug-after-product04-terminal-20261118'
+RUN=O/'windows-official-debug-deadline15-once-20261118'
 MODE='windows-data'
 CLAIMED=False;TERMINAL=False;ticket=None;mono=None;child=None
 def need(v,c):
@@ -41,12 +41,15 @@ def main():
     CLAIMED=True;started=time.time();mono=time.monotonic();ticket={'nonce':nonce,'ownerPID':os.getpid(),'ownerBirth':owner_birth,'window':{'startUnix':started,'deadlineUnix':started+300}}
     holder={'projectId':'11','randomToken':nonce,'ownerOS':'Windows','ownerPID':os.getpid(),'ownerProcessStartIdentity':owner_birth,'phase':('WINDOWS_RETAINED_DATA_ONLY' if MODE=='windows-data' else 'LINUX_SIGNATURE_ROLE_'+MODE.upper()),'startedAtUtc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime(started)),'receiptDirectory':str(RUN),'executionWindow':ticket['window']}
     with lf:lf.write((json.dumps(holder,sort_keys=True,indent=2)+'\n').encode());lf.flush();os.fsync(lf.fileno())
-    fresh(RUN/'lease-claimed.json',{'holder':holder,'postAtomicClaimClock':True,'window':ticket['window'],'cause':'Actual capped Windows retained-only read timed out20s before any HTTP intent, all owned terminal/active0; do not replay UNC. Obtain one replacement official1MiB/5s debug input through same Windows Job, retain prior availability/requestUNKNOWN rather than claiming absence; no accepted closed artifact is redownloaded and no trust/validation/cap changes','handoffSHA256':sha(O/'OWN04-PRODUCT05-TO-TAIL-DATA-HANDOFF-20261118.json'),'wholeSeconds':300,'authoritySHA256':sha(O/'LINUX-SIGNATURE-BROAD-CONTINUATION-AUTHORITY-20261118.json')})
+    fresh(RUN/'lease-claimed.json',{'holder':holder,'postAtomicClaimClock':True,'window':ticket['window'],'cause':'Explicit fresh manager-relayed owner authority: exactly one causal overall deadline5to15 GET delta after prior5s TimeoutError/noHTTPresponse; role20/whole300 and CPU/memory/process/bytes/storage/trust/protection unchanged; no automatic further retry or UNC replay','handoffSHA256':sha(O/'OWN04-PRODUCT05-TO-TAIL-DATA-HANDOFF-20261118.json'),'wholeSeconds':300,'authoritySHA256':sha(O/'LINUX-SIGNATURE-BROAD-CONTINUATION-AUTHORITY-20261118.json')})
     frame={'schema':'tail11-linux-role-frame/v1','mode':MODE,**ticket,'sourceDirectory':linux(D),'sourceHashes':m['files'],'sourceManifestSHA256':sha(D/'source-manifest.json'),'hostOutputLinuxPath':linux(RUN),'protocolLinuxPath':linux(PROTOCOL),'leaseLinuxPath':linux(LEASE),'limits':{'memory':536870912,'swap':0,'pids':64,'cpuQuota':200000,'cpuPeriod':100000,'whole':300,'work':270,'terminal':30,'role':20,'qualification':60,'read':67108864,'roleProof':262144,'allRoleProof':1048576,'scratch':1073741824}}
     frame['metadataInput']={'path':linux(O/'linux-role-metadata-exact-package-fix-20261118/metadata.json'),'sha256':'8b1d6345f7ae58a9357aa194ced570458c76e799d056fe8e034daa3c0f2b9bef'}
     frame['transport']='EXISTING_WINDOWS_JOB_DATA_ONLY' if MODE=='windows-data' else 'EXISTING_UBUNTU_USER_SUDO_N'
     frame.update(sourceDirectoryWindows=str(D),hostOutputWindowsPath=str(RUN),protocolWindowsPath=str(PROTOCOL),leaseWindowsPath=str(LEASE),supportDirectory=str(D),pythonPath=r'C:\Users\Office\AppData\Local\Programs\Python\Python312\python.exe',inspectorPath=str(D/'windows_retained_input.py'))
     frame['retainedUnavailableReceipt']={'path':str(O/'windows-retained-debug-frame-binding-fix-20261118/terminal-retained-and-one-official-debug-data.json'),'sha256':'57d2ae654b4efc0a69d0b7bcf9283683788dfdffdaf25b0d616b5f7760053b17','oldSourceSHA256':'a33e0917f5aa16abf3a011bf71722779189a11b7a998a616299d44b7ceea5749'}
+    frame['officialDebugRequest']={'url': 'https://debuginfod.ubuntu.com/buildid/0d77dbd4379bf0b5af3e05be7fb6af1e4cea7c96/debuginfo', 'artifacts': 1, 'bodyCap': 1048576, 'requestSeconds': 15, 'roleSeconds': 20, 'wholeSeconds': 300, 'redirects': False, 'buildID': '0d77dbd4379bf0b5af3e05be7fb6af1e4cea7c96', 'debuglinkCRC32': '7273804a', 'loaderSHA256': 'c20a2dc8917c755f02b94049356320fe1f62ac7d9f8994731f807d9df39302da'}
+    frame['deadlineDeltaAuthority']={'path':str(O/'OFFICIAL-DEBUG-15S-AUTHORITY-20261118.json'),'sha256':'0c95e187abc1f14e5c82cc48438f75b00305c3df21e425b5e1a53b3719ffb774'}
+    frame['priorFiveSecondFailure']={'path':str(O/'OFFICIAL-DEBUG-RETRY-FINAL-20261118.json'),'sha256':'be84f75d71474bb2282a839b66cea4b5f6f68a7c6d7fa7ae3df55d24b859fcb3'}
     fp=RUN/'frame.json';fresh(fp,frame);need(remaining()>60,'NO_TIME_FOR_ROLE')
     argv=[r'C:\Windows\System32\wsl.exe','--distribution','Ubuntu-24.04','--user','ubuntu','--exec','/usr/bin/sudo','-n','/usr/bin/python3','-I','-S','-B',linux(D/'linux_cgroup_launcher.py'),'--frame',linux(fp),'--frame-sha',sha(fp)]
     if MODE=='windows-data':

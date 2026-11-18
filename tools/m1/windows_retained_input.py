@@ -15,6 +15,9 @@ def main():
         S.need(S.sha(f['protocolWindowsPath'])==S.PROTOCOL_SHA,'CANONICAL_PROTOCOL');lease=S.read(f['leaseWindowsPath'],16384)
         S.need(lease['projectId']=='11' and lease['randomToken']==f['nonce'] and lease['ownerPID']==f['ownerPID'] and lease['ownerProcessStartIdentity']==f['ownerBirth'],'CANONICAL_OWNER')
         profile=S.read(f['profilePath'],8192);S.need(profile['childPid']==os.getpid() and profile['nonce']==f['nonce'],'ORIGINAL_CHILD_PROFILE');result['actualKernel']=S.input_kernel(profile)
+        request=f['officialDebugRequest'];S.need(profile['officialDebugRequest']==request and request=={'url': 'https://debuginfod.ubuntu.com/buildid/0d77dbd4379bf0b5af3e05be7fb6af1e4cea7c96/debuginfo', 'artifacts': 1, 'bodyCap': 1048576, 'requestSeconds': 15, 'roleSeconds': 20, 'wholeSeconds': 300, 'redirects': False, 'buildID': '0d77dbd4379bf0b5af3e05be7fb6af1e4cea7c96', 'debuglinkCRC32': '7273804a', 'loaderSHA256': 'c20a2dc8917c755f02b94049356320fe1f62ac7d9f8994731f807d9df39302da'},'EXACT_FIFTEEN_SECOND_REQUEST_PROFILE')
+        authorization=f['deadlineDeltaAuthority'];S.need(S.sha(authorization['path'])==authorization['sha256'],'DEADLINE_DELTA_AUTHORITY')
+        previous=f['priorFiveSecondFailure'];S.need(S.sha(previous['path'])==previous['sha256']=='be84f75d71474bb2282a839b66cea4b5f6f68a7c6d7fa7ae3df55d24b859fcb3','PRESERVED_FIVE_SECOND_FAILURE')
         for n,h in f['sourceHashes'].items():S.need(S.sha(Path(f['sourceDirectoryWindows'])/n)==h,'SOURCE_BINDING')
         end=min(f['phaseDeadlineUnix'],f['window']['deadlineUnix']-30);S.need(time.time()<end,'DATA_ROLE20')
         S.fresh(out/'windows-data-start.json',{'nonce':f['nonce'],'phaseDeadlineUnix':end,'retainedDirectory':str(ROOT),'firstOperation':'EXACT_RETAINED_FILES_ONLY','networkCalls':0},65536)
@@ -46,20 +49,20 @@ def main():
                 S.need(time.time()<end,'DATA_ROLE20')
         result['retainedCompleteBodyObserved']='UNKNOWN_UNAVAILABLE' if unavailable else body is not None
         if body is None:
-            phase='ONE_OFFICIAL_DEBUG_GET';S.need(end-time.time()>6,'NO_TIME_FOR_FIVE_SECOND_GET')
-            S.fresh(out/'windows-public-debug-request.json',{'url':'https://debuginfod.ubuntu.com'+URL_PATH,'attempts':1,'bodyCap':1048576,'requestSeconds':5,'retainedCompleteBodyObserved':result['retainedCompleteBodyObserved'],'noRedirects':True,'noCredentials':True,'admitted':False},65536)
+            phase='ONE_OFFICIAL_DEBUG_GET';S.need(end-time.time()>16,'NO_TIME_FOR_FIFTEEN_SECOND_GET');request_started=time.monotonic();request_deadline_mono=request_started+15;request_deadline_unix=min(end,time.time()+15)
+            S.fresh(out/'windows-public-debug-request.json',{'url':'https://debuginfod.ubuntu.com'+URL_PATH,'attempts':1,'bodyCap':1048576,'requestSeconds':15,'overallRequestDeadlineUnix':request_deadline_unix,'hardOverallWallClock':True,'deadlineDeltaAuthoritySHA256':authorization['sha256'],'retainedCompleteBodyObserved':result['retainedCompleteBodyObserved'],'noRedirects':True,'noCredentials':True,'admitted':False},65536)
             result['networkCalls']=1;done=threading.Event()
             def timed_out():
                 if not done.is_set():
-                    try:S.fresh(out/'windows-network-timeout.json',{'status':'EXACT_FIVE_SECOND_REQUEST_TIMEOUT','networkCalls':1,'admitted':False,'nonce':f['nonce']},65536)
+                    try:S.fresh(out/'windows-network-timeout.json',{'status':'EXACT_FIFTEEN_SECOND_OVERALL_REQUEST_TIMEOUT','networkCalls':1,'admitted':False,'nonce':f['nonce']},65536)
                     finally:os._exit(124)
-            timer=threading.Timer(5,timed_out);timer.daemon=True;timer.start();conn=None
+            hard_seconds=min(15,request_deadline_unix-time.time(),request_deadline_mono-time.monotonic());S.need(hard_seconds>0,'REQUEST_DEADLINE');timer=threading.Timer(hard_seconds,timed_out);timer.daemon=True;timer.start();conn=None
             try:
                 ctx=ssl.create_default_context();S.need(ctx.check_hostname and ctx.verify_mode==ssl.CERT_REQUIRED,'EXISTING_TLS_VERIFICATION_REQUIRED')
-                conn=http.client.HTTPSConnection('debuginfod.ubuntu.com',443,timeout=5,context=ctx);conn.request('GET',URL_PATH,headers={'Accept':'application/octet-stream','Accept-Encoding':'identity','User-Agent':'Tail11-bounded-static-data/1'})
+                conn=http.client.HTTPSConnection('debuginfod.ubuntu.com',443,timeout=max(.001,min(15,request_deadline_unix-time.time(),request_deadline_mono-time.monotonic())),context=ctx);conn.request('GET',URL_PATH,headers={'Accept':'application/octet-stream','Accept-Encoding':'identity','User-Agent':'Tail11-bounded-static-data/1'})
                 response=conn.getresponse();length=response.getheader('Content-Length');result['response']={'status':response.status,'contentLength':length,'contentType':response.getheader('Content-Type'),'redirected':False}
                 S.need(sum(len(k)+len(v)+4 for k,v in response.getheaders())<=32768,'DEBUG_HEADERS_CAP');S.need(response.status==200,'DEBUG_HTTP_200_REQUIRED');S.need(response.getheader('Content-Encoding','identity').lower()=='identity','DEBUG_IDENTITY_BYTES');S.need(length is None or length.isdecimal() and int(length)<=1048576,'DEBUG_LENGTH_CAP')
-                body=response.read(1048577);S.need(0<len(body)<=1048576 and (length is None or len(body)==int(length)),'DEBUG_BODY_CAP_OR_FRAMING');result['TLSHostnameVerified']=True;result['TLSVerifyMode']=int(ctx.verify_mode)
+                body=response.read(1048577);S.need(0<len(body)<=1048576 and (length is None or len(body)==int(length)),'DEBUG_BODY_CAP_OR_FRAMING');S.need(time.monotonic()<request_deadline_mono and time.time()<request_deadline_unix,'OVERALL_REQUEST_DEADLINE');result['requestElapsedSeconds']=time.monotonic()-request_started;result['TLSHostnameVerified']=True;result['TLSVerifyMode']=int(ctx.verify_mode)
             finally:
                 done.set();timer.cancel()
                 if conn is not None:conn.close()

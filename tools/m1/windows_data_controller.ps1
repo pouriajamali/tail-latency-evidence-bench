@@ -57,7 +57,7 @@ try{
    $member=$false;[Tail11DiagnosticJob]::Check([Tail11DiagnosticJob]::IsProcessInJob($pi.Process,$job,[ref]$member),'MEMBERSHIP');Need $member 'MEMBER'
    $created=[Tail11DiagnosticJob+FT]::new();$exited=[Tail11DiagnosticJob+FT]::new();$kernel=[Tail11DiagnosticJob+FT]::new();$user=[Tail11DiagnosticJob+FT]::new()
    [Tail11DiagnosticJob]::Check([Tail11DiagnosticJob]::GetProcessTimes($pi.Process,[ref]$created,[ref]$exited,[ref]$kernel,[ref]$user),'BIRTH')
-   $profile=@{nonce=$nonce;childPid=$pi.Pid;processCreationFileTime=(([uint64]$created.High -shl 32) -bor $created.Low);jobMembership=$member;cpuRate=$rate.Rate;jobMemoryBytes=$actual.JobMemory.ToUInt64();activeProcessLimit=$actual.Basic.ActiveLimit;affinityMask=$affinity;killOnClose=$true;breakawayDisabled=$true;beforeResume=$true}
+   $profile=@{nonce=$nonce;childPid=$pi.Pid;processCreationFileTime=(([uint64]$created.High -shl 32) -bor $created.Low);jobMembership=$member;cpuRate=$rate.Rate;jobMemoryBytes=$actual.JobMemory.ToUInt64();activeProcessLimit=$actual.Basic.ActiveLimit;affinityMask=$affinity;killOnClose=$true;breakawayDisabled=$true;beforeResume=$true;officialDebugRequest=$frame.officialDebugRequest}
    Fresh $profilePath $profile
    Need ((TimeLeft) -gt 0) 'WHOLE_CLOCK'
    Need ([Tail11DiagnosticJob]::ResumeThread($pi.Thread) -ne [uint32]::MaxValue) 'RESUME';$resumed=$true
