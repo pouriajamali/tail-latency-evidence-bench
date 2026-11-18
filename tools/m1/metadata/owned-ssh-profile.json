@@ -1,4 +1,30 @@
 {
+  "authenticatedTimestamps": [
+    {
+      "counterSignerCount": 1,
+      "currentSignerNonrevocationProofAccepted": false,
+      "currentTimeFalsePreserved": true,
+      "currentTimestampNonrevocationProofAccepted": false,
+      "nativeStatus": "0x00000000",
+      "path": "C:\\WINDOWS\\system32\\napinsp.dll",
+      "referenceUtc": "2024-07-03T04:30:29.3860000Z",
+      "signerChainAtTimestampValid": true,
+      "signerError": 0,
+      "timestampChainAtTimestampValid": true
+    },
+    {
+      "counterSignerCount": 1,
+      "currentSignerNonrevocationProofAccepted": false,
+      "currentTimeFalsePreserved": true,
+      "currentTimestampNonrevocationProofAccepted": false,
+      "nativeStatus": "0x00000000",
+      "path": "C:\\WINDOWS\\SYSTEM32\\DSPARSE.dll",
+      "referenceUtc": "2024-09-05T18:55:50.7740000Z",
+      "signerChainAtTimestampValid": true,
+      "signerError": 0,
+      "timestampChainAtTimestampValid": true
+    }
+  ],
   "catalogProofSHA256": "d08fb16432748d7f225dd4ad27a21ca26691e47ac6dbc9da09f63a739e2e3e01",
   "currentFileProofBatchSHA256": "4dcdf233f9aed526817c516639dd7f1bd3bd3849e7c09d353d40fc0418561b01",
   "currentFileProofFailures": [
@@ -22,7 +48,9 @@
     }
   ],
   "currentFileProofResult": "FOUR_NATIVE_SIGNATURE_CURRENT_CHAIN_PASS_TWO_CURRENT_CHAIN_NOT_TIME_VALID",
+  "currentRevocationCaptureLimitation": "Independent current Offline/NoFlag chain native revocation info exists with result0 and freshness817s for all five distinct nonroot certificates. pCrlInfo is null; CRL/OCSP artifact kind, signed response and validity intervals were not captured. Strict supplement accepts neither absent interval proof nor an assumed OCSP classification. This does not establish missing/invalid cache data or revocation.",
   "fingerprint": "SHA256:AgU5bZlJSjUu0KsWMmVEEr+BfXpcMVNroTA33bHcQdU",
+  "freshWindowChangedSSHInvocations": 0,
   "globalFullClosureQualified": false,
   "healthyReplay": 0,
   "heldFilesThroughTerminal": true,
@@ -80,6 +108,9 @@
   "signatureExitCode": 0,
   "sshExeSHA256": "c9dc170cd161db87e75eb6cf282f1325005b9e35628b9a36cb19883a8be1a34f",
   "state": "HOLD_UNRESOLVED_OWNED_SSH_DEPENDENCIES",
+  "timestampSupplementObservationSHA256": "c379ae50c52a94fa21371b7d5ca4451d443c35a37a04cfd3b3a3c1eeecae640e",
+  "timestampSupplementResult": "AUTHENTICATED_TIMESTAMPS_HISTORICAL_NOFLAG_CHAINS_PASS_CURRENT_REVOCATION_ARTIFACT_INTERVAL_UNKNOWN_HOLD",
+  "timestampSupplementSHA256": "994401e2a42138ccb823d525a8dbdb74785cafc2bf17cfdd51a9f34c5919febe",
   "unresolved": [
     {
       "code": "UNADMITTED_PROVIDER",
