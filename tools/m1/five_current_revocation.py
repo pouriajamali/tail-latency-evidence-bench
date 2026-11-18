@@ -1,10 +1,14 @@
-"""PREPARED ONLY: canonical BUSY prevented execution; no cache-proof/admission claim."""
+"""Exact catalog metadata/cache lookup prefix ran; no CRL artifact was available for acceptance."""
 from pathlib import Path
 import ctypes,contextlib,base64,hashlib,json,os,time,struct,datetime
 import crl_der as D
 import support as S
 TARGET_LEAF='2d7ffce2c256016291b67285456aa8da779d711bbf8e6b85c212a157ddfbe77e'
 TARGET_ISSUER='e8e95f0733a55e8bad7be0a1413ee23c51fcea64b3c8fa6a786935fddcc71961'
+CRYPT_CACHE_ONLY_RETRIEVAL=0x00000002
+CRYPT_WIRE_ONLY_RETRIEVAL=0x00000004
+CRYPT_DONT_CACHE_RESULT=0x00000008
+CACHE_RETRIEVAL_FLAGS=CRYPT_CACHE_ONLY_RETRIEVAL | CRYPT_DONT_CACHE_RESULT
 ROOT='df545bf919a2439c36983b54cdfc903dfa4f37d3996d8d84b4c31eec6f3c163e'
 class Blob(ctypes.Structure):_fields_=[('size',ctypes.c_uint),('data',ctypes.c_void_p)]
 class CC(ctypes.Structure):_fields_=[('encoding',ctypes.c_uint),('data',ctypes.c_void_p),('size',ctypes.c_uint),('info',ctypes.c_void_p),('store',ctypes.c_void_p)]
@@ -62,10 +66,13 @@ class Native:
    if store:self.c.CertCloseStore(store,0)
    k.CloseHandle(h)
  def cached(self,url):
+  D.need(CACHE_RETRIEVAL_FLAGS==10 and not CACHE_RETRIEVAL_FLAGS&CRYPT_WIRE_ONLY_RETRIEVAL,'CACHE_ONLY_DONT_CACHE_FLAGS_REQUIRED')
   D.need(url.startswith(('http://','https://')) and len(url)<=2048,'SIGNED_CDP_URL_SCOPE')
   out=ctypes.c_void_p();a=Aux();a.size=ctypes.sizeof(a);a.maxBytes=1048576
-  ok=self.n.CryptRetrieveObjectByUrlW(url,None,6,2000,ctypes.byref(out),None,None,None,ctypes.byref(a));err=ctypes.get_last_error()
-  if not ok:return None,err
+  ok=self.n.CryptRetrieveObjectByUrlW(url,None,CACHE_RETRIEVAL_FLAGS,2000,ctypes.byref(out),None,None,None,ctypes.byref(a));err=ctypes.get_last_error()
+  if not ok:
+   D.need((err&0xffffffff)!=0x80070057,'INVALID_API_ARGUMENTS_NOT_A_CACHE_MISS')
+   return None,err
   try:
    D.need(out.value,'CACHE_RAW_POINTER');arr=Array.from_address(out.value);D.need(arr.count==1,'ONE_ARTIFACT_PER_RETRIEVAL');blob=Blob.from_address(arr.blobs);D.need(0<blob.size<=1048576,'ARTIFACT_1M_CAP');return ctypes.string_at(blob.data,blob.size),0
   finally:
@@ -119,7 +126,7 @@ def entry(f):
     for urlb in uris:
      clock();url=urlb.decode('ascii')
      if url not in requests:
-      D.need(len(requests)<5,'CACHE_REQUEST_COUNT_CAP');body,err=native.cached(url);requests[url]=(body,err);result['cacheRequests'].append({'url':url,'flags':6,'maximumBytes':1048576,'cacheOnly':True,'success':body is not None,'error':err})
+      D.need(len(requests)<5,'CACHE_REQUEST_COUNT_CAP');body,err=native.cached(url);requests[url]=(body,err);result['cacheRequests'].append({'url':url,'flags':CACHE_RETRIEVAL_FLAGS,'maximumBytes':1048576,'cacheOnly':True,'success':body is not None,'error':err})
       if body is not None:
        D.need(len(result['artifacts'])<5 and artifactBytes+len(body)<=5242880,'FIVE_ARTIFACT_5M_CAP');artifactBytes+=len(body)
        fp=out/('current-revocation-artifact-'+str(len(result['artifacts']))+'.der')

@@ -51,20 +51,53 @@
   "currentRevocationCaptureLimitation": "Independent current Offline/NoFlag chain native revocation info exists with result0 and freshness817s for all five distinct nonroot certificates. pCrlInfo is null; CRL/OCSP artifact kind, signed response and validity intervals were not captured. Strict supplement accepts neither absent interval proof nor an assumed OCSP classification. This does not establish missing/invalid cache data or revocation.",
   "fingerprint": "SHA256:AgU5bZlJSjUu0KsWMmVEEr+BfXpcMVNroTA33bHcQdU",
   "fiveCertRevocationAttempt": {
-    "anotherCanonicalParticipantLeasePreserved": true,
+    "allOwnedTerminal": true,
+    "artifactAcceptanceBranchExecuted": false,
     "artifactBytesRead": 0,
+    "automaticFurtherRetry": false,
+    "cacheScopeQualification": "Only these three exact URL lookups in the current API/user context; no all-user/all-machine/OCSP-absence claim",
+    "claimTimeStartsWindow": true,
+    "correctedFlags": 10,
+    "correctedNativeCacheRequests": [
+      {
+        "cacheOnly": true,
+        "error": 2,
+        "flags": 10,
+        "maximumBytes": 1048576,
+        "success": false,
+        "url": "http://www.microsoft.com/pkiops/crl/MicWinProPCA2011_2011-10-19.crl%20"
+      },
+      {
+        "cacheOnly": true,
+        "error": 2,
+        "flags": 10,
+        "maximumBytes": 1048576,
+        "success": false,
+        "url": "http://crl.microsoft.com/pki/crl/products/MicRooCerAut_2010-06-23.crl"
+      },
+      {
+        "cacheOnly": true,
+        "error": 2,
+        "flags": 10,
+        "maximumBytes": 1048576,
+        "success": false,
+        "url": "http://www.microsoft.com/pkiops/crl/Microsoft%20Time-Stamp%20PCA%202010(1).crl"
+      }
+    ],
+    "correctedProofSHA256": "c775dc17d2e8c7efa99625f10a8bddfbf8f2cdaffcab926d75b6fb244f860481",
+    "directHumanRetryInstruction": "retry",
+    "exactCertificates": 5,
+    "exactOwnLeaseReleased": true,
+    "initialErrorIsNotCacheMiss": true,
+    "initialFlags": 6,
+    "initialNativeErrorHex": "0x80070057",
+    "initialParameterErrorProofSHA256": "1294e9df8dacb1e8ec661207108fb2c344b2f41cc60337291f5561f056fe273b",
     "newArtifacts": 0,
     "newSSH": 0,
-    "ownLeaseClaimed": false,
-    "ownerWaitsSameDeadline": 2,
-    "preparedActionSHA256": "d8a83d86c8db9dada60c697560e1c1983c12b4fa571ce78be6169d4fd2cb9f3f",
-    "preparedHelperRuntimeValidated": false,
-    "sameWindowClockReset": false,
-    "state": "NOT_STARTED_CANONICAL_BUSY",
-    "targetChildrenStarted": 0,
+    "state": "HOLD_EXACT_URL_CACHE_OBJECTS_UNAVAILABLE",
     "window": {
-      "deadlineUnix": 1795002366,
-      "startUnix": 1795002066
+      "deadlineUnix": 1795006688.986188,
+      "startUnix": 1795006388.986188
     }
   },
   "freshWindowChangedSSHInvocations": 0,
