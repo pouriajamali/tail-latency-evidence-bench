@@ -13,26 +13,33 @@ def proc(pid):
 def main():
     p=argparse.ArgumentParser();p.add_argument('--frame',required=True);p.add_argument('--frame-sha',required=True);a=p.parse_args();f=json.loads(Path(a.frame).read_bytes())
     need(sha(a.frame)==a.frame_sha and f['schema']=='tail11-linux-role-frame/v1' and os.getuid()==0,'FIXED_ROOT_LAUNCH')
-    need(f['mode'] in ('metadata','signature','loader-static','loader-symbols','loader-debug') and re.fullmatch('[0-9a-f]{32}',f['nonce']) is not None,'FIXED_ROLE')
+    need(f['mode'] in ('metadata','signature','loader-static','loader-symbols','loader-debug','loader-native-diagnostics') and re.fullmatch('[0-9a-f]{32}',f['nonce']) is not None,'FIXED_ROLE')
     need(time.time()<f['window']['deadlineUnix']-30 and f['window']['deadlineUnix']-f['window']['startUnix']==300,'WHOLE_CLOCK')
     source=Path(f['sourceDirectory']);out=Path(f['hostOutputLinuxPath']);need(out.is_dir(),'OWN_OUTPUT')
     for n,h in f['sourceHashes'].items():need(sha(source/n)==h,'SOURCE_BINDING')
     protocol=Path(f['protocolLinuxPath']);lease=Path(f['leaseLinuxPath']);need(sha(protocol)=='9120ca49a0d46673053aa0ec0cdbbc6f00731d71ea0b57ddab09e8fc3ac3ac8b','CANONICAL_PROTOCOL')
     holder=json.loads(lease.read_bytes());need(holder['projectId']=='11' and holder['randomToken']==f['nonce'] and holder['ownerPID']==f['ownerPID'] and holder['ownerProcessStartIdentity']==f['ownerBirth'],'CANONICAL_OWNER')
-    cgroot=Path('/sys/fs/cgroup');cg=cgroot/('tail11sig-'+f['nonce']+'.service');guest=Path('/home/ubuntu')/('tail11-linux-role-'+f['nonce'])
-    need(str(cg.parent)==str(cgroot) and not cg.exists() and not guest.exists(),'NO_EXISTING_SCOPE_REUSE')
+    preallocated=f.get('transport')=='EXISTING_ROOT_CAPPED_SYSTEMD_SERVICE'
+    cgroot=Path('/sys/fs/cgroup');unit='tail11sig-'+f['nonce']+'.service';cg=(cgroot/'system.slice'/unit) if preallocated else (cgroot/unit);guest=Path('/home/ubuntu')/('tail11-linux-role-'+f['nonce'])
+    need(not guest.exists(),'NO_EXISTING_GUEST_SCOPE_REUSE')
+    if preallocated:
+        actual=next(x.split('::',1)[1] for x in Path('/proc/self/cgroup').read_text().splitlines() if x.startswith('0::'))
+        need(f['preallocatedUnit']==unit and actual=='/system.slice/'+unit and str(os.getpid()) in (cg/'cgroup.procs').read_text().split(),'EXACT_PREALLOCATED_OWN_SERVICE')
+    else:need(str(cg.parent)==str(cgroot) and not cg.exists(),'NO_EXISTING_SCOPE_REUSE')
     created=False
     child=None;terminal=False;code=1;reason='LAUNCH_HOLD';killed=False;worker=None
     try:
         if f.get('transport')=='EXISTING_UBUNTU_USER_SUDO_N':
             sudo=Path('/usr/bin/sudo');st=sudo.stat();need(st.st_uid==0 and not st.st_mode&0o022 and sha(sudo)=='6ae6665cc51295ea8aaba94a3377dafa563f950aafc6296c0704fb33401a31ff','EXISTING_SUDO_TRANSPORT_IDENTITY')
-        need({'cpu','memory','pids'}<=set((cgroot/'cgroup.subtree_control').read_text().split()),'EXISTING_CGROUP_CONTROLLERS_REQUIRED')
-        cg.mkdir();created=True;cginode=cg.stat().st_ino
+        if not preallocated:
+            need({'cpu','memory','pids'}<=set((cgroot/'cgroup.subtree_control').read_text().split()),'EXISTING_CGROUP_CONTROLLERS_REQUIRED');cg.mkdir()
+        created=True;cginode=cg.stat().st_ino
         guest.mkdir(mode=0o700);os.chown(guest,1000,1000)
-        for n,v in {'cpu.max':'200000 100000','memory.max':'536870912','memory.swap.max':'0','pids.max':'64'}.items():(cg/n).write_text(v)
+        if not preallocated:
+            for n,v in {'cpu.max':'200000 100000','memory.max':'536870912','memory.swap.max':'0','pids.max':'64'}.items():(cg/n).write_text(v)
         need((cg/'cpu.max').read_text().strip()=='200000 100000' and (cg/'memory.max').read_text().strip()=='536870912' and (cg/'memory.swap.max').read_text().strip()=='0' and (cg/'pids.max').read_text().strip()=='64','ACTUAL_CAPS_BEFORE_FORK')
         gf=dict(f);gf['guestOutputPath']=str(guest);gp=guest/'frame.json';fresh(gp,gf);os.chown(gp,1000,1000)
-        module={'metadata':'linux_role_probe','signature':'linux_ssh_role','loader-static':'linux_static_input','loader-symbols':'linux_loader_symbols','loader-debug':'linux_loader_symbols'}[f['mode']]
+        module={'metadata':'linux_role_probe','signature':'linux_ssh_role','loader-static':'linux_static_input','loader-symbols':'linux_loader_symbols','loader-debug':'linux_loader_symbols','loader-native-diagnostics':'linux_loader_diagnostics'}[f['mode']]
         need(module+'.py' in f['sourceHashes'],'FIXED_ENTRY_SOURCE')
         child=os.fork()
         if child==0:
@@ -68,15 +75,15 @@ def main():
             fresh(out/'linux-role-terminal.json',{'schema':'tail11-linux-role-terminal/v1','status':reason,'returncode':1,'originalWaitpidReturned':False,'noOwnedChildCreated':True,'allOwnedTerminal':True,'cgroupEmpty':True,'cgroupRemoved':False,'cgroupNeverCreated':True,'forced':False,'frameSHA256':a.frame_sha,'nonce':f['nonce'],'proofs':{}})
             raise SystemExit(1)
         need(cg.stat().st_ino==cginode,'EXACT_OWN_CGROUP_BEFORE_TEARDOWN')
-        if (cg/'cgroup.procs').read_text().split():(cg/'cgroup.kill').write_text('1');killed=True
+        if not preallocated and (cg/'cgroup.procs').read_text().split():(cg/'cgroup.kill').write_text('1');killed=True
         if child is not None and not terminal:
             try:pid,status=os.waitpid(child,0);terminal=pid==child;code=os.waitstatus_to_exitcode(status)
             except ChildProcessError:terminal=True
         if child is None:terminal=True
         end=min(time.time()+10,f['window']['deadlineUnix'])
-        while (cg/'cgroup.procs').read_text().split() and time.time()<end:time.sleep(.01)
-        empty=not (cg/'cgroup.procs').read_text().split();events=(cg/'cgroup.events').read_text().strip();need(empty and re.search(r'^populated 0$',events,re.M) is not None,'OWN_CGROUP_TERMINAL_UNKNOWN')
-        names=('metadata.json','profile.json','signature-proof.json','signature-controls.json','elf-closure.json','loader-static.json','loader.elf','loader-symbols.json','loader.symtab','loader.strtab','loader-symbols-request0.json','loader-symbols-request1.json')
+        while (set((cg/'cgroup.procs').read_text().split())-({str(os.getpid())} if preallocated else set())) and time.time()<end:time.sleep(.01)
+        members=(cg/'cgroup.procs').read_text().split();empty=(set(members)<={str(os.getpid())}) if preallocated else not members;events=(cg/'cgroup.events').read_text().strip();need(empty and (preallocated or re.search(r'^populated 0$',events,re.M) is not None),'OWN_CGROUP_TERMINAL_UNKNOWN')
+        names=('metadata.json','profile.json','signature-proof.json','signature-controls.json','elf-closure.json','loader-static.json','loader.elf','loader-symbols.json','loader.symtab','loader.strtab','loader-symbols-request0.json','loader-symbols-request1.json','loader-cpu-diagnostics.json','loader-native-cpu.txt','loader-native-tunables.txt')
         files={};total=0
         for name in names:
             src=guest/name
@@ -84,8 +91,9 @@ def main():
                 need(src.is_file() and not src.is_symlink() and src.stat().st_size<=262144,'PRIVATE_PROOF_BOUNDS');b=src.read_bytes();total+=len(b);need(total<=1048576,'ALL_ROLE_PROOF_CAP')
                 with (out/name).open('xb') as w:w.write(b);w.flush();os.fsync(w.fileno())
                 files[name]={'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
-        (cg).rmdir()
-        fresh(out/'linux-role-terminal.json',{'schema':'tail11-linux-role-terminal/v1','status':reason,'returncode':code,'originalWaitpidReturned':terminal if child is not None else False,'noOwnedChildCreated':child is None,'worker':worker,'allOwnedTerminal':terminal and empty,'cgroupEmpty':empty,'cgroupRemoved':True,'cgroupInode':cginode,'forced':killed,'frameSHA256':a.frame_sha,'nonce':f['nonce'],'proofs':files,'guestEvidenceRoot':str(guest)})
+        if not preallocated:(cg).rmdir()
+        terminal_name='service-worker-terminal.json' if preallocated else 'linux-role-terminal.json'
+        fresh(out/terminal_name,{'schema':'tail11-linux-role-terminal/v1','status':reason,'returncode':code,'originalWaitpidReturned':terminal if child is not None else False,'noOwnedChildCreated':child is None,'worker':worker,'allOwnedTerminal':False if preallocated else terminal and empty,'cgroupEmpty':False if preallocated else empty,'cgroupRemoved':not preallocated,'allOwnedChildrenTerminal':terminal and empty,'preallocatedUnit':unit if preallocated else None,'serviceCoordinatorStillLive':preallocated,'cgroupInode':cginode,'forced':killed,'frameSHA256':a.frame_sha,'nonce':f['nonce'],'proofs':files,'guestEvidenceRoot':str(guest)})
     if reason!='ROLE_COMPLETED':raise SystemExit(1)
 
 if __name__=='__main__':main()

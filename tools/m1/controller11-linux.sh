@@ -5,10 +5,11 @@ WORK="$(dirname -- "$(realpath -- "$0")")"
 OUT="$(dirname -- "$(dirname -- "$WORK")")/outputs/m1"
 [[ $# == 3 && "${WSL_DISTRO_NAME:-}" == Ubuntu-24.04 && "$(id -u)" == 1000 ]] || exit 23
 attachment="$(realpath -- "$1")"; attachment_sha="$2"; deadline="$3"
-[[ "$attachment" == "$OUT/linux-bootstrap.json" && "$attachment_sha" =~ ^[0-9a-f]{64}$ && "$deadline" =~ ^[0-9]{10}$ ]] || exit 23
+[[ "$attachment" == "$OUT/linux-bootstrap.json" && "$attachment_sha" =~ ^[0-9a-f]{64}$ && "$deadline" =~ ^[0-9]{10}([.][0-9]{1,9})?$ ]] || exit 23
 read -r actual _ < <(sha256sum -- "$attachment")
 [[ "$actual" == "$attachment_sha" ]] || exit 23
-now="$(date +%s)";remaining="$((deadline-now-1))"
+deadline_whole="${deadline%%.*}"
+now="$(date +%s)";remaining="$((deadline_whole-now-1))"
 [[ "$remaining" -ge 1 && "$remaining" -le 299 ]] || exit 124
 read -r nonce < /proc/sys/kernel/random/uuid
 unit="tail11agg-$nonce.service"

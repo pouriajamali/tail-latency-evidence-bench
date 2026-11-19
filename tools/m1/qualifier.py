@@ -259,7 +259,12 @@ def graph_queue_control():
 
 def inventory(bootstrap,stage,role,plans):
     import pathlib,hashlib,json,stat,time
-    ssh_role=owned_ssh_profile(bootstrap)
+    manifest_source=bootstrap.get('manifestSignatureSource')
+    if manifest_source:
+        require(manifest_source=='PINNED_LINUX_MANIFEST_DATA_ONLY','MANIFEST_SIGNATURE_SOURCE_SCOPE')
+        import signature_handoff
+        ssh_role=signature_handoff.validate_manifest_binding(bootstrap['sourceHashes'])
+    else:ssh_role=owned_ssh_profile(bootstrap)
     soft_stop=time.monotonic()+16
     def within_role():require(time.monotonic()<soft_stop,"ROLE_SOFT_DEADLINE")
     root=pathlib.Path(sys.executable).parent.resolve()
@@ -334,9 +339,15 @@ def inventory(bootstrap,stage,role,plans):
     # SSH has a separate owned-process proof. It is never loaded/executed in
     # either Python import qualifier; its PE imports are not Python modules.
     ssh=pathlib.Path(bootstrap["sshKeygen"]["path"])
-    require(str(ssh).lower()==r"c:\windows\system32\openssh\ssh-keygen.exe" and
-            bootstrap["sshKeygen"]["sha256"]==ssh_role["sshExeSHA256"],"SSH_TOOL_IDENTITY")
-    ssh_imports=[{"name":e["name"],"kind":e["kind"]} for e in ssh_role["rootImportEdges"]]
+    if manifest_source:
+        require(ssh_role['WindowsSSHAdmitted'] is False and ssh_role['globalHostAdmitted'] is False,'NO_WINDOWS_OR_HOST_ADMISSION_TRANSFER')
+        ssh_imports=[]
+        critical_ssh={'bytes':ssh_role['sshBytes'],'sha256':ssh_role['sshSHA256'],'executedInPythonQualifier':False,'roleProofSHA256':ssh_role['producerProofSHA256'],'role':ssh_role['role'],'producerPlatform':'linux-x64','WindowsSSHAdmitted':False}
+        new_bytes+=ssh_role['readBytes']
+    else:
+        require(str(ssh).lower()==r"c:\windows\system32\openssh\ssh-keygen.exe" and bootstrap["sshKeygen"]["sha256"]==ssh_role["sshExeSHA256"],"SSH_TOOL_IDENTITY")
+        ssh_imports=[{"name":e["name"],"kind":e["kind"]} for e in ssh_role["rootImportEdges"]]
+        critical_ssh={"bytes":861184,"sha256":bootstrap["sshKeygen"]["sha256"],"peImports":ssh_imports,"executedInPythonQualifier":False,"roleProofSHA256":ssh_role["proofSHA256"]}
     # Collect any newly found Python/native providers to a finite fixed point.
     todo=list(loaded);seen=set();os_refs={}
     pending={pathlib.Path(x["path"]).resolve() for x in todo}
@@ -376,4 +387,4 @@ def inventory(bootstrap,stage,role,plans):
     return {"exactProviderAttestation":exact,"consumingFiles":list(files.values()),"modules":modules,"peDependencies":pe_edges,
             "osBaseTCB":list(os_refs.values()),"windowsBuild":list(sys.getwindowsversion()),
             "newlyReadBytes":new_bytes,"unresolved":[],"completeCoverageForDeclaredInputGraph":True,
-            "staticImportPlans":plans,"criticalSSH":{"bytes":861184,"sha256":bootstrap["sshKeygen"]["sha256"],"peImports":ssh_imports,"executedInPythonQualifier":False,"roleProofSHA256":ssh_role["proofSHA256"]}}
+            "staticImportPlans":plans,"criticalSSH":critical_ssh}

@@ -345,8 +345,11 @@ def extract(rid, raw, inputs, evidence, signature_receipt, deadline):
     need(archive.stat().st_size==size and sha(archive)==hashvalue,"archive changed before extract")
     # Signature receipt must be the immutable hash-bound actual receipt admitted by the parent.
     sig=json.loads(Path(signature_receipt).read_text())
-    need(sig["status"]=="PINNED_SIGNATURE_AND_PRESENT_ARCHIVES_VERIFIED" and
-         sig["fingerprint"]==KEY and name in sig["archives"],"unsigned extraction denied")
+    if sig.get('schema')=='tail11-cross-platform-archive-conjunction/v1':
+        import signature_handoff
+        signature_handoff.validate_conjunction(sig,rid,name,size,hashvalue)
+    else:
+        need(sig["status"]=="PINNED_SIGNATURE_AND_PRESENT_ARCHIVES_VERIFIED" and sig["fingerprint"]==KEY and name in sig["archives"],"unsigned extraction denied")
     target=inputs/"extracted"/rid
     target.mkdir(parents=True,exist_ok=False)
     stop=min(deadline,time.time()+60)

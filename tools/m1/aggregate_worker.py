@@ -54,6 +54,10 @@ def qualify(a,args):
     source_paths["verify_downloads.py"]=str(ROOT/"tools/verify_downloads.py")
     q.cache_policy(sys.pycache_prefix)
     lane_reads=[a["canonicalProtocolPath"],a["canonicalLeasePath"]] if a.get("execution")=="LOCAL_CANONICAL" else []
+    if a.get('manifestSignatureSource'):
+        need(a['manifestSignatureSource']=='PINNED_LINUX_MANIFEST_DATA_ONLY','MANIFEST_SIGNATURE_SOURCE_SCOPE')
+        import signature_handoff
+        _,signature_paths=signature_handoff.binding_paths();lane_reads += list(map(str,signature_paths))
     if a.get("exactProvider"):
         import exact_provider
         lane_reads += [str(exact_provider.TARGET),a["exactProvider"]["reusedControls"]["path"]]+[r["path"] for r in a["exactProvider"]["proofs"].values()]
@@ -101,9 +105,10 @@ def qualify(a,args):
         b={"sourceHashes":a["sourceHashes"],"sourcePaths":source_paths,"qualifierPath":str(WORK/"qualifier.py"),
            "frozenVerifier":{"path":str(ROOT/"tools/verify_downloads.py"),"sha256":s.VERIFIER_SHA},
            "sshKeygen":a["sshKeygen"],"readBytesAlready":used+source_bytes,"priorConsumingFiles":previous}
+        if a.get('manifestSignatureSource'):b['manifestSignatureSource']=a['manifestSignatureSource']
         if a.get("exactProvider"):
             if args.role=="input-worker-imports":
-                b["queueCausalControl"]=q.graph_queue_control()
+                b["queueCausalControl"]={'status':'UNCHANGED_QUEUE_CONTROL_NOT_REPLAYED','reason':'Only manifest-signature data routing changed; enqueue_provider and graph_queue_control retain their previous source.'}
                 b["newProviderControls"],control_read=exact_provider.reused_controls(a)
                 b["readBytesAlready"]+=control_read;source_bytes+=control_read
             b["exactProviderAttestation"]=exact_provider.attest(a)
@@ -139,6 +144,13 @@ def stage_inputs(a,args):
     evidence=OUT/"staging"/args.rid
     raw=stage.acquire(read(WORK/"input-bindings.json"),inputs,evidence,deadline,route,args.rid)
     archive=stage.ASSETS[3 if args.rid=="win-x64" else 4][0]
+    if a.get('manifestSignatureSource'):
+        need(a['manifestSignatureSource']=='PINNED_LINUX_MANIFEST_DATA_ONLY','MANIFEST_SIGNATURE_SOURCE_SCOPE')
+        import signature_handoff
+        with signature_handoff.archive_conjunction(args.rid,raw,evidence,deadline) as signature_receipt:
+            (inputs/'verification').mkdir(parents=True,exist_ok=True)
+            result=stage.extract(args.rid,raw,inputs,evidence,signature_receipt,deadline)
+        fresh(OUT/args.rid/'staged-input.json',result);s.storage_guard();return
     verifier=ROOT/"tools/verify_downloads.py"
     need(sha(verifier)==s.VERIFIER_SHA,"FROZEN_VERIFIER")
     ssh=Path(a["sshKeygen"]["path"])

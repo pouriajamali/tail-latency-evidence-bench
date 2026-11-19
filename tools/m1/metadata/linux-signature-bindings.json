@@ -1,0 +1,31 @@
+{
+  "producerCriticalSourceHashes": {
+    "linux_cgroup_launcher.py": "c5a49d3f01b39c6c1e4374a04d1fba750de9f6f39b07efa096654c6ba001ee97",
+    "linux_dlfo_witness.py": "8ef687db25caddc9dacd2a79fc4caab2203b90462b320dee6a8f7c9cb6f9cdf2",
+    "linux_init_write_trace.py": "7a623f32ab569c29f24fa5160eb07d6f1f2771bced6e3c7d8d3ef3797358e505",
+    "linux_loader_initializer_witness.py": "7d1c5dcba5bf38712a736ad3f4d2fd12977a6b0e48edff95f333fa05bcfd854e",
+    "linux_role_probe.py": "b1b3913a5f4e1d8357eaa0870afd15b1dda6ff0603400c34309d54ec34332604",
+    "linux_ssh_role.py": "e69bc56970c563002cc223b94c509f0bc7342753794bd5178114564102c09436",
+    "linux_systemd_role.py": "c447aa0a00d406e4f9ee01a729312e8386a1425ab252390694c3edc6c811ff44",
+    "linux_tls_witness.py": "398648e87259f4acf89ed7ba3f616d4edf8422e5446fa4de9b6c1f0e58462e62",
+    "support.py": "2100f4d0d495c2c9c2bdf69ff35a172e698ad431d65e6e3239577da04246c37e"
+  },
+  "producerDirectoryName": "linux-owned-ssh-negative-kernel-reference-fix-once-20261119",
+  "producerNonce": "9be53dce27ad1284c586388bfa8b5f35",
+  "proofHashes": {
+    "FINAL.json": "aecbd0d7091b552ae52adf27ba72a7bb2b6505510c8cb50553b1451fbe700e74",
+    "frame.json": "553246e66d9d2e89e9eb4c69cbdcbf66228f3f655745e5db7469d758fe1cd61d",
+    "linux-role-terminal.json": "21eb4be99fabce8c6308737adaf17539daaf2fb7149c1fadbca2a769fdce2262",
+    "signature-proof.json": "267d1602e07f21b0fcbe42582881d4bc0168b87ba3759b77bb758bf08813a576"
+  },
+  "reusedDirectoryName": "linux-owned-ssh-lifecycle-parser-fix-once-20261119",
+  "reusedProofHashes": {
+    "FINAL.json": "3364d6cf86290093b8a36ba7b7007ec699b962acbec5831006598a01619e3fd5",
+    "frame.json": "16a849da9906ad4635f0e8b39f0899a9b0b1a14c46703da98aac64b632751b26",
+    "linux-role-terminal.json": "de71ee6115e1ea33aba0618f4bc6c317d7bcc65f0e4317a47ab635303a679d7b",
+    "signature-proof.json": "eb2de99ae6dcfd4764a651f755d0d24b20ceeae5c2aab6c927c6678f6e1f86c9"
+  },
+  "schema": "tail11-linux-signature-bindings/v1",
+  "scope": "Manifest signature data only; Windows owned SSH remains HOLD; no host admission transfer; two completed native controls reused without replay.",
+  "state": "PINNED_ACTUAL_LINUX_SIGNATURE_RESULT"
+}

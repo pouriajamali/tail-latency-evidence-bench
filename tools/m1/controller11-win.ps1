@@ -108,6 +108,8 @@ try{
   sshKeygen=@{path=$ssh;sha256=$pins.ssh[1]};oracle=@{'win-x64'=@{path=(Join-Path $repo 'tools/oracle.py');sha256='82c6998225f6bd38d1df941ceb49e13d3adcfb16678780a6a25da17e56ebe1bf'}}}
  if($Local){
   $frame['execution']='LOCAL_CANONICAL';$frame['canonicalProtocolPath']=$canonicalProtocol;$frame['canonicalLeasePath']=$canonicalLease
+  Need ($t.manifestSignatureSource -ceq 'PINNED_LINUX_MANIFEST_DATA_ONLY') 'MANIFEST_SIGNATURE_SOURCE_SCOPE'
+  $frame['manifestSignatureSource']=$t.manifestSignatureSource
   Need ($t.exactProvider.scope -ceq 'EXACT_M1_FILE_ONLY') 'EXACT_PROVIDER_SCOPE'
   Add-Type -TypeDefinition (Get-Content -LiteralPath (Join-Path $work 'provider_file_reader.cs') -Raw)
   $providerHeld=[Tail11ExactProvider]::new([Tail11ExactProvider]::ExactPath)

@@ -6,9 +6,45 @@ from linux_role_probe import elf,identity
 LAST_ELF_EVENT={}
 OWNED_CHILDREN=[]
 KERNEL_WITNESS=None
+DEBUG_ANALYSIS=None
+NATIVE_PLAN=None
 
 def need(v,c):
     if not v:raise S.Hold(c)
+
+def lifecycle_target(line,pid):
+    if 'calling init:' not in line and 'calling fini:' not in line:return None
+    m=re.fullmatch(r'\s*([0-9]+):\s*calling (init|fini):\s*(.*?)\s*',line);need(m is not None and int(m[1])==pid,'EXACT_OWN_LOADER_LIFECYCLE_FORMAT')
+    phase,target=m[2],m[3]
+    if phase=='fini':
+        n=re.fullmatch(r'(.*?)\s*\[([0-9]+)\]',target);need(n is not None and n[2]=='0','ONLY_NATIVE_BASE_NAMESPACE');target=n[1].strip()
+    need((target.startswith('/') and '[' not in target and ']' not in target) or (phase=='fini' and target==''),'EXACT_ABSOLUTE_LOADER_LIFECYCLE_TARGET')
+    return target or '/usr/bin/ssh-keygen'
+
+def reused_controls(frame):
+    binding=frame.get('resumeNativeControls');need(binding is not None,'EXACT_PRIOR_CONTROLS_REQUIRED');values={}
+    for name,row in binding['files'].items():
+        raw=S.raw(row['path'],262144);need(hashlib.sha256(raw).hexdigest()==row['sha256'],'REUSED_CONTROL_BYTES');values[name]=json.loads(raw)
+    p,t,f,a=(values[n] for n in ('signature-proof.json','linux-role-terminal.json','FINAL.json','frame.json'))
+    need(p['status']=='HOLD' and p['exceptionType']=='BrokenPipeError' and p['errno']==32 and p['signatureExecAttempts']==3 and f['status']=='ROLE_HOLD','EXACT_UNFINISHED_NEGATIVE_STREAM_CAUSE')
+    need(t['nonce']==p['nonce']==a['nonce'] and t['frameSHA256']==binding['files']['frame.json']['sha256'] and t['allOwnedTerminal'] and t['originalWaitpidReturned'] and t['cgroupEmpty'] and t['cgroupRemoved'] and f['originalPopenWaitReturned'] and f['allOwnedTerminal'] and f['observationSHA256']==binding['files']['signature-proof.json']['sha256'] and f['terminalSHA256']==binding['files']['linux-role-terminal.json']['sha256'],'REUSED_ACTUAL_OWN_SCOPE_TERMINAL')
+    need(set(a['sourceHashes'])==set(frame['sourceHashes']) and all(a['sourceHashes'][n]==h for n,h in frame['sourceHashes'].items() if n not in ('linux_ssh_role.py','local_linux_owner.py')) and a['sourceHashes']['linux_ssh_role.py']==binding['priorRoleSourceSHA256'],'REUSED_UNCHANGED_TYPED_WITNESSES')
+    good,bad=p['positive'],p['negativeManifest'];closure=good['closure']
+    need(good['exitCode']==0 and good['qualifiedImage'] and good['originalHandleTerminal'] and good['stdinBytes']==373 and good['stdinSHA256']=='7ed7c353458a935439066a6a1d205520e5610458ec346dd8dbbf5c8882d28709','REUSED_EXACT_NATIVE_SIGNATURE')
+    need(bad['exitCode']!=0 and bad['originalHandleTerminal'] and bad['stdinBytes']==373 and bad['stdinSHA256']=='92ddac3979a84273b796524e6b0b6d36be140fd057838c38e09afd3cd00c7e1d','REUSED_ALTERED_MANIFEST_REJECTED')
+    need(closure['unresolved']==[] and closure['readOnlyImageMatches'] and closure['actualChildPID']==good['pid'] and closure['validatedRelocations']>0 and closure['validatedImportSlots']>0 and closure['typedNativeInitializers']['kernelRSEQ']['noTargetStateWritten'],'REUSED_COMPLETE_TYPED_ELF_WITNESS')
+    need(all(p['ownedChildren'][i]['pid']==x['pid'] and p['ownedChildren'][i]['originalHandleTerminal'] and not p['ownedChildren'][i]['forced'] for i,x in enumerate((good,bad))),'REUSED_ORIGINAL_CHILD_HANDLES')
+    return good,bad,{'priorNonce':p['nonce'],'files':binding['files'],'priorRoleSourceSHA256':binding['priorRoleSourceSHA256'],'healthyNativeTestsRepeated':0,'reusedOriginalChildren':p['ownedChildren'][:2],'oldHoldNotRelabeled':True}
+
+def current_kernel_reference():
+    raw=Path('/proc/self/auxv').read_bytes();need(len(raw)<=16384 and len(raw)%16==0,'OWN_KERNEL_AUXV_BOUND');aux=dict(struct.iter_unpack('<QQ',raw));rs,_=maps(os.getpid());vdso=[m for m in rs if m['kernelName']=='[vdso]'];need(len(vdso)==1,'ONE_CURRENT_KERNEL_VDSO');m=vdso[0]
+    need(aux.get(33)==m['start'] and m['perms'].startswith('r-x') and m['path'] is None and 0<m['end']-m['start']<=65536,'ACTUAL_CURRENT_KERNEL_VDSO')
+    fd=os.open('/proc/self/mem',os.O_RDONLY|os.O_CLOEXEC)
+    try:body=memory(fd,m['start'],m['end']-m['start'])
+    finally:os.close(fd)
+    image=Image('linux-vdso.so.1',body);names=('__vdso_clock_gettime','__vdso_gettimeofday','__vdso_time','__vdso_getcpu','__vdso_clock_getres')
+    for name in names:need(len([s for s in image.symbols if s['name']==name and s['section'] and s['type']==2 and s['version']=='LINUX_2.6'])==1,'CURRENT_KERNEL_SYMBOLS')
+    return {'kind':'CURRENT_KERNEL_TCB_FOR_OWN_FORK_EXEC_NEGATIVE_ONLY','bootId':Path('/proc/sys/kernel/random/boot_id').read_text().strip(),'sha256':hashlib.sha256(body).hexdigest(),'bytes':len(body),'verifiedSymbols':list(names),'noChildImageAdmissionClaimed':True,'noPriorKernelAdmissionTransferred':True}
 
 class Image:
     def __init__(self,path,body):
@@ -134,7 +170,7 @@ def binding_rows(trace,known):
     for key,providers in result.items():need(len(providers)==1,'AMBIGUOUS_NATIVE_BINDING')
     return {key:next(iter(v)) for key,v in result.items()}
 
-def attest(pid,images,held,trace,end):
+def attest(pid,images,held,trace,end,startup,tracefile,argv,native_env):
     global LAST_ELF_EVENT,KERNEL_WITNESS
     rows,mapsha=maps(pid,held);base=biases(rows,images)
     parentrows,_=maps(os.getpid());parentbase={}
@@ -184,7 +220,7 @@ def attest(pid,images,held,trace,end):
             syms=[s for s in images[loader].symbols if s['name']==name and s['section']];need(len({s['value'] for s in syms})==1,'EXACT_LOADER_EXPORT');return base[loader]+syms[0]['value']
         debug=loader_symbol('_r_debug');version,linkmap,brk,state,ldbase=struct.unpack('<I4xQQI4xQ',memory(childfd,debug,40))
         need(version in (1,2) and brk==loader_symbol('_dl_debug_state') and state==0 and ldbase==base[loader],'ACTUAL_LOADER_DEBUG_STATE')
-        link_rows=[];seen_links=set();previous=0
+        link_rows=[];link_addresses={};seen_links=set();previous=0
         def c_string(address):
             data=bytearray()
             for i in range(512):
@@ -200,8 +236,14 @@ def attest(pid,images,held,trace,end):
             else:
                 canonical=str(Path(name).resolve()) if name else '/usr/bin/ssh-keygen'
                 need(canonical in images and addr==base[canonical] and dyn==addr+images[canonical].dynamicVA,'ACTUAL_FILE_LINK_MAP')
-            link_rows.append(canonical);previous=linkmap;linkmap=nxt
+            link_addresses[canonical]=linkmap;link_rows.append(canonical);previous=linkmap;linkmap=nxt
         need(len(link_rows)==len(set(link_rows)) and set(link_rows)==set(images)|{'linux-vdso.so.1'},'ACTUAL_LINK_MAP_CLOSURE')
+        from linux_dlfo_witness import attest_index
+        dlfo_patches,dlfo_proof=attest_index(DEBUG_ANALYSIS,images,loader,base,rows,childfd,vi,KERNEL_WITNESS['childStart'],link_addresses,memory)
+        patched.update(dlfo_patches)
+        native_patches,native_proof=startup.proof_and_patches(loader,base[loader],memory,childfd);patched.update(native_patches)
+        from linux_tls_witness import attest_tls
+        tls,tls_proof=attest_tls(NATIVE_PLAN,images,base,link_addresses,rows,childfd,startup.heldRegisters['fs_base'],memory)
         for path,im in images.items():
             need(time.time()<end,'SIGNATURE_ROLE20')
             for r in im.relocs:
@@ -241,8 +283,8 @@ def attest(pid,images,held,trace,end):
                         details.append({'from':path,'name':s['name'],'kind':'MUTABLE_OBJECT_COPY_NATIVE_EDGE','provider':dst});continue
                     expected=(target+(r['addend'] if typ==1 else 0))&((1<<64)-1)
                 elif typ in (16,17,18):
-                    # No guessed TLS module IDs/offsets or blanket writable masks.
-                    raise S.Hold('NATIVE_TLS_RELOCATION_WITNESS_REQUIRED')
+                    from linux_tls_witness import expected_slot
+                    dst,expected=expected_slot(path,s,typ,r['addend'],images,native,tls)
                 else:raise S.Hold('UNSUPPORTED_READONLY_ELF_RELOCATION')
                 actual=struct.unpack('<Q',memory(childfd,address,8))[0];need(actual==expected,'ACTUAL_ELF_RELOCATION_SLOT_MISMATCH')
                 patched[(path,address)]=struct.pack('<Q',expected);count+=1
@@ -258,6 +300,9 @@ def attest(pid,images,held,trace,end):
                 LAST_ELF_EVENT={'path':path,'phase':'TYPED_DYNAMIC_POINTER','tag':tag,'slotVA':d['slotVA']}
                 need(struct.unpack('<Q',memory(childfd,address,8))[0]==expected,'ACTUAL_DYNAMIC_POINTER_MISMATCH')
                 patched[(path,address)]=struct.pack('<Q',expected);dynamic_count+=1
+            if path==loader:
+                from linux_loader_initializer_witness import attest_initializers
+                init_patches,init_proof=attest_initializers(NATIVE_PLAN,images,loader,base,link_addresses,link_rows,rows,childfd,memory,trace,startup,tls,tls_proof,patched,tracefile,argv,native_env);patched.update(init_patches)
             for seg in im.header['loads']:
                 lo=base[path]+seg['vaddr'];hi=lo+seg['memsz']
                 for m in rows:
@@ -286,30 +331,43 @@ def attest(pid,images,held,trace,end):
                 matches=[p for p in images if Path(p).name==name or (name.startswith('libpcre2-8.so.') and Path(p).name==name+'.11.2')]
                 need(len(matches)==1,'ACTUAL_DT_NEEDED_UNRESOLVED');needed.append({'from':path,'name':name,'provider':matches[0],'resolved':True})
         encoded=json.dumps(details,sort_keys=True,separators=(',',':')).encode()
-        return {'schema':'tail11-owned-linux-elf-closure/v1','actualChildPID':pid,'mapsSHA256':mapsha,'mappedFiles':sorted(checked),'normalImportEdges':needed,'validatedRelocations':count,'validatedDynamicPointers':dynamic_count,'actualLinkMap':link_rows,'validatedImportSlots':len(details),'slotEvidenceSHA256':hashlib.sha256(encoded).hexdigest(),'readOnlyLoads':readonly,'readOnlyBytes':robytes,'readOnlyImageMatches':True,'kernelVDSO':KERNEL_WITNESS,'unresolved':[]}
+        return {'schema':'tail11-owned-linux-elf-closure/v1','actualChildPID':pid,'mapsSHA256':mapsha,'mappedFiles':sorted(checked),'normalImportEdges':needed,'validatedRelocations':count,'validatedDynamicPointers':dynamic_count,'typedInitialObjectIndex':dlfo_proof,'nativeInitializerTranscript':native_proof,'typedNativeInitializers':init_proof,'nativeChildTLS':tls_proof,'actualLinkMap':link_rows,'validatedImportSlots':len(details),'slotEvidenceSHA256':hashlib.sha256(encoded).hexdigest(),'readOnlyLoads':readonly,'readOnlyBytes':robytes,'readOnlyImageMatches':True,'kernelVDSO':KERNEL_WITNESS,'unresolved':[]}
     finally:os.close(childfd);os.close(parentfd)
 
 def child_run(argv,data,guest,nonce,images,held,end,qualify):
+    global LAST_ELF_EVENT
     r,w=os.pipe();o=guest/('stdout-'+nonce);e=guest/('stderr-'+nonce);traceprefix=guest/('loader-'+nonce)
+    native_env={'PATH':'/usr/bin:/bin','LANG':'C','LC_ALL':'C','HOME':str(guest),'TMPDIR':str(guest),'LD_BIND_NOW':'1','LD_DEBUG':'libs,files,bindings','LD_DEBUG_OUTPUT':str(traceprefix)}
     pid=os.fork()
     if pid==0:
         try:
             os.close(w);os.dup2(r,0);os.close(r)
             of=os.open(o,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600);ef=os.open(e,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600);os.dup2(of,1);os.dup2(ef,2);os.close(of);os.close(ef)
+            if qualify:
+                from linux_init_write_trace import trace_me
+                trace_me()
             os.kill(os.getpid(),signal.SIGSTOP)
-            env={'PATH':'/usr/bin:/bin','LANG':'C','LC_ALL':'C','HOME':str(guest),'TMPDIR':str(guest),'LD_BIND_NOW':'1','LD_DEBUG':'libs,files,bindings','LD_DEBUG_OUTPUT':str(traceprefix)}
-            os.execve('/usr/bin/ssh-keygen',argv,env)
-        except BaseException:os._exit(126)
-    os.close(r);pidfd=os.pidfd_open(pid);terminal=False;stopped=False;closure=None
+            os.execve('/usr/bin/ssh-keygen',argv,native_env)
+        except BaseException as error:
+            try:os.write(2,(json.dumps({'code':getattr(error,'code','NATIVE_CHILD_PREEXEC_HOLD'),'exceptionType':type(error).__name__,'errno':getattr(error,'errno',None)})+'\n').encode()[:4096])
+            finally:os._exit(126)
+    os.close(r);pidfd=os.pidfd_open(pid);terminal=False;stopped=False;closure=None;startup=None
     owned={'pid':pid,'originalHandleTerminal':False,'execResumed':False,'forced':False};OWNED_CHILDREN.append(owned)
     try:
-        p,status=os.waitpid(pid,os.WUNTRACED);need(p==pid and os.WIFSTOPPED(status),'SSH_STOP_BEFORE_EXEC');stopped=True
+        p,status=os.waitpid(pid,os.WUNTRACED)
+        if p==pid and (os.WIFEXITED(status) or os.WIFSIGNALED(status)):owned.update(originalHandleTerminal=True,exitCode=os.waitstatus_to_exitcode(status))
+        need(p==pid and os.WIFSTOPPED(status),'SSH_STOP_BEFORE_EXEC');stopped=True
         proc=Path('/proc')/str(pid);birth=(proc/'stat').read_text().split(') ',1)[1].split()[19]
         owned['birth']=birth
         need((proc/'cgroup').read_text()==Path('/proc/self/cgroup').read_text(),'SSH_SAME_CGROUP_BEFORE_EXEC')
         need(re.search(r'^Uid:\s+1000\s+1000\s+1000\s+1000$',(proc/'status').read_text(),re.M) is not None,'SSH_NONROOT_BEFORE_EXEC')
+        need(os.sched_getaffinity(pid)==os.sched_getaffinity(0),'OWN_ACTUAL_CPU_AFFINITY_BEFORE_EXEC')
         tracefile=Path(str(traceprefix)+'.'+str(pid));tracefile.touch(exist_ok=False)
-        os.kill(pid,signal.SIGCONT);stopped=False;owned['execResumed']=True
+        if qualify:
+            from linux_init_write_trace import StartupTrace
+            loader=next(p for p in images if Path(p).name=='ld-linux-x86-64.so.2');startup=StartupTrace(pid,owned,images[loader],images['/usr/bin/ssh-keygen'],NATIVE_PLAN,end,NATIVE_PLAN['tunableRows']);startup.resume()
+        else:os.kill(pid,signal.SIGCONT)
+        stopped=False;owned['execResumed']=True
         # Wait only on the owned native-loader trace; stdin stays open without EOF.
         lib=ctypes.CDLL(None);lib.inotify_init1.argtypes=[ctypes.c_int];lib.inotify_add_watch.argtypes=[ctypes.c_int,ctypes.c_char_p,ctypes.c_uint]
         watch=lib.inotify_init1(os.O_NONBLOCK|os.O_CLOEXEC);need(watch>=0,'NATIVE_TRACE_WATCH');need(lib.inotify_add_watch(watch,os.fsencode(guest),0x10a)>=0,'NATIVE_TRACE_WATCH')
@@ -321,41 +379,64 @@ def child_run(argv,data,guest,nonce,images,held,end,qualify):
             need(trace_offset+len(part)<=4194304,'NATIVE_TRACE_CAP');trace_offset+=len(part);trace+=part.decode('ascii')
         try:
             while True:
-                need(time.time()<end,'SIGNATURE_ROLE20');trace_append()
+                need(time.time()<end,'SIGNATURE_ROLE20')
+                if startup:
+                    while startup.consume():pass
+                trace_append()
                 if 'transferring control:' in trace:break
-                ready,_,_=select.select([watch,pidfd],[],[],min(.1,max(.001,end-time.time())))
-                need(pidfd not in ready,'SSH_ENDED_BEFORE_IMAGE_WITNESS')
+                ready,_,_=select.select([watch,pidfd],[],[],min(.005 if startup else .1,max(.001,end-time.time())))
+                if pidfd in ready:
+                    # A malformed signature can exit during argument parsing,
+                    # before any stdin demand. Only this negative may do so;
+                    # original wait and a nonzero result are still mandatory.
+                    need(not qualify and nonce=='changed-signature','SSH_ENDED_BEFORE_IMAGE_WITNESS');break
                 if watch in ready:
                     try:os.read(watch,65536)
                     except BlockingIOError:pass
         finally:os.close(watch)
         if qualify:
-            os.kill(pid,signal.SIGSTOP);p,status=os.waitpid(pid,os.WUNTRACED);need(p==pid and os.WIFSTOPPED(status),'SSH_HELD_FOR_IMAGE_WITNESS');stopped=True
+            if startup:startup.hold()
+            else:
+                os.kill(pid,signal.SIGSTOP);p,status=os.waitpid(pid,os.WUNTRACED);need(p==pid and os.WIFSTOPPED(status),'SSH_HELD_FOR_IMAGE_WITNESS')
+            stopped=True
             need((proc/'stat').read_text().split(') ',1)[1].split()[19]==birth,'SSH_ORIGINAL_BIRTH')
-            closure=attest(pid,images,held,trace,end);os.kill(pid,signal.SIGCONT);stopped=False
-        need(os.write(w,data)==len(data),'SIGNATURE_STDIN_BYTES');os.close(w);w=None
+            need(not NATIVE_PLAN.get('diagnosticOnly',False),'NATIVE_STARTUP_DIAGNOSTIC_ONLY_NO_IMAGE_OR_SIGNATURE_ACCEPTANCE')
+            closure=attest(pid,images,held,trace,end,startup,tracefile,argv,native_env)
+            if startup:startup.detach_resume()
+            else:os.kill(pid,signal.SIGCONT)
+            stopped=False
+        broken_pipe=False
+        try:written=os.write(w,data);need(written==len(data),'SIGNATURE_STDIN_BYTES')
+        except BrokenPipeError:
+            need(not qualify and nonce=='changed-signature','ONLY_MALFORMED_SIGNATURE_MAY_REJECT_BEFORE_STDIN');written=0;broken_pipe=True
+        os.close(w);w=None
         ready,_,_=select.select([pidfd],[],[],max(.001,end-time.time()));need(bool(ready),'SSH_ORIGINAL_HANDLE_TIMEOUT')
         p,status=os.waitpid(pid,0);terminal=p==pid;code=os.waitstatus_to_exitcode(status)
         owned.update(originalHandleTerminal=terminal,exitCode=code)
+        need(not broken_pipe or code!=0,'EARLY_CLOSED_INPUT_REQUIRES_ACTUAL_NATIVE_REJECTION')
         need(o.stat().st_size+e.stat().st_size<=262144 and tracefile.stat().st_size<=4194304,'SSH_OUTPUT_CAP')
         trace_append();finaltrace=trace;binding_rows(finaltrace,images)
+        lifecycle=[]
         for line in finaltrace.splitlines():
-            if 'calling init:' in line or 'calling fini:' in line:
-                target=line.split(':',2)[-1].strip()
-                if target.startswith('/'):need(str(Path(target).resolve()) in images,'LATE_UNKNOWN_ELF_PROVIDER')
-        return {'pid':pid,'birth':birth,'exitCode':code,'originalHandleTerminal':terminal,'qualifiedImage':qualify,'closure':closure,'stdinBytes':len(data),'stdinSHA256':hashlib.sha256(data).hexdigest(),'stdoutSHA256':S.sha(o),'stderrSHA256':S.sha(e),'traceSHA256':S.sha(tracefile),'traceAndOutputReadBytes':2*trace_offset+o.stat().st_size+e.stat().st_size}
+            target=lifecycle_target(line,pid)
+            if target is not None:
+                canonical=str(Path(target).resolve());LAST_ELF_EVENT={'phase':'EXACT_TERMINAL_LIFECYCLE','target':target,'canonical':canonical,'rawLine':line[:1024]};need(canonical in images,'LATE_UNKNOWN_ELF_PROVIDER');lifecycle.append(canonical)
+        need(lifecycle,'NATIVE_LIFECYCLE_TRACE_REQUIRED')
+        return {'pid':pid,'birth':birth,'exitCode':code,'originalHandleTerminal':terminal,'qualifiedImage':qualify,'closure':closure,'stdinBytes':written,'stdinOfferedBytes':len(data),'stdinSHA256':hashlib.sha256(data).hexdigest(),'earlyMalformedSignatureRejection':broken_pipe,'stdoutSHA256':S.sha(o),'stderrSHA256':S.sha(e),'traceSHA256':S.sha(tracefile),'traceAndOutputReadBytes':2*trace_offset+o.stat().st_size+e.stat().st_size}
     finally:
         if w is not None:os.close(w)
-        if not terminal:
+        if not terminal and not owned['originalHandleTerminal']:
             owned['forced']=True
-            try:os.kill(pid,signal.SIGKILL)
+            try:signal.pidfd_send_signal(pidfd,signal.SIGKILL)
             except ProcessLookupError:pass
             try:
                 wp,status=os.waitpid(pid,0);owned.update(originalHandleTerminal=wp==pid,exitCode=os.waitstatus_to_exitcode(status))
             except ChildProcessError:pass
+        if startup:startup.close()
         os.close(pidfd)
 
 def main():
+    global DEBUG_ANALYSIS,NATIVE_PLAN,KERNEL_WITNESS
     p=argparse.ArgumentParser();p.add_argument('--frame',required=True);p.add_argument('--frame-sha',required=True);a=p.parse_args();raw=Path(a.frame).read_bytes();need(hashlib.sha256(raw).hexdigest()==a.frame_sha,'FRAME_HASH');f=json.loads(raw);guest=Path(f['guestOutputPath'])
     result={'schema':'tail11-owned-linux-signature-proof/v1','status':'HOLD','admitted':False,'role':'LINUX_OPENSSH_MANIFEST_SIGNATURE_ONLY','nonce':f['nonce'],'nativeM1Calls':0,'networkCalls':0};handles=[];held={};images={};current=None
     try:
@@ -364,6 +445,10 @@ def main():
         source=Path(f['sourceDirectory']);mp=Path(f['metadataInput']['path']);need(S.sha(mp)==f['metadataInput']['sha256'],'METADATA_INPUT_HASH');meta=S.read(mp,262144)
         need(meta['status']=='METADATA_COMPLETE_NOT_ADMISSION' and meta['admitted'] is False and len(meta['files'])==6,'METADATA_NOT_ROLE_ADMISSION')
         end=min(time.time()+20,f['window']['deadlineUnix']-30);budget=0
+        binding=f['loaderDebugInput'];need(S.sha(binding['artifactPath'])=='ccb393c26fab978e94136e6875486e54eaafb0f021b766573c00d03c62532209' and S.sha(binding['analysisPath'])==binding['analysisSHA256'],'EXACT_DEBUG_INPUT_HASHES');DEBUG_ANALYSIS=S.read(binding['analysisPath'],32768);need(DEBUG_ANALYSIS['input']['sha256']=='ccb393c26fab978e94136e6875486e54eaafb0f021b766573c00d03c62532209','EXACT_DEBUG_ANALYSIS');budget+=568064
+        np=f['nativeInitializerPlan'];need(S.sha(np['path'])==np['sha256'],'EXACT_NATIVE_INITIALIZER_PLAN');NATIVE_PLAN=S.read(np['path'],262144);need(NATIVE_PLAN['schema']=='tail11-exact-native-loader-init-plan/v1' and NATIVE_PLAN['admitted'] is False and NATIVE_PLAN['debugSHA256']=='ccb393c26fab978e94136e6875486e54eaafb0f021b766573c00d03c62532209','TYPED_NATIVE_PLAN_NOT_ADMISSION')
+        from linux_loader_initializer_witness import pin_cpu_for_metadata
+        result['nativeCPUIdentityPin']=pin_cpu_for_metadata(NATIVE_PLAN)
         for row in meta['files']:
             path=row['path'];current=path;fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_CLOEXEC);handles.append(fd);st=os.fstat(fd)
             need(stat.S_ISREG(st.st_mode) and st.st_uid==0 and not st.st_mode&0o022 and 0<st.st_size<=16777216,'ROOT_NONWRITABLE_ELF')
@@ -380,9 +465,9 @@ def main():
         allowed=guest/'allowed-signers';allowed.write_bytes(('pouriajamali '+key+'\n').encode('ascii'));sig=guest/'checksum-signature';sig.write_bytes(inputs['SHA256SUMS.txt.sig'])
         argv=['/usr/bin/ssh-keygen','-Y','verify','-f',str(allowed),'-I','pouriajamali','-n','file','-s',str(sig)]
         allowed_hash=S.sha(allowed)
-        current='OWNED_NATIVE_SIGNATURE';positive=child_run(argv,inputs['SHA256SUMS.txt'],guest,'positive',images,held,end,True);result['positive']=positive;need(positive['exitCode']==0,'NATIVE_SIGNATURE_REJECTED');need(S.sha(sig)==expected['SHA256SUMS.txt.sig'][0] and S.sha(allowed)==allowed_hash,'NATIVE_POSITIVE_INPUT_STABILITY')
-        changed=bytearray(inputs['SHA256SUMS.txt']);changed[0]=ord('0') if changed[0]!=ord('0') else ord('1')
-        negative=child_run(argv,bytes(changed),guest,'changed-manifest',images,held,end,False);need(negative['exitCode']!=0,'ALTERED_MANIFEST_NOT_REJECTED');result['negativeManifest']=negative
+        current='COMPLETE_ONLY_UNFINISHED_SIGNATURE_NEGATIVE';positive,manifest_negative,reuse=reused_controls(f);result.update(positive=positive,negativeManifest=manifest_negative,reusedNativeControls=reuse)
+        KERNEL_WITNESS=current_kernel_reference();result['currentNegativeKernelTCB']=KERNEL_WITNESS;budget+=KERNEL_WITNESS['bytes']
+        need(set(positive['closure']['mappedFiles'])==set(images),'SAME_HELD_PROVIDER_SET_FOR_RESUMPTION');need(S.sha(sig)==expected['SHA256SUMS.txt.sig'][0] and S.sha(allowed)==allowed_hash,'NATIVE_INPUT_STABILITY')
         changed=bytearray(inputs['SHA256SUMS.txt.sig']);i=changed.find(b'\n')+5;need(i<len(changed),'SIGNATURE_NEGATIVE_FRAMING');changed[i]=ord('A') if changed[i]!=ord('A') else ord('B');sig.write_bytes(changed)
         negative=child_run(argv,inputs['SHA256SUMS.txt'],guest,'changed-signature',images,held,end,False);need(negative['exitCode']!=0,'ALTERED_SIGNATURE_NOT_REJECTED');result['negativeSignature']=negative
         for path,row in held.items():
@@ -391,8 +476,9 @@ def main():
             st=os.fstat(row['fd']);need(identity(st)==row['identity'],'PYTHON_CONSUMER_TERMINAL_IDENTITY');body=os.pread(row['fd'],st.st_size,0) if st.st_size else b'';budget+=len(body);need(hashlib.sha256(body).hexdigest()==row['sha256'],'PYTHON_CONSUMER_TERMINAL_HASH')
         read_total=budget+positive['closure']['readOnlyBytes']+positive['closure']['validatedRelocations']*16+sum(r['traceAndOutputReadBytes'] for r in (positive,result['negativeManifest'],negative))+1048576
         need(read_total<=67108864 and time.time()<end,'SIGNATURE_ROLE_BOUNDS')
+        need(S.sha(binding['artifactPath'])=='ccb393c26fab978e94136e6875486e54eaafb0f021b766573c00d03c62532209' and S.sha(binding['analysisPath'])==binding['analysisSHA256'],'DEBUG_DATA_STABLE_THROUGH_TERMINAL');budget+=568064
         result.update(status='QUALIFIED_LINUX_MANIFEST_SIGNATURE',admitted=True,fingerprint=fp,namespace='file',identity='pouriajamali',publicSignatureInputs={n:h for n,(h,_) in expected.items()},heldFilesThroughTerminal=True,readOnlyImageMatches=True,unresolved=[],metadataSHA256=f['metadataInput']['sha256'],sourceHashes=f['sourceHashes'],window=f['window'],roleSeconds=20-(end-time.time()),fileReadBytes=budget,readBytesWithConservativeReserve=read_total)
-    except Exception as e:result.update(code=getattr(e,'code','LINUX_SIGNATURE_ROLE_HOLD'),exceptionType=type(e).__name__,errno=getattr(e,'errno',None),phaseOrPath=current,lastELFEvent=LAST_ELF_EVENT)
+    except Exception as e:result.update(code=getattr(e,'code','LINUX_SIGNATURE_ROLE_HOLD'),exceptionType=type(e).__name__,errno=getattr(e,'errno',None),phaseOrPath=current,lastELFEvent=LAST_ELF_EVENT,lastDLFOEvent=getattr(sys.modules.get('linux_dlfo_witness'),'LAST_EVENT',None),lastNativeInitializerEvent=getattr(sys.modules.get('linux_loader_initializer_witness'),'LAST_EVENT',None),lastNativeStartupEvent=getattr(sys.modules.get('linux_init_write_trace'),'LAST_EVENT',None))
     finally:
         for fd in handles:os.close(fd)
     result['ownedChildren']=OWNED_CHILDREN;result['signatureExecAttempts']=sum(x['execResumed'] for x in OWNED_CHILDREN)
