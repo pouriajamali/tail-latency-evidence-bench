@@ -23,8 +23,10 @@ function Fresh([string]$p,$value){
 $providerHeld=$null
 $code='CI_CONTROLLER_HOLD';$children=0;$terminal=$true;$jobs=@();$runId=$env:GITHUB_RUN_ID
 $ticketSha=$null;$nonce=$null;$sourceCommit=$env:GITHUB_SHA
+$supplementRequested=$false
 try{
  $t=Get-Content -LiteralPath $ticketFile -Raw|ConvertFrom-Json -AsHashtable
+ $supplementRequested=$Local -and $t.ContainsKey('supplementOnly') -and $t.supplementOnly
  $ticketSha=Hash $ticketFile;$nonce=$t.nonce
  Need ($t.schema -ceq 'tail11-canonical-ci-ticket/v1' -and $t.projectId -ceq '11' -and $t.purpose -ceq 'ONE_FIXED_RECORD_CAP_M1') 'TICKET_SCOPE'
  Need ($nonce -cmatch '^[0-9a-f]{32}$' -and $t.canonicalClaim -ceq 'LOCAL_CREATE_NEW_STILL_HELD') 'TICKET_LANE'
@@ -110,6 +112,7 @@ try{
   $frame['execution']='LOCAL_CANONICAL';$frame['canonicalProtocolPath']=$canonicalProtocol;$frame['canonicalLeasePath']=$canonicalLease
   Need ($t.manifestSignatureSource -ceq 'PINNED_LINUX_MANIFEST_DATA_ONLY') 'MANIFEST_SIGNATURE_SOURCE_SCOPE'
   $frame['manifestSignatureSource']=$t.manifestSignatureSource
+  if($t.ContainsKey('archiveResume')){$frame['archiveResume']=$t.archiveResume}
   Need ($t.exactProvider.scope -ceq 'EXACT_M1_FILE_ONLY') 'EXACT_PROVIDER_SCOPE'
   Add-Type -TypeDefinition (Get-Content -LiteralPath (Join-Path $work 'provider_file_reader.cs') -Raw)
   $providerHeld=[Tail11ExactProvider]::new([Tail11ExactProvider]::ExactPath)
@@ -124,12 +127,16 @@ try{
   $fp=Join-Path $out ("frame-$label.json");Fresh $fp $frame
   $profilePath=Join-Path $out ("profile-$label.json")
   $cache=Join-Path $out ("cache-$label");[IO.Directory]::CreateDirectory($cache)|Out-Null
-  $job=[IntPtr]::Zero;$pi=[Tail11DiagnosticJob+PI]::new();$environment=[IntPtr]::Zero;$assigned=$false;$resumed=$false;$clean=$false
+  $job=[IntPtr]::Zero;$completion=[IntPtr]::Zero;$pi=[Tail11DiagnosticJob+PI]::new();$environment=[IntPtr]::Zero;$assigned=$false;$resumed=$false;$clean=$false
   try{
    $job=[Tail11DiagnosticJob]::CreateJobObject([IntPtr]::Zero,"tail11-input-only-$nonce")
    $createError=[Runtime.InteropServices.Marshal]::GetLastWin32Error()
    Need ($job -ne [IntPtr]::Zero) 'JOB_CREATE'
    if($createError -eq 183){[void][Tail11DiagnosticJob]::CloseHandle($job);$job=[IntPtr]::Zero;throw 'EXISTING_JOB_NO_REUSE'}
+   $completion=[Tail11DiagnosticJob]::CreateIoCompletionPort([IntPtr]::new(-1),[IntPtr]::Zero,[UIntPtr]::Zero,1)
+   Need ($completion -ne [IntPtr]::Zero) 'OWN_COMPLETION_PORT'
+   $association=[Tail11DiagnosticJob+COMPLETION]::new();$association.Key=[UIntPtr]::new(1);$association.Port=$completion
+   [Tail11DiagnosticJob]::Set[Tail11DiagnosticJob+COMPLETION]($job,7,$association)
    $ext=[Tail11DiagnosticJob+EXT]::new();$basic=[Tail11DiagnosticJob+BASIC]::new();$basic.Flags=0x2218;$basic.ActiveLimit=16
    $affinity=if([Environment]::ProcessorCount -ge 2){3}else{1};$basic.Affinity=[UIntPtr]::new([uint64]$affinity);$ext.Basic=$basic;$ext.JobMemory=[UIntPtr]::new([uint64]536870912)
    [Tail11DiagnosticJob]::Set[Tail11DiagnosticJob+EXT]($job,9,$ext)
@@ -159,16 +166,27 @@ try{
    $profile=@{nonce=$nonce;childPid=$pi.Pid;processCreationFileTime=(([uint64]$created.High -shl 32) -bor $created.Low);jobMembership=$member;cpuRate=$rate.Rate;jobMemoryBytes=$actual.JobMemory.ToUInt64();activeProcessLimit=$actual.Basic.ActiveLimit;affinityMask=$affinity;killOnClose=$true;breakawayDisabled=$true;beforeResume=$true}
    Fresh $profilePath $profile
    Need ((TimeLeft) -gt 0) 'WHOLE_CLOCK'
+   $phaseClock=[Diagnostics.Stopwatch]::StartNew()
    Need ([Tail11DiagnosticJob]::ResumeThread($pi.Thread) -ne [uint32]::MaxValue) 'RESUME';$resumed=$true
    $wait=[Tail11DiagnosticJob]::WaitForSingleObject($pi.Process,[uint32](1000*[Math]::Min($maximum,(TimeLeft))))
    $forced=$wait -ne 0
    if($forced){[Tail11DiagnosticJob]::Check([Tail11DiagnosticJob]::TerminateJobObject($job,124),'OWNED_TIMEOUT');[void][Tail11DiagnosticJob]::WaitForSingleObject($pi.Process,5000)}
    $exitCode=[uint32]0;[Tail11DiagnosticJob]::Check([Tail11DiagnosticJob]::GetExitCodeProcess($pi.Process,[ref]$exitCode),'EXIT')
    $account=[Tail11DiagnosticJob]::Get[Tail11DiagnosticJob+ACCOUNT]($job,1)
+   $firstActive=$account.ActiveProcesses;$drainEvents=@()
+   while(-not $forced -and $account.ActiveProcesses -ne 0 -and $drainEvents.Count -lt 128){
+    $left=[Math]::Min($maximum-$phaseClock.Elapsed.TotalSeconds,(TimeLeft));if($left -le 0){break}
+    $message=[uint32]0;$key=[UIntPtr]::Zero;$eventPID=[IntPtr]::Zero
+    $got=[Tail11DiagnosticJob]::GetQueuedCompletionStatus($completion,[ref]$message,[ref]$key,[ref]$eventPID,[uint32]([Math]::Min(60000,[Math]::Max(1,1000*$left))))
+    $queueError=[Runtime.InteropServices.Marshal]::GetLastWin32Error()
+    if($got){Need ($key.ToUInt64() -eq 1) 'OWN_JOB_NOTIFICATION_KEY';$drainEvents+=@{message=$message;pidHint=$eventPID.ToInt64();pidIdentityClaimed=$false}}
+    else{Need ($queueError -eq 258) 'OWN_JOB_NOTIFICATION_WAIT'}
+    $account=[Tail11DiagnosticJob]::Get[Tail11DiagnosticJob+ACCOUNT]($job,1)
+   }
    if($account.ActiveProcesses -ne 0){$forced=$true;[Tail11DiagnosticJob]::Check([Tail11DiagnosticJob]::TerminateJobObject($job,125),'OWNED_RESIDUAL');[void][Tail11DiagnosticJob]::WaitForSingleObject($pi.Process,5000)}
    $account=[Tail11DiagnosticJob]::Get[Tail11DiagnosticJob+ACCOUNT]($job,1);$clean=$account.ActiveProcesses -eq 0
    $script:terminal=$clean
-   $proof=@{label=$label;childPid=$pi.Pid;birth=$profile.processCreationFileTime;caps=$profile;exitCode=$exitCode;originalWait=$wait;forced=$forced;active=$account.ActiveProcesses;naturalTerminal=($clean -and -not $forced);deadline=$deadline}
+   $proof=@{label=$label;childPid=$pi.Pid;birth=$profile.processCreationFileTime;caps=$profile;exitCode=$exitCode;originalWait=$wait;forced=$forced;active=$account.ActiveProcesses;naturalTerminal=($clean -and -not $forced);deadline=$deadline;firstActiveAfterOriginalWait=$firstActive;jobDrainEvents=$drainEvents;phaseSeconds=$phaseClock.Elapsed.TotalSeconds;phaseCeilingUnchanged=$maximum}
    Fresh (Join-Path $public ("terminal-$label.json")) $proof
    $script:jobs+=@($proof)
    Need ($clean -and -not $forced -and $exitCode -eq 0) 'CHILD_HOLD'
@@ -181,6 +199,7 @@ try{
    }
    if($pi.Thread -ne [IntPtr]::Zero){[void][Tail11DiagnosticJob]::CloseHandle($pi.Thread)}
    if($pi.Process -ne [IntPtr]::Zero){[void][Tail11DiagnosticJob]::CloseHandle($pi.Process)}
+   if($completion -ne [IntPtr]::Zero){[void][Tail11DiagnosticJob]::CloseHandle($completion)}
    if($environment -ne [IntPtr]::Zero){[Runtime.InteropServices.Marshal]::FreeHGlobal($environment)}
   }
  }
@@ -189,16 +208,29 @@ try{
   Fresh (Join-Path $public 'local-controls-reused.json') @{status='PRIOR_NINE_HEALTHY_CONTROLS_REUSED_NOT_REPEATED';receiptSHA256=$t.reuseLocalControls.sha256;sourceCommit='426cd5043c2f6863c3d05739b8da0b8d4a752694';testsReplayed=0}
  }
  $qualStart=[DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
- foreach($role in @('input-worker-imports','frozen-verifier-imports')){Run-Phase $role 'aggregate_worker.py' @('--role',$role,'--rid','win-x64') 20}
+ $reuseQualification=$Local -and $t.ContainsKey('reuseQualification')
+ if(-not $reuseQualification){foreach($role in @('input-worker-imports','frozen-verifier-imports')){Run-Phase $role 'aggregate_worker.py' @('--role',$role,'--rid','win-x64') 20}}
  Need ([DateTimeOffset]::UtcNow.ToUnixTimeSeconds()-$qualStart -le 60) 'QUALIFICATION60'
  $union=@{};$read=$initialRead;$proofBytes=0
  foreach($role in @('input-worker-imports','frozen-verifier-imports')){
-  $p=Join-Path $out "qualification/$role.json";$proofBytes+=(Get-Item -LiteralPath $p).Length;$q=Get-Content -LiteralPath $p -Raw|ConvertFrom-Json -AsHashtable
-  Need ($q.status -ceq 'QUALIFIER_ROLE_COMPLETE' -and $q.runNonce -ceq $nonce -and $q.unresolved.Count -eq 0) 'ROLE_BINDING'
+  if($reuseQualification){
+   $binding=$t.reuseQualification.proofs[$role];$p=$binding.path;Need ((Hash $p) -ceq $binding.sha256) 'REUSED_QUALIFICATION_BYTES'
+  }else{$p=Join-Path $out "qualification/$role.json"}
+  $proofBytes+=(Get-Item -LiteralPath $p).Length;$q=Get-Content -LiteralPath $p -Raw|ConvertFrom-Json -AsHashtable
+  $expectedNonce=if($reuseQualification){$t.reuseQualification.producerNonce}else{$nonce}
+  Need ($q.status -ceq 'QUALIFIER_ROLE_COMPLETE' -and $q.runNonce -ceq $expectedNonce -and $q.unresolved.Count -eq 0) 'ROLE_BINDING'
+  if($reuseQualification){Need ($q.criticalSSH.roleProofSHA256 -ceq '267d1602e07f21b0fcbe42582881d4bc0168b87ba3759b77bb758bf08813a576' -and $q.exactProviderAttestation.status -ceq 'FORWARD_HELD_FILE_MAPPING_NECESSARY_DECLARED_CLOSURE_PASS' -and -not $q.globalFullClosureQualified) 'REUSED_DECLARED_GRAPH_ONLY'}
   $read+=$q.newlyReadBytes;foreach($r in $q.consumingFiles){$union[$r.path]=$r}
  }
  Need ($read -le 67108864 -and $union.Count -le 256 -and $proofBytes -le 1048576) 'QUALIFIER_UNION_CAPS'
  $frame['consumingFiles']=@($union.Values)
+ if($reuseQualification){
+  Fresh (Join-Path $public 'qualification-data-reused.json') @{status='PINNED_DECLARED_INPUT_GRAPH_REUSED';proofs=$t.reuseQualification.proofs;healthyTestsRepeated=0;newModuleSnapshot=$false;currentChildKernelAndFileIdentitiesStillRequired=$true;globalHostAdmissionTransferred=$false}
+  $admission=$t.reuseControllerAdmission.path;Need ((Hash $admission) -ceq $t.reuseControllerAdmission.sha256) 'REUSED_CONTROLLER_PROOF_BYTES'
+  $priorAdmission=Get-Content -LiteralPath $admission -Raw|ConvertFrom-Json -AsHashtable
+  Need ($priorAdmission.status -ceq 'PASS_HELD_CHILD_TERMINAL_AND_IDENTITY_DENIAL' -and $priorAdmission.originalHandleWait -and $priorAdmission.active -eq 0 -and $priorAdmission.wrongIdentityDenied) 'REUSED_CONTROLLER_ACTUAL_PROOF'
+  Pinned-Plan $t.casePlanSha256
+ }else{
  # Same wrong-plan predicate as the source-bound worker, before any target child.
  $actualPlan=Hash (Join-Path $work 'case-plan.json');$wrong='0'*64
  Pinned-Plan $t.casePlanSha256
@@ -209,11 +241,35 @@ try{
  Run-Phase 'held-probe' 'experiment.py' @('--rid','win-x64','--phase','probe','--cap','99','--mode','normal') 20
  $admission=Join-Path $out 'control-admission.json'
  Fresh $admission @{status='PASS_HELD_CHILD_TERMINAL_AND_IDENTITY_DENIAL';originalHandleWait=$true;active=0;wrongIdentityDenied=$true}
- Run-Phase 'stage-input' 'aggregate_worker.py' @('--role','stage','--rid','win-x64') 60
+ }
+ $reuseStaged=$Local -and $t.ContainsKey('retainedStagedInput')
+ if($reuseStaged){
+  $staged=$t.retainedStagedInput;Need ((Hash $staged.path) -ceq $staged.sha256 -and (Hash $staged.terminal.path) -ceq $staged.terminal.sha256) 'RETAINED_STAGED_INPUT_BYTES'
+  $stageTerminal=Get-Content -LiteralPath $staged.terminal.path -Raw|ConvertFrom-Json -AsHashtable
+  Need ($stageTerminal.naturalTerminal -and $stageTerminal.originalWait -eq 0 -and $stageTerminal.exitCode -eq 0 -and $stageTerminal.active -eq 0 -and -not $stageTerminal.forced) 'RETAINED_STAGE_ACTUAL_TERMINAL'
+  $stagedData=Get-Content -LiteralPath $staged.path -Raw|ConvertFrom-Json -AsHashtable
+  Fresh (Join-Path $public 'staged-input-data-reused.json') @{status='PRIOR_VERIFIED_ARCHIVE_AND_EXTRACTION_REUSED';receiptSHA256=$staged.sha256;newNetworkBytes=0;healthyTestsRepeated=0;consumerMemberIdentityChecksStillRequired=$true}
+ }else{
+  Run-Phase 'stage-input' 'aggregate_worker.py' @('--role','stage','--rid','win-x64') 60
+  $stagedData=Get-Content -LiteralPath (Join-Path $out 'win-x64/staged-input.json') -Raw|ConvertFrom-Json -AsHashtable
+ }
  $frame['status']='ADMITTED_M1_DECLARED_SCOPE';$frame['inputVerified']=$true
- $frame['inputs']=@{'win-x64'=(Get-Content -LiteralPath (Join-Path $out 'win-x64/staged-input.json') -Raw|ConvertFrom-Json -AsHashtable)}
+ $frame['inputs']=@{'win-x64'=$stagedData}
  $frame['actualControllerAdmission']=@{'win-x64'=@{status='PASS_HELD_CHILD_TERMINAL_AND_IDENTITY_DENIAL';path=$admission;sha256=(Hash $admission)}}
- foreach($cap in @(99,100,101)){Run-Phase "case-$cap" 'experiment.py' @('--rid','win-x64','--phase','case','--cap',"$cap",'--mode','normal') 60}
+ if($Local -and $t.ContainsKey('supplementOnly') -and $t.supplementOnly){
+  Need ($t.supplementalCap99.allowedNativeCalls -eq 1 -and (Hash $t.supplementalCap99.path) -ceq $t.supplementalCap99.sha256) 'SINGLE_SUPPLEMENT_AUTHORITY'
+  $frame['supplementalCap99']=$t.supplementalCap99
+  Run-Phase 'owner-cap99-supplement' 'experiment.py' @('--rid','win-x64','--phase','cap99-supplement','--cap','99','--mode','normal') 60
+  $code='WINDOWS_OWNER_CAP99_SUPPLEMENT_RECORDED';return
+ }
+ $priorWrapperHold=$Local -and $t.ContainsKey('retainedCase99')
+ if($priorWrapperHold){
+  foreach($pin in $t.retainedCase99.files){Need ((Hash $pin.path) -ceq $pin.sha256) 'RETAINED_CASE99_BYTES'}
+  $priorWrapper=Get-Content -LiteralPath $t.retainedCase99.wrapperPath -Raw|ConvertFrom-Json -AsHashtable
+  Need ($priorWrapper.forced -and -not $priorWrapper.naturalTerminal -and $priorWrapper.originalWait -eq 0 -and $priorWrapper.exitCode -eq 0 -and $priorWrapper.active -eq 0) 'ORIGINAL_WRAPPER_HOLD_RETAINED'
+  Fresh (Join-Path $public 'case99-original-wrapper-hold.json') @{status='DATA_REUSED_ORIGINAL_WRAPPER_HOLD_REMAINS';terminalSHA256=(Hash $t.retainedCase99.wrapperPath);nativeCaseRepeated=$false;naturalTerminalNotInferred=$true;M1Accepted=$false}
+ }
+ foreach($cap in @(99,100,101)){if($cap -eq 99 -and $priorWrapperHold){continue};Run-Phase "case-$cap" 'experiment.py' @('--rid','win-x64','--phase','case','--cap',"$cap",'--mode','normal') 60}
  foreach($mode in @('normal','optimized')){Run-Phase "validate-$mode" 'experiment.py' @('--rid','win-x64','--phase','validate','--cap','99','--mode',$mode) 60 $mode}
  # Public data copies only: full role/provider/attachment paths remain private to the ephemeral VM.
  foreach($cap in @(99,100,101)){
@@ -221,7 +277,7 @@ try{
   foreach($n in @('summary.json','raw.csv')){Copy-Item -LiteralPath (Join-Path $out "win-x64/cap-$cap/$n") -Destination (Join-Path $public "win-x64/cap-$cap/$n") -ErrorAction Stop}
  }
  foreach($mode in @('normal','optimized')){$v=Get-Content -LiteralPath (Join-Path $out "win-x64/validators-$mode.json") -Raw|ConvertFrom-Json -AsHashtable;$v.Remove('profile');Fresh (Join-Path $public "validators-$mode.json") $v}
- $code='WINDOWS_M1_RECORDED_NOT_SPEED'
+ $code=if($priorWrapperHold){'WINDOWS_DATA_RECORDED_PRIOR_WRAPPER_HOLD'}else{'WINDOWS_M1_RECORDED_NOT_SPEED'}
 }catch{
  $candidate=[string]$_.Exception.Message
  if($candidate -cmatch '^[A-Z][A-Z0-9_]{0,99}$'){$code=$candidate}
@@ -239,7 +295,7 @@ try{
  foreach($p in Get-ChildItem -LiteralPath $public -Recurse -File){$proofSize+=$p.Length;$files+=@{name=[IO.Path]::GetRelativePath($public,$p.FullName).Replace('\','/');bytes=$p.Length;sha256=(Hash $p.FullName)}}
  if($proofSize -gt 8388608){$code='PUBLIC_PROOF_CAP'}
  Fresh (Join-Path $public 'result.json') @{schema=$(if($Local){'tail11-local-terminal/v1'}else{'tail11-ci-terminal/v1'});status=$code;projectId='11';runNonce=$nonce;sourceCommit=$sourceCommit;runId=$runId;attempt=$env:GITHUB_RUN_ATTEMPT;ticketSha256=$ticketSha;
-  allOwnedTerminal=$terminal;childrenStarted=$children;nativeCalls=$(if(Test-Path -LiteralPath (Join-Path $out 'win-x64')){@(Get-ChildItem -LiteralPath (Join-Path $out 'win-x64') -Filter 'attempt-cap-*.json' -File).Count}else{0});files=$files;proofBytes=$proofSize;trustChanged=$false;securityChanged=$false;healthyReplay=0;SDK=0}
+  allOwnedTerminal=$terminal;childrenStarted=$children;nativeCalls=$(if($supplementRequested){if(Test-Path -LiteralPath (Join-Path $out 'win-x64-supplement-cap99-20261119/attempt.json')){1}else{0}}elseif(Test-Path -LiteralPath (Join-Path $out 'win-x64')){@(Get-ChildItem -LiteralPath (Join-Path $out 'win-x64') -Filter 'attempt-cap-*.json' -File).Count}else{0});files=$files;proofBytes=$proofSize;trustChanged=$false;securityChanged=$false;healthyReplay=0;SDK=0}
 }
-if($code -cne 'WINDOWS_M1_RECORDED_NOT_SPEED'){Write-Host "M1 HOLD: $code";exit 1}
+if($code -cnotin @('WINDOWS_M1_RECORDED_NOT_SPEED','WINDOWS_DATA_RECORDED_PRIOR_WRAPPER_HOLD')){Write-Host "M1 HOLD: $code";exit 1}
 Write-Host 'Windows fixed M1 evidence recorded; local canonical controller owns final acceptance.'

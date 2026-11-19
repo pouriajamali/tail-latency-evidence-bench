@@ -54,7 +54,7 @@ def under(path, root):
 
 def attach(args):
     import support
-    a=support.load_frame(args.attachment,args.attachment_sha,phase=args.phase,rid=args.rid)
+    a=support.load_frame(args.attachment,args.attachment_sha,phase=('case' if args.phase=='cap99-supplement' else args.phase),rid=args.rid)
     require(a["runtimeCommit"]==PIN and a["legacyException"]=="PRIVATE_6158_10.0.14_ONLY","legacy runtime binding")
     require(digest(HERE/"case-plan.json")==a["casePlanSha256"],"case plan")
     require(a["oracle"][args.rid]["sha256"]=="82c6998225f6bd38d1df941ceb49e13d3adcfb16678780a6a25da17e56ebe1bf","frozen oracle")
@@ -186,6 +186,19 @@ def load_oracle(a, rid):
     spec.loader.exec_module(module)
     return module
 
+def supplemental_cap99(a,args,proof):
+    require(args.rid=='win-x64' and args.cap==99 and args.mode=='normal','FIXED_SINGLE_CAP99_SUPPLEMENT')
+    authority=a['supplementalCap99'];require(digest(authority['path'])==authority['sha256'],'SUPPLEMENT_AUTHORITY_BYTES');permit=read_json(authority['path'])
+    require(permit['schema']=='tail11-one-cap99-owner-supplement/v1' and permit['allowedNativeCalls']==1 and permit['cap']==99 and permit['frozenCasePlanSHA256']==a['casePlanSha256'] and permit['Actions']==0 and permit['sameCeilings'] is True,'EXACT_OWNER_SUPPLEMENT_SCOPE')
+    cli,cli_hash=admitted_input(a,args.rid);root=OUT/'win-x64-supplement-cap99-20261119';out=root/'cap-99'
+    require(not root.exists(),'SUPPLEMENT_ALREADY_RESERVED_NO_RETRY');tail=['run','healthy',str(out),'100','100','64','99','20261109']
+    intent={'schema':'tail11-owner-authorized-cap99-supplement/v1','rid':'win-x64','cap':99,'argvTail':tail,'outputDirectory':str(out),'cliSha256':cli_hash,'profile':proof,'authoritySHA256':authority['sha256'],'originalCaseNotReplaced':True,'maximumNativeCalls':1}
+    fresh_json(root/'attempt.json',intent);code,stdout,stderr=bounded_child([str(cli)]+tail)
+    result={**intent,'returncode':code,'stdout':stdout,'stderr':stderr,'rawSha256':digest(out/'raw.csv'),'summarySha256':digest(out/'summary.json'),'originalNativeWaitReturned':True,'status':'ACTUAL_OWNER_SUPPLEMENT_RECORDED'}
+    fresh_json(root/'result.json',result);require(code==4,'SUPPLEMENT_NATIVE_EXIT')
+    strict=witness.validate(out,expected_config(99),result)
+    fresh_json(root/'strict-witness.json',{'status':'PASS_OWNER_CAP99_SUPPLEMENT_DATA_ONLY','result':strict,'nativeCalls':1,'oldWrapperHOLDNotRelabelled':True,'requiresSeparateNaturalJobTerminal':True})
+
 def mutate(number, data, raw, row):
     d = copy.deepcopy(data)
     if number == 1: d["configuration"]["rawCapacity"] = 100
@@ -286,7 +299,7 @@ def main():
     p.add_argument("--attachment", type=Path, required=True)
     p.add_argument("--attachment-sha", required=True)
     p.add_argument("--rid", choices=["win-x64", "linux-x64"], required=True)
-    p.add_argument("--phase", choices=["probe", "case", "validate"], required=True)
+    p.add_argument("--phase", choices=["probe", "case", "validate", "cap99-supplement"], required=True)
     p.add_argument("--cap", type=int, choices=[99, 100, 101])
     p.add_argument("--mode", choices=["normal", "optimized"], required=True)
     args = p.parse_args()
@@ -302,7 +315,9 @@ def main():
     probe = a["actualControllerAdmission"][args.rid]
     require(probe["status"] == "PASS_HELD_CHILD_TERMINAL_AND_IDENTITY_DENIAL" and
             digest(probe["path"]) == probe["sha256"], "controller admission unresolved")
-    if args.phase == "case":
+    if args.phase == 'cap99-supplement':
+        supplemental_cap99(a,args,proof)
+    elif args.phase == "case":
         native_case(a, args, proof)
     else:
         validators(a, args, proof)

@@ -4,6 +4,7 @@ from pathlib import Path
 WORK=Path(__file__).resolve().parent
 ROOT=WORK.parent.parent
 OUT=ROOT/"outputs/m1"
+ACTIVE_ROLE='BEFORE_FRAME'
 def need(v,why):
     if not v:raise ValueError(why)
 def sha(p):
@@ -140,6 +141,7 @@ def stage_inputs(a,args):
     deadline=a["executionWindow"]["deadlineUnix"]-30
     route={"mode":"PUBLIC_API_NO_AUTH","authorityBinding":{"path":str(s.ticket_path()),"sha256":sha(s.ticket_path())},
            "retainedSmallAssets":{n:str(WORK/"metadata"/n) for n,_,_ in stage.ASSETS[:3]}}
+    if a.get('archiveResume'):route['resume']=a['archiveResume']
     inputs=WORK/"inputs"/args.rid
     evidence=OUT/"staging"/args.rid
     raw=stage.acquire(read(WORK/"input-bindings.json"),inputs,evidence,deadline,route,args.rid)
@@ -267,41 +269,58 @@ def linux_vendor_observation(a, attachment_sha, profile):
 def pinned_plan(expected):
     need(sha(WORK/"case-plan.json")==expected,"CASE_PLAN_IDENTITY_DENIED")
 
+def linux_resume_data(a):
+    binding=a['resumeLinuxFrom'];required={'observation','observerTerminal','scopeTerminal','decision','controlAdmission','bootstrap','rootProfile'}
+    need(set(binding)==required,'EXACT_RETAINED_LINUX_DATA_SET');values={}
+    for name,row in binding.items():
+        need(sha(row['path'])==row['sha256'],'RETAINED_LINUX_DATA_BYTES');values[name]=read(row['path'],262144)
+    m,t,s,d,c,b,p=(values[n] for n in ('observation','observerTerminal','scopeTerminal','decision','controlAdmission','bootstrap','rootProfile'))
+    need(m['qualification']=='OBSERVATION_ONLY_NOT_ADMITTED' and m['fullClosureQualified'] is False and m['advisoryQualified'] is False and m['CLIOrFetchOrSDKCalls']==0 and m['projectImports']==0,'REUSED_METADATA_NOT_HOST_ADMISSION')
+    need(t['originalPopenWaitReturned'] and t['returncode']==0 and t['pid']==m['pid'] and m['parentPid']==p['pid'] and t['runNonce']==m['runNonce']==b['runNonce'] and t['observationSha256']==binding['observation']['sha256'] and t['rootAttachmentSha256']==m['attachmentSha256']==binding['bootstrap']['sha256'],'REUSED_OBSERVER_ORIGINAL_SCOPE')
+    need(s['mainPid']==s['controlPid']==0 and s['emptyOrRemovedCgroup'] and s['rootAttachmentSha256']==binding['bootstrap']['sha256'] and s['proof'] in ('ORIGINAL_SYSTEMD_WAIT_AND_EMPTY_OR_REMOVED_CGROUP','ORIGINAL_SYSTEMD_WAIT_UNIT_COLLECTED_CGROUP_REMOVED'),'REUSED_LINUX_SCOPE_ACTUALLY_TERMINAL')
+    need(m['observerSourceSha256']==b['sourceHashes']['aggregate_worker.py'] and d['status']=='ADMITTED_BOUNDED_STDLIB_FOR_PROJECT11' and d['qualificationScope']=='OBSERVED_VENDOR_FILES_ONLY_NOT_FULL_CLOSURE' and d['fullClosureQualified'] is False and d['advisoryQualified'] is False and d['consumingFiles']==m['consumingFiles'] and d['observationSha256']==binding['observation']['sha256'] and d['terminalSha256']==binding['observerTerminal']['sha256'],'REUSED_DECLARED_VENDOR_GRAPH_ONLY')
+    need(c['status']=='PASS_HELD_CHILD_TERMINAL_AND_IDENTITY_DENIAL' and c['originalPopenWaitReturned'] and c['wrongIdentityDeniedBeforeChild'],'REUSED_LINUX_CONTROL_RECEIPT')
+    fresh(OUT/'linux-x64/vendor-data-reused.json',{'status':'DECLARED_VENDOR_DATA_REUSED_CURRENT_CHILD_CHECKS_REMAIN','proofHashes':{n:r['sha256'] for n,r in binding.items()},'newMetadataSnapshot':False,'healthyTestsRepeated':0,'globalHostAdmissionTransferred':False})
+    return m,d,Path(binding['controlAdmission']['path'])
+
 def linux_root(a,args):
     profile=linux_profile()
     fresh(OUT/"linux-x64/aggregate-root-actual-profile.json",profile)
-    child=subprocess.Popen(["/usr/bin/python3","-I","-S","-B",str(WORK/"aggregate_worker.py"),
-          "--attachment",str(args.attachment),"--attachment-sha",args.attachment_sha,"--role","linux-metadata-observer","--rid","linux-x64"],
-          stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
-    code=child.wait(timeout=max(.001,min(20,a["executionWindow"]["deadlineUnix"]-30-time.time())))
-    need(code==0,"METADATA_FAILED_NO_RETRY")
-    observation=OUT/"linux-x64/vendor-metadata-observation.json"
-    meta=read(observation)
-    need(meta["pid"]==child.pid and meta["parentPid"]==os.getpid() and meta["runNonce"]==a["runNonce"] and
-         meta["attachmentSha256"]==args.attachment_sha and meta["window"]==a["executionWindow"] and
-         meta["observerSourceSha256"]==a["sourceHashes"]["aggregate_worker.py"],"METADATA_IDENTITY")
-    fresh(OUT/"linux-x64/vendor-metadata-terminal.json",{"pid":child.pid,"returncode":code,"originalPopenWaitReturned":True,
-          "runNonce":a["runNonce"],"observationSha256":sha(observation),"rootAttachmentSha256":args.attachment_sha})
-    # Exactly one directory event wait; no snapshot, rerun or new timeout window.
-    import ctypes,select
-    libc=ctypes.CDLL(None,use_errno=True)
-    libc.inotify_init1.argtypes=[ctypes.c_int];libc.inotify_init1.restype=ctypes.c_int
-    libc.inotify_add_watch.argtypes=[ctypes.c_int,ctypes.c_char_p,ctypes.c_uint32]
-    libc.inotify_add_watch.restype=ctypes.c_int
-    fd=libc.inotify_init1(os.O_CLOEXEC|os.O_NONBLOCK)
-    need(fd>=0 and libc.inotify_add_watch(fd,os.fsencode(OUT/"linux-x64"),0x8|0x80)>=0,"ADMISSION_WATCH")
-    decision_path=OUT/"linux-x64/linux-bounded-input-admission.json"
-    try:
-        while not decision_path.exists():
-            left=a["executionWindow"]["deadlineUnix"]-30-time.time();need(left>0,"WHOLE_CLOCK")
-            ready,_,_=select.select([fd],[],[],min(20,left))
-            if ready:os.read(fd,65536)
-    finally:os.close(fd)
-    d=read(decision_path)
-    need(d["status"]=="ADMITTED_BOUNDED_STDLIB_FOR_PROJECT11" and d["runNonce"]==a["runNonce"] and
-         d["observationSha256"]==sha(observation) and d["terminalSha256"]==sha(OUT/"linux-x64/vendor-metadata-terminal.json") and
-         d["consumingFiles"]==meta["consumingFiles"] and d["qualificationScope"]=="OBSERVED_VENDOR_FILES_ONLY_NOT_FULL_CLOSURE" and
-         d["fullClosureQualified"] is False and d["advisoryQualified"] is False,"MANAGER_DERIVATION")
+    resumed=bool(a.get('resumeLinuxFrom'))
+    if resumed:meta,d,retained_admission=linux_resume_data(a)
+    else:
+        child=subprocess.Popen(["/usr/bin/python3","-I","-S","-B",str(WORK/"aggregate_worker.py"),
+              "--attachment",str(args.attachment),"--attachment-sha",args.attachment_sha,"--role","linux-metadata-observer","--rid","linux-x64"],
+              stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+        code=child.wait(timeout=max(.001,min(20,a["executionWindow"]["deadlineUnix"]-30-time.time())))
+        need(code==0,"METADATA_FAILED_NO_RETRY")
+        observation=OUT/"linux-x64/vendor-metadata-observation.json"
+        meta=read(observation)
+        need(meta["pid"]==child.pid and meta["parentPid"]==os.getpid() and meta["runNonce"]==a["runNonce"] and
+             meta["attachmentSha256"]==args.attachment_sha and meta["window"]==a["executionWindow"] and
+             meta["observerSourceSha256"]==a["sourceHashes"]["aggregate_worker.py"],"METADATA_IDENTITY")
+        fresh(OUT/"linux-x64/vendor-metadata-terminal.json",{"pid":child.pid,"returncode":code,"originalPopenWaitReturned":True,
+              "runNonce":a["runNonce"],"observationSha256":sha(observation),"rootAttachmentSha256":args.attachment_sha})
+        # Exactly one directory event wait; no snapshot, rerun or new timeout window.
+        import ctypes,select
+        libc=ctypes.CDLL(None,use_errno=True)
+        libc.inotify_init1.argtypes=[ctypes.c_int];libc.inotify_init1.restype=ctypes.c_int
+        libc.inotify_add_watch.argtypes=[ctypes.c_int,ctypes.c_char_p,ctypes.c_uint32]
+        libc.inotify_add_watch.restype=ctypes.c_int
+        fd=libc.inotify_init1(os.O_CLOEXEC|os.O_NONBLOCK)
+        need(fd>=0 and libc.inotify_add_watch(fd,os.fsencode(OUT/"linux-x64"),0x8|0x80)>=0,"ADMISSION_WATCH")
+        decision_path=OUT/"linux-x64/linux-bounded-input-admission.json"
+        try:
+            while not decision_path.exists():
+                left=a["executionWindow"]["deadlineUnix"]-30-time.time();need(left>0,"WHOLE_CLOCK")
+                ready,_,_=select.select([fd],[],[],min(20,left))
+                if ready:os.read(fd,65536)
+        finally:os.close(fd)
+        d=read(decision_path)
+        need(d["status"]=="ADMITTED_BOUNDED_STDLIB_FOR_PROJECT11" and d["runNonce"]==a["runNonce"] and
+             d["observationSha256"]==sha(observation) and d["terminalSha256"]==sha(OUT/"linux-x64/vendor-metadata-terminal.json") and
+             d["consumingFiles"]==meta["consumingFiles"] and d["qualificationScope"]=="OBSERVED_VENDOR_FILES_ONLY_NOT_FULL_CLOSURE" and
+             d["fullClosureQualified"] is False and d["advisoryQualified"] is False,"MANAGER_DERIVATION")
     sys.path[:0]=[str(WORK),str(ROOT/"tools")]
     import support as s,experiment,fetch_extract,preflight_witness
     a["consumingFiles"]=d["consumingFiles"]
@@ -322,9 +341,11 @@ def linux_root(a,args):
         code,_,_=experiment.bounded_child(["/usr/bin/python3","-I","-S","-B"]+(["-O"] if mode=="optimized" else [])+
           ["-c",entry,"--attachment",str(p),"--attachment-sha",sha(p),"--rid","linux-x64","--phase",label,"--cap",str(cap),"--mode",mode])
         need(code==0,"LINUX_PHASE_HOLD")
-    phase(a,"probe")
-    admission=OUT/"linux-x64/control-admission.json"
-    fresh(admission,{"status":"PASS_HELD_CHILD_TERMINAL_AND_IDENTITY_DENIAL","originalPopenWaitReturned":True,"wrongIdentityDeniedBeforeChild":True})
+    if resumed:admission=retained_admission
+    else:
+        phase(a,"probe")
+        admission=OUT/"linux-x64/control-admission.json"
+        fresh(admission,{"status":"PASS_HELD_CHILD_TERMINAL_AND_IDENTITY_DENIAL","originalPopenWaitReturned":True,"wrongIdentityDeniedBeforeChild":True})
     stageframe=OUT/"linux-x64/stage-frame.json";fresh(stageframe,a)
     stage_inputs(a,argparse.Namespace(attachment=stageframe,attachment_sha=sha(stageframe),rid="linux-x64"))
     a["status"]="ADMITTED_M1_DECLARED_SCOPE";a["inputVerified"]=True
@@ -337,10 +358,11 @@ def linux_root(a,args):
           "runNonce":a["runNonce"],"window":a["executionWindow"],"fullClosureQualified":False,"advisoryQualified":False})
 
 def main():
+    global ACTIVE_ROLE
     p=argparse.ArgumentParser();p.add_argument("--attachment",type=Path,required=True);p.add_argument("--attachment-sha",required=True)
     p.add_argument("--role",choices=["input-worker-imports","frozen-verifier-imports","stage","linux-root","linux-metadata-observer"],required=True)
     p.add_argument("--rid",choices=["win-x64","linux-x64"],required=True);args=p.parse_args()
-    a=bootstrap(args)
+    ACTIVE_ROLE=args.role;a=bootstrap(args)
     if args.role=="linux-metadata-observer":linux_vendor_observation(a,args.attachment_sha,linux_profile())
     elif args.role=="linux-root":linux_root(a,args)
     elif args.role=="stage":stage_inputs(a,args)
@@ -348,6 +370,16 @@ def main():
 if __name__=="__main__":
     try:main()
     except SystemExit:raise
-    except Exception:
-        # No generic traceback, paths, environment, bearer tokens or exception text.
+    except Exception as error:
+        # Closed failure metadata only: no exception text/locals/URLs/environment.
+        if os.name!='nt':
+            code=getattr(error,'code',None);record=getattr(error,'record',{})
+            if code is None and type(record) is dict:code=record.get('code')
+            if not (type(code) is str and code.isascii() and 1<=len(code)<=100 and code.replace('_','').isalnum() and code.upper()==code):code='LINUX_OWNED_STAGE_HOLD'
+            frames=[];tb=error.__traceback__
+            while tb is not None:
+                if tb.tb_frame.f_code.co_filename==__file__:frames.append({'function':tb.tb_frame.f_code.co_name,'line':tb.tb_lineno})
+                tb=tb.tb_next
+            try:fresh(OUT/'linux-x64/owned-stage-hold.json',{'status':'HOLD','role':ACTIVE_ROLE,'code':code,'exceptionType':type(error).__name__,'ownedSourceFrames':frames[-6:]})
+            except Exception:pass
         raise SystemExit(1) from None

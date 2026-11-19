@@ -12,6 +12,7 @@ public static class Tail11DiagnosticJob {
   public BASIC Basic; public IO IO; public UIntPtr ProcessMemory,JobMemory,PeakProcess,PeakJob;
  }
  [StructLayout(LayoutKind.Sequential)] public struct CPU {public uint Flags,Rate;}
+ [StructLayout(LayoutKind.Sequential)] public struct COMPLETION {public UIntPtr Key;public IntPtr Port;}
  [StructLayout(LayoutKind.Sequential)] public struct ACCOUNT {
   public long User,Kernel,PeriodUser,PeriodKernel;
   public uint PageFaults,TotalProcesses,ActiveProcesses,TerminatedProcesses;
@@ -35,6 +36,8 @@ public static class Tail11DiagnosticJob {
  [DllImport("kernel32.dll",SetLastError=true)] public static extern bool GetProcessTimes(IntPtr process,out FT created,out FT exited,out FT kernel,out FT user);
  [DllImport("kernel32.dll",SetLastError=true)] public static extern bool TerminateJobObject(IntPtr job,uint code);
  [DllImport("kernel32.dll",SetLastError=true)] public static extern bool TerminateProcess(IntPtr process,uint code);
+ [DllImport("kernel32.dll",SetLastError=true)] public static extern IntPtr CreateIoCompletionPort(IntPtr file,IntPtr existing,UIntPtr key,uint threads);
+ [DllImport("kernel32.dll",SetLastError=true)] public static extern bool GetQueuedCompletionStatus(IntPtr port,out uint message,out UIntPtr key,out IntPtr pid,uint timeout);
  [DllImport("kernel32.dll")] public static extern bool CloseHandle(IntPtr handle);
  public static void Check(bool value,string name){if(!value)throw new Exception(name+" win32="+Marshal.GetLastWin32Error());}
  public static void Set<T>(IntPtr job,int cls,T value) where T:struct {

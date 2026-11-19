@@ -210,8 +210,54 @@ def receive_binary(response,stream,expected_size,expected_sha,deadline,asset_id,
     if digest.hexdigest()!=expected_sha:raise RouteError("BODY_SHA256","body",asset_id,bytesReceived=total)
     return total
 
+def validate_range_response(status,headers,start,size):
+    if status!=206:raise RouteError('RANGE_STATUS','GET',httpStatus=status)
+    def one(name):
+        values=headers.get_all(name,[])
+        if len(values)!=1:raise RouteError('RANGE_HEADER','response_headers')
+        return values[0]
+    if one('Content-Range')!='bytes '+str(start)+'-'+str(size-1)+'/'+str(size):raise RouteError('RANGE_IDENTITY','response_headers')
+    if one('Content-Length')!=str(size-start):raise RouteError('RANGE_SIZE','response_headers')
+    if headers.get_all('Content-Encoding',[]) not in ([],['identity']):raise RouteError('RANGE_ENCODING','response_headers')
+    typ=headers.get('Content-Type','').split(';',1)[0].lower().strip()
+    if typ=='application/json' or typ.endswith('+json'):raise RouteError('JSON_NOT_ARCHIVE','body')
+
+def _resume_public_api(bindings,inputs,evidence,deadline,route,rid):
+    need(rid in ('win-x64','linux-x64') and route['mode']=='PUBLIC_API_NO_AUTH','FIXED_RESUME_SCOPE')
+    need(sha(route['authorityBinding']['path'])==route['authorityBinding']['sha256'],'RESUME_AUTHORITY_BINDING')
+    config=route['resume'];index=3 if rid=='win-x64' else 4;name,size,digest=ASSETS[index];asset=API_ASSETS[name][0];raw=inputs/'raw';part=raw/(name+'.api.part')
+    start,prefix_hash,elapsed={'win-x64':(26411008,'afa3d2d22e7d1b378b7daac4a236ceaa6a1c4550a5f8e7289ccb0741e7835a8e',45071),'linux-x64':(23658496,'fdb1c54f51f6c582f8fefc1ddb93626d1b8862836b1fa690f59fad9b60f277f2',45069)}[rid]
+    need(config['prefixBytes']==start and config['prefixSHA256']==prefix_hash,'EXACT_RETAINED_PREFIX')
+    cause=json.loads(Path(config['causePath']).read_text());need(sha(config['causePath'])==config['causeSHA256'] and cause['code']=='TRANSPORT_DEADLINE' and cause['assetId']==asset and cause['bytesReceived']==start and cause['elapsedMs']==elapsed,'EXACT_FAILED_BODY_CAUSE')
+    need(bindings['releaseId']==439576568 and bindings['tag']=='v0.1.0-preview.1' and bindings['fingerprint']==KEY and bindings['archives'][index-3]['sha256']==digest,'SAME_FIXED_RELEASE')
+    need(part.is_file() and not part.is_symlink() and part.stat().st_size==start and sha(part)==config['prefixSHA256'],'UNCHANGED_RETAINED_PREFIX_BYTES')
+    for small,n,h in ASSETS[:3]:need((raw/small).is_file() and not (raw/small).is_symlink() and (raw/small).stat().st_size==n and sha(raw/small)==h,'EXACT_RETAINED_SIGNATURE_INPUTS')
+    fresh(evidence/'range-resume-intent.json',{'assetId':asset,'requests':1,'rangeStart':start,'rangeEnd':size-1,'prefixSHA256':config['prefixSHA256'],'priorNetworkBytes':start,'maximumNewNetworkBytes':size-start,'timeLimit':45,'noFullBodyFallback':True})
+    redirects=Redirects();opener=public_opener(redirects);request=urllib.request.Request(API_PREFIX+str(asset),headers={'User-Agent':'tail11-fixed-api-lab','Accept':'application/octet-stream','X-GitHub-Api-Version':'2022-11-28','Range':'bytes='+str(start)+'-','Accept-Encoding':'identity'});no_auth_headers(request);began=time.time();stop=min(deadline,began+45);count=start;h=hashlib.sha256()
+    try:
+        with part.open('r+b') as stream:
+            while stream.tell()<start:
+                block=stream.read(min(65536,start-stream.tell()));need(block,'RETAINED_PREFIX_SHORT');h.update(block)
+            need(h.hexdigest()==config['prefixSHA256'],'HELD_RETAINED_PREFIX_HASH')
+            with opener.open(request,timeout=max(.001,min(15,stop-time.time()))) as response:
+                validate_range_response(response.status,response.headers,start,size)
+                while True:
+                    api_clock(stop,'body',asset,count,began);block=response.read(min(65536,size-count+1))
+                    if not block:break
+                    count+=len(block)
+                    if count>size or count>CAP:raise RouteError('BODY_BYTE_CAP','body',asset,bytesReceived=count)
+                    stream.write(block);h.update(block)
+            stream.flush();os.fsync(stream.fileno())
+        need(count==size and h.hexdigest()==digest,'RESUMED_FULL_ARCHIVE_HASH')
+        part.rename(raw/name)
+        fresh(evidence/'range-resume-complete.json',{'assetId':asset,'prefixBytes':start,'newNetworkBytes':count-start,'totalNetworkBytes':count,'bytes':size,'sha256':digest,'exact206Required':True,'requests':1,'redirectHosts':redirects.chain,'timeLimit':45,'authorizationForwardedToStorage':False})
+        return raw
+    except Exception as error:
+        fresh(evidence/'range-resume-cause.json',safe_api_failure(error).record);raise
+
 def _acquire_public_api(bindings,inputs,evidence,deadline,route,rid):
     """ONE fixed API GET per archive; retained small files ONLY, no archive cache scan."""
+    if route.get('resume'):return _resume_public_api(bindings,inputs,evidence,deadline,route,rid)
     need(rid in ("win-x64","linux-x64"),"fixed RID")
     need(route["mode"]=="PUBLIC_API_NO_AUTH","fixed public no-auth route")
     need(sha(route["authorityBinding"]["path"])==route["authorityBinding"]["sha256"],"public route authority binding")
@@ -276,6 +322,7 @@ def _acquire_public_api(bindings,inputs,evidence,deadline,route,rid):
         raise RouteError("FIXED_API_GUARD_EXCEPTION","guard",causeType=type(error).__name__) from None
 
 SAFE_API_CODES=frozenset({
+ 'RANGE_STATUS','RANGE_HEADER','RANGE_IDENTITY','RANGE_SIZE','RANGE_ENCODING',
  "REDIRECT_TARGET_PARSE_VALUE_ERROR","REDIRECT_PORT_VALUE_ERROR",
  "REDIRECT_RESPONSE_VALUE_ERROR_UNCLASSIFIED","REDIRECT_POLICY","REDIRECT_REFUSED",
  "AUTH_HEADER_FORBIDDEN","HTTP_STATUS","JSON_NOT_ARCHIVE","DECLARED_SIZE",

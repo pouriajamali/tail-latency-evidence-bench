@@ -1,0 +1,44 @@
+{
+  "Actions": 0,
+  "assets": [
+    {
+      "AuthorizationForwarded": false,
+      "bytes": 57616,
+      "id": 768634553,
+      "name": "tail-latency-evidence-bench-M1-evidence-20261119.zip",
+      "publicDownloadVerified": true,
+      "redirectHosts": [
+        "release-assets.githubusercontent.com"
+      ],
+      "sha256": "d524af9bbc7aede69561083b56eec85b6edd83119f2fc1b33bc17359215892f2",
+      "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/tail-latency-evidence-bench-M1-evidence-20261119.zip"
+    },
+    {
+      "AuthorizationForwarded": false,
+      "bytes": 119,
+      "id": 768634800,
+      "name": "M1-SHA256SUMS-20261119.txt",
+      "publicDownloadVerified": true,
+      "redirectHosts": [
+        "release-assets.githubusercontent.com"
+      ],
+      "sha256": "7e90509922d27fb56382d1f95006a345efe79ee2071746da70e8b82c10035435",
+      "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/M1-SHA256SUMS-20261119.txt"
+    },
+    {
+      "AuthorizationForwarded": false,
+      "bytes": 294,
+      "id": 768634869,
+      "name": "M1-SHA256SUMS-20261119.txt.sig",
+      "publicDownloadVerified": true,
+      "redirectHosts": [
+        "release-assets.githubusercontent.com"
+      ],
+      "sha256": "fd8e8f0610cdfc495cf6e1bddf3580cc2ea7ad52068e54e9fe3edebd28cec5a4",
+      "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/M1-SHA256SUMS-20261119.txt.sig"
+    }
+  ],
+  "originalRuntimeAssetsUnchanged": true,
+  "releaseId": 439576568,
+  "status": "THREE_NEW_ASSETS_PUBLISHED_AND_PUBLICLY_DOWNLOADED"
+}

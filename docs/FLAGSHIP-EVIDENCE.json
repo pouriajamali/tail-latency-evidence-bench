@@ -1,9 +1,9 @@
 {
   "schema": "flagship-evidence/v1",
-  "documentationDate": "2026-11-10",
+  "documentationDate": "2026-11-19",
   "project": "Tail-Latency Evidence Bench",
   "repository": "https://github.com/pouriajamali/tail-latency-evidence-bench",
-  "scope": "AI-assisted original synthetic local laboratory; documentation refresh, no runtime test or benchmark rerun",
+  "scope": "AI-assisted original synthetic local laboratory; frozen preview evidence plus later bounded M1 execution; no runtime rebuild or performance/security claim",
   "runtime": {
     "tag": "v0.1.0-preview.1",
     "commit": "6158f7f8a9a8e4fd7c12ed575f427d7117b89801",
@@ -173,5 +173,22 @@
     "Real adoption or team-management history",
     "Performance superiority"
   ],
-  "reproductionBoundary": "Use exact runtime tag/source and fresh local outputs; CI artifact retention and timing reproducibility are not guaranteed; current documentation main can differ from runtime source"
+  "reproductionBoundary": "Use exact runtime tag/source and fresh local outputs; CI artifact retention and timing reproducibility are not guaranteed; current documentation main can differ from runtime source",
+  "m1": {
+    "status": "ACCEPTED_WITH_OWNER_CAP99_SUPPLEMENT_ASSETS_PUBLISHED",
+    "executionHarnessCommit": "416c4b32902a236eeba074a831d0a68490bcf2b6",
+    "receipt": "evidence/m1-20261119/receipt.json",
+    "index": "evidence/m1-20261119/index.json",
+    "originalNativeCases": 6,
+    "ownerSupplementNativeCalls": 1,
+    "distinctNegativeFixtures": 24,
+    "validatorModes": [
+      "normal",
+      "optimized"
+    ],
+    "Actions": 0,
+    "originalOracleFalsePositivesPreserved": true,
+    "testedActiveSourceManifestSHA256": "a417f0082fea078f1b0d4c7517eb3caaa9bb54e1da39ed70cc03690ea78fdc5b",
+    "executionCommitIsRetainedLocalReceipt": true
+  }
 }

@@ -1,0 +1,326 @@
+{
+  "accepted": true,
+  "archiveBodies": {
+    "LinuxSHA256": "352604eb282c253495251f5731518184171ab08b485b084fb95baf9ece16ebba",
+    "WindowsSHA256": "e5374e478cd5416707ba3dc009e9aa20cb4fdc912adba0d9c8f8ae944d2b9958",
+    "ceilingBytes": 78643200,
+    "exact206Required": true,
+    "linuxBytes": 35409385,
+    "suffixRequests": 2,
+    "totalBytes": 71280658,
+    "wholeBodiesRepeated": 0,
+    "windowsBytes": 35871273
+  },
+  "cases": [
+    {
+      "CLI_SHA256": "727dcec27607291eb0bd6a2d15988db7879b0d825f99477036662aaf1e44c733",
+      "cap": 99,
+      "configuration": {
+        "capacity": 64,
+        "count": 100,
+        "deadlineUs": 2000,
+        "drainUs": 20000,
+        "latenessBudgetUs": 2000,
+        "periodUs": 100,
+        "rawCapacity": 99,
+        "seed": 20261109,
+        "warmupCount": 100
+      },
+      "dataset": "data/win-x64/cap-99",
+      "id": "win-x64-cap-99",
+      "nativeAttempts": 1,
+      "originalInvocationReceiptSHA256": "202ddb5840bb496f47d49ae63031262a452b5d5907d2494e1ce42fcdcca98e19",
+      "rawSHA256": "30e5d6e4f8a884343c999ffcb3d36e603251ec6a9a97aab331b283fe69061860",
+      "reason": "RAW_RECORD_CAP_BEFORE_START",
+      "returncode": 4,
+      "rid": "win-x64",
+      "runtimeVersion": "0.1.0-preview.1+6158f7f8a9a8e4fd7c12ed575f427d7117b89801",
+      "status": "INCOMPLETE",
+      "summarySHA256": "6c0093ace932c2bbca4a35e0c1307118944defbac144511d9f1519269c30e01a"
+    },
+    {
+      "CLI_SHA256": "727dcec27607291eb0bd6a2d15988db7879b0d825f99477036662aaf1e44c733",
+      "cap": 100,
+      "configuration": {
+        "capacity": 64,
+        "count": 100,
+        "deadlineUs": 2000,
+        "drainUs": 20000,
+        "latenessBudgetUs": 2000,
+        "periodUs": 100,
+        "rawCapacity": 100,
+        "seed": 20261109,
+        "warmupCount": 100
+      },
+      "dataset": "data/win-x64/cap-100",
+      "id": "win-x64-cap-100",
+      "nativeAttempts": 1,
+      "originalInvocationReceiptSHA256": "f15e4349fda16f5db2a709156c343c10ad34d96a1c824d57e586f808ec5be724",
+      "rawSHA256": "07697c809a88845b2064896f35185bb773283360e7271d78064bf5c596dedc41",
+      "reason": "",
+      "returncode": 0,
+      "rid": "win-x64",
+      "runtimeVersion": "0.1.0-preview.1+6158f7f8a9a8e4fd7c12ed575f427d7117b89801",
+      "status": "COMPLETE",
+      "summarySHA256": "90b0d1fed70ca53774f776f1abd9f58d964a3ea1243e0ce7a22caa4e50054c75"
+    },
+    {
+      "CLI_SHA256": "727dcec27607291eb0bd6a2d15988db7879b0d825f99477036662aaf1e44c733",
+      "cap": 101,
+      "configuration": {
+        "capacity": 64,
+        "count": 100,
+        "deadlineUs": 2000,
+        "drainUs": 20000,
+        "latenessBudgetUs": 2000,
+        "periodUs": 100,
+        "rawCapacity": 101,
+        "seed": 20261109,
+        "warmupCount": 100
+      },
+      "dataset": "data/win-x64/cap-101",
+      "id": "win-x64-cap-101",
+      "nativeAttempts": 1,
+      "originalInvocationReceiptSHA256": "076c587782cc197c9c9bc69a4ba2a94a95d09ff8af79f994bb73232242f6d8c0",
+      "rawSHA256": "303843f7c76d9c28b51250746d5a9943c54deb29c6fde55b5db9808e06f53ad7",
+      "reason": "",
+      "returncode": 0,
+      "rid": "win-x64",
+      "runtimeVersion": "0.1.0-preview.1+6158f7f8a9a8e4fd7c12ed575f427d7117b89801",
+      "status": "COMPLETE",
+      "summarySHA256": "8a482ac963ed65578be3250c702653ae2584ae4878309de0e21f23ae28321065"
+    },
+    {
+      "CLI_SHA256": "9722db8400aba3f84e82714c4e80ca6dd22a6a7b08fd91f335800804815f4950",
+      "cap": 99,
+      "configuration": {
+        "capacity": 64,
+        "count": 100,
+        "deadlineUs": 2000,
+        "drainUs": 20000,
+        "latenessBudgetUs": 2000,
+        "periodUs": 100,
+        "rawCapacity": 99,
+        "seed": 20261109,
+        "warmupCount": 100
+      },
+      "dataset": "data/linux-x64/cap-99",
+      "id": "linux-x64-cap-99",
+      "nativeAttempts": 1,
+      "originalInvocationReceiptSHA256": "84af88564084f8e2c68d370511df4c49b2943c596d28ebba2e503d71999e855f",
+      "rawSHA256": "ade22211945acc581818d67634501d2b4216b044db3172b1143eda30d2e72bfc",
+      "reason": "RAW_RECORD_CAP_BEFORE_START",
+      "returncode": 4,
+      "rid": "linux-x64",
+      "runtimeVersion": "0.1.0-preview.1+6158f7f8a9a8e4fd7c12ed575f427d7117b89801",
+      "status": "INCOMPLETE",
+      "summarySHA256": "a481b7aedf66f2f1c4c96956b7386fc57d1b80220e375991d42eeb285bd99277"
+    },
+    {
+      "CLI_SHA256": "9722db8400aba3f84e82714c4e80ca6dd22a6a7b08fd91f335800804815f4950",
+      "cap": 100,
+      "configuration": {
+        "capacity": 64,
+        "count": 100,
+        "deadlineUs": 2000,
+        "drainUs": 20000,
+        "latenessBudgetUs": 2000,
+        "periodUs": 100,
+        "rawCapacity": 100,
+        "seed": 20261109,
+        "warmupCount": 100
+      },
+      "dataset": "data/linux-x64/cap-100",
+      "id": "linux-x64-cap-100",
+      "nativeAttempts": 1,
+      "originalInvocationReceiptSHA256": "14b7836174708f92d52be1312af6af056ce6144f3aa266d73431a4d7fa3b737c",
+      "rawSHA256": "ca4f20a3deb68b3b2c2af11c4c687fbbd20c09bca5d583a0345527df7e7ce0e9",
+      "reason": "",
+      "returncode": 0,
+      "rid": "linux-x64",
+      "runtimeVersion": "0.1.0-preview.1+6158f7f8a9a8e4fd7c12ed575f427d7117b89801",
+      "status": "COMPLETE",
+      "summarySHA256": "d4d17cdbb32e03c2d9a5871841f48c0102621e16d93923fb105fbdf7a049008b"
+    },
+    {
+      "CLI_SHA256": "9722db8400aba3f84e82714c4e80ca6dd22a6a7b08fd91f335800804815f4950",
+      "cap": 101,
+      "configuration": {
+        "capacity": 64,
+        "count": 100,
+        "deadlineUs": 2000,
+        "drainUs": 20000,
+        "latenessBudgetUs": 2000,
+        "periodUs": 100,
+        "rawCapacity": 101,
+        "seed": 20261109,
+        "warmupCount": 100
+      },
+      "dataset": "data/linux-x64/cap-101",
+      "id": "linux-x64-cap-101",
+      "nativeAttempts": 1,
+      "originalInvocationReceiptSHA256": "55df03c63f6e638914d6856a4eca9ebc108cfb5ce48c7dcf372c7abc3e8e47ad",
+      "rawSHA256": "08860f10dda5547a96cfa194a20acd8a4473724a26ed1dd3bd1036ab29c95025",
+      "reason": "",
+      "returncode": 0,
+      "rid": "linux-x64",
+      "runtimeVersion": "0.1.0-preview.1+6158f7f8a9a8e4fd7c12ed575f427d7117b89801",
+      "status": "COMPLETE",
+      "summarySHA256": "e92c8cdcb1f75e2fcb4f5efc072eaa7b2be5c44a653242e82f6afe9fbd4ca8fb"
+    }
+  ],
+  "claims": {
+    "fullSystemSecurity": false,
+    "originalOracleFixed": false,
+    "performanceImprovement": false,
+    "productionSuitability": false,
+    "syntheticLocalAccountingOnly": true
+  },
+  "constraints": {
+    "Actions": 0,
+    "LinuxCPUQuotaPercentMax": 200,
+    "LinuxMemoryBytes": 536870912,
+    "LinuxSwapBytes": 0,
+    "LinuxTasksMax": 64,
+    "SDKRebuild": 0,
+    "WindowsActiveProcesses": 16,
+    "WindowsAffinityMax": 2,
+    "WindowsCpuRate": 1000,
+    "WindowsJobMemoryBytes": 536870912,
+    "controllerSeconds": 60,
+    "evidenceBytes": 8388608,
+    "metadataSnapshotsReplayed": 0,
+    "nativeSeconds": 45,
+    "otherHealthyNativeCasesRepeated": 0,
+    "protectionChanges": 0,
+    "scratchBytes": 1073741824,
+    "terminalSeconds": 30,
+    "trustChanges": 0,
+    "wholeSeconds": 300,
+    "workSeconds": 270
+  },
+  "executionDate": "2026-11-19",
+  "executionHarnessCommit": "416c4b32902a236eeba074a831d0a68490bcf2b6",
+  "executionSourceManifestSHA256": "a417f0082fea078f1b0d4c7517eb3caaa9bb54e1da39ed70cc03690ea78fdc5b",
+  "frozenCasePlanSHA256": "7ac106ea67b7e990dfa19a4b3a0ae33b941b7b86a00b986f8ef56350c2bddf3a",
+  "milestone": "M1",
+  "nativeCallsTotal": 7,
+  "nativeCasesOriginalPlan": 6,
+  "negativeFixturesDistinct": 24,
+  "originalWindowsCap99Wrapper": {
+    "HOLDPreserved": true,
+    "receiptSHA256": "91a2cf3fc1c190cea82a55bc21e318e657e10b4f4117bec660e412e0a78c41d4",
+    "residualProcessIdentity": "UNKNOWN_NOT_ATTRIBUTED",
+    "terminal": {
+      "active": 0,
+      "exitCode": 0,
+      "forced": true,
+      "naturalTerminal": false,
+      "originalWait": 0
+    }
+  },
+  "ownerAuthorizedCap99Supplement": {
+    "authoritySHA256": "d40ba0f0b65f24147474a641d87e71154f306c87f4273faf4178af8fb93c8379",
+    "dataset": "data/win-x64-owner-cap99-supplement",
+    "originalAttemptNotOverwritten": true,
+    "resultSHA256": "0bccc379600541e69ee1e8a27a725007c0fa1a36a8cdf759ca5333461d6d113e",
+    "returncode": 4,
+    "strictWitnessSHA256": "e7ae0ed22abe30d7f78b8dcc68fb3bc9b79325a0b5b6677d616870b1e1bc7306",
+    "terminal": {
+      "active": 0,
+      "exitCode": 0,
+      "firstActiveAfterOriginalWait": 0,
+      "forced": false,
+      "naturalTerminal": true,
+      "originalWait": 0,
+      "phaseCeilingUnchanged": 60,
+      "phaseSeconds": 1.0554729
+    },
+    "terminalReceiptSHA256": "45b8fd14734f3be70c357a0fdeb06d4f960b2a3189835c8800b404711043e832"
+  },
+  "ownerAuthorizedSupplementNativeCalls": 1,
+  "runtimeCommit": "6158f7f8a9a8e4fd7c12ed575f427d7117b89801",
+  "runtimeTag": "v0.1.0-preview.1",
+  "schema": "tail11-m1-public-evidence/v1",
+  "signatureBoundary": {
+    "LinuxManifestSignatureProofSHA256": "267d1602e07f21b0fcbe42582881d4bc0168b87ba3759b77bb758bf08813a576",
+    "WindowsOpenSSHRole": "HOLD_SIGNER_CRL_NEXT_UPDATE_MISSING",
+    "advisoryQualified": false,
+    "fingerprint": "SHA256:AgU5bZlJSjUu0KsWMmVEEr+BfXpcMVNroTA33bHcQdU",
+    "globalFullClosureQualified": false,
+    "globalHostAdmissionTransferred": false
+  },
+  "status": "M1_RECORDED_WITH_OWNER_AUTHORIZED_CAP99_SUPPLEMENT",
+  "terminalAndLease": {
+    "allOwnedTerminal": true,
+    "exactOwnCanonicalLeaseReleased": true,
+    "ownerFinalSHA256": "db6ad87dab67a5c7b864402d62a0224c48c96d5899436681db98d7ab51a65d27",
+    "releaseReceiptSHA256": "7bc0e54816a1c2e74cf9bbda2f5f6e909d3b806d21ffd57416c6dac5640728d6"
+  },
+  "validatorFindings": {
+    "linux-x64": {
+      "normal": {
+        "falsePositiveIds": [
+          "N01",
+          "N02",
+          "N03",
+          "N04",
+          "N05",
+          "N06",
+          "N07",
+          "N08"
+        ],
+        "independentRejected": 12,
+        "sourceReceiptSHA256": "acc805db3bc8b8a445e3282d2cdeac5bc81dbc1481aca29c893d90d34e32fa7e"
+      },
+      "optimized": {
+        "falsePositiveIds": [
+          "N01",
+          "N02",
+          "N03",
+          "N04",
+          "N05",
+          "N06",
+          "N07",
+          "N08"
+        ],
+        "independentRejected": 12,
+        "sourceReceiptSHA256": "4b9f09129e0ea8349c9836712fcf7818807ce2078474c5421665746a9e7ded16"
+      }
+    },
+    "win-x64": {
+      "normal": {
+        "falsePositiveIds": [
+          "N01",
+          "N02",
+          "N03",
+          "N04",
+          "N05",
+          "N06",
+          "N07",
+          "N08"
+        ],
+        "independentRejected": 12,
+        "sourceReceiptSHA256": "e1cedbab21f11258296ebe2b878f4ff476e15365ac57bdd2b3a2724ad7512b21"
+      },
+      "optimized": {
+        "falsePositiveIds": [
+          "N01",
+          "N02",
+          "N03",
+          "N04",
+          "N05",
+          "N06",
+          "N07",
+          "N08"
+        ],
+        "independentRejected": 12,
+        "sourceReceiptSHA256": "4fabfacbd928b2750f0f9dd571ef4934e0b3f8000b7e104e06e7431a589294a7"
+      }
+    }
+  },
+  "validatorModes": [
+    "normal",
+    "optimized"
+  ]
+}
