@@ -1,6 +1,6 @@
 # .NET 10 servicing decision - 2026-11-20
 
-Status: LOCAL_NATIVE_VALIDATED_PUBLICATION_BLOCKED_UPLOAD_TIME. This decision does not reopen delivered M1.
+Status: PUBLISHED_AND_PUBLIC_DOWNLOADS_VERIFIED. This decision does not reopen delivered M1.
 
 Microsoft's current .NET 10 release metadata identifies SDK 10.0.404/runtime 10.0.15, released 2026-11-10, as active LTS security servicing. The prepared change retains net10.0 and C#14. Both .NET 10 LTS and .NET 11 STS currently list 2028-11-14 end of support; no required .NET 11-only capability justifies a major migration here. Existing BenchmarkDotNet 0.15.8, xUnit v3 4.0.3 and dotnet-trace 10.0.750501 are retained, excluded from the shipped BCL-only graph. No new benchmark, trace or performance claim is planned.
 
@@ -13,7 +13,7 @@ Official references, observed 2026-11-20:
 
 ## Scope and retained evidence
 
-Only SDK/runtime/package-version pins, the packaging/checking runtime identities and additive exact notice-source records change. Product C# source, API/output contracts, package locks, diagnostic dependencies, loader/PKI guards, known signing identity, M1 source/data/counterexamples and prior preview/tag/assets remain unchanged. v0.1.0-preview.2 is locally built and natively validated on both RIDs, with a public signed source tag; the release remains an unpublished draft.
+Only SDK/runtime/package-version pins, the packaging/checking runtime identities and additive exact notice-source records change. Product C# source, API/output contracts, package locks, diagnostic dependencies, loader/PKI guards, known signing identity, M1 source/data/counterexamples and prior preview/tag/assets remain unchanged. v0.1.0-preview.2 is published, signed and actually public-download verified; its native build/source identities are recorded separately.
 
 The sealed 10.0.15 notice and normalized/raw package identities are reused as data. Historical signature results retain their historical scope. Actual package metadata, consuming bytes, raw signed archive identity, shipped dependency graph and notices must still pass the established packager. No current SDK, signature, host or provider admission is inherited from another project.
 
@@ -53,8 +53,14 @@ Linux locked restore returned exit0 twice, with original SDK waits, but its wrap
 
 Linux packaging initially rejected before any SDK/package invocation because the linked worktree control file contains its existing Windows E:/ Git metadata path. The consumer maps only that exact existing control path to /mnt/e and sets child-only GIT_DIR/GIT_WORK_TREE. Native Git still performs the source comparison, HEAD, clean-tree and tracked inventory checks. No safe.directory/trust/ownership/global configuration is changed; any Git rejection remains a failure. Accepted Linux build/unit tests and Windows packages are retained without replay.
 
-## Current native validation and publication checkpoint
+## Historical pre-publication checkpoint
 
 Both RIDs passed15/15 units and native payload/notice/graph/CLI package checks. Windows archive source80f431f0bfde6032f97ac27b9fe56943cf3a52d4 and Linux/release source18e1d4a33e694f20fbcb20781e69fbefb663d426 have identical product/build/package inputs. Native Linux publish completed with its original wait/exit0; its wrapper timed out during copying. Retained outputs were assembled as data under a fresh capped Windows Job, with all established post-publish graph/lock/notice/payload checks, then inspected/executed natively on Linux. This added no SDK call or healthy build/test replay. Temporary duplicate publish/partial-copy directories were later removed to retain1GiB scratch; packages, archives, native wait logs and all HOLD receipts remain.
 
 The first large upload timed out and its remote inspection found no asset. A required small checksum upload passed. One stream alternative measured24,346,624 bytes in45.009738s and ended naturally with curl timeout28. No accepted upload was repeated, TLS/trust/protection was not changed, and no deadline exception was applied. Four required small files are uploaded to the unpublished draft. Completing the two native POSTs requires an explicit bounded transport-time exception or a preauthorized faster path; no new runner/OS/Actions is needed. [Local receipt](evidence/servicing-20261120/receipt.json). The original preview and M1 remain frozen.
+
+## Final servicing delivery
+
+Native Windows and Linux each passed 15 unit tests, three actual source/owner/SDK-byte rejection controls, locked restores, build and native package checks. All six new release assets were published and independently public-download/hash verified. The signed tag identifies the Linux/release source; exact Windows archive source is recorded separately with identical product/build/package inputs. Linux publish completed natively; its retained output was assembled as data on Windows without another SDK call, then checked natively on Linux. This later documentation commit records final delivery. No Actions or healthy M1/benchmark/trace replay occurred.
+
+Earlier upload-blocker entries are retained history. The final receipt records the actual owner-authorized transfer exception and publication. Linux native NuGet verification remains UNKNOWN at its original20s timeout; the exact Linux runtime archive signature data passed on native Windows. Windows26H2 remains observed experimental, formal vendor support NOT_CONFIRMED. See [the versioned receipt](evidence/servicing-20261120/receipt.json).

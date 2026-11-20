@@ -1,6 +1,6 @@
 {
   "schema": "tail11-servicing-delivery/v1",
-  "status": "LOCAL_NATIVE_VALIDATED_PUBLICATION_PENDING",
+  "status": "PUBLISHED_AND_PUBLIC_DOWNLOADS_VERIFIED",
   "version": "0.1.0-preview.2",
   "sdk": "10.0.404",
   "runtime": "10.0.15",
@@ -278,13 +278,95 @@
     "allGraphNoticeLockPayloadChecksRetained": true,
     "actualNativeLinuxPackageCheckRequired": true
   },
-  "publicationPending": {
-    "reason": "Native archive upload exceeded original45s transport ceiling; no exception applied",
-    "streamedWindowsBytesWithin45s": 24346624,
-    "windowsArchiveBytes": 36197960,
-    "smallAssetsUploadedToDraft": 4,
-    "nativeAssetsUploaded": 0,
-    "releasePublished": false,
-    "requiredDecision": "Only two native-asset POSTs need an explicit bounded transport-time exception or a preauthorized faster upload path; no healthy build/test repetition"
+  "release": {
+    "id": 452838816,
+    "tag": "v0.1.0-preview.2",
+    "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/tag/v0.1.0-preview.2",
+    "prerelease": true,
+    "signedTagObject": "15fc59f50ebb8fb72531281d3720a1fc04f58ea0",
+    "assets": [
+      {
+        "name": "tail-latency-evidence-bench-v0.1.0-preview.2-win-x64.zip",
+        "id": 772312950,
+        "bytes": 36197960,
+        "sha256": "522362ab9ffcda0466b20b758fe0fd6f8961853c01022ecafe1a315ecb6371a2",
+        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/tail-latency-evidence-bench-v0.1.0-preview.2-win-x64.zip",
+        "actualPublicDownload": true
+      },
+      {
+        "name": "tail-latency-evidence-bench-v0.1.0-preview.2-linux-x64.tar.gz",
+        "id": 772316771,
+        "bytes": 35689816,
+        "sha256": "5faf1529393a4626a0c936af41aab69f8db3401d148750cf9a89b01f893db8c8",
+        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/tail-latency-evidence-bench-v0.1.0-preview.2-linux-x64.tar.gz",
+        "actualPublicDownload": true
+      },
+      {
+        "name": "tail-latency-evidence-bench-v0.1.0-preview.2-source.zip",
+        "id": 772276793,
+        "bytes": 388134,
+        "sha256": "931690e43b95137ec0eff0665859ed63deb40aa463ea243f092e5344ac912736",
+        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/tail-latency-evidence-bench-v0.1.0-preview.2-source.zip",
+        "actualPublicDownload": true
+      },
+      {
+        "name": "SHA256SUMS.txt",
+        "id": 772266903,
+        "bytes": 373,
+        "sha256": "2b631cd3329379ab59dba039f3b82c559d430436537eb020b06af21439b2c792",
+        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/SHA256SUMS.txt",
+        "actualPublicDownload": true
+      },
+      {
+        "name": "SHA256SUMS.txt.sig",
+        "id": 772277080,
+        "bytes": 294,
+        "sha256": "65d3d3f2d68907bfd7b8a5a40aa5438cb02a394c15c019887b25250641915338",
+        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/SHA256SUMS.txt.sig",
+        "actualPublicDownload": true
+      },
+      {
+        "name": "SIGNING-PUBLIC-KEY.pub",
+        "id": 772277310,
+        "bytes": 113,
+        "sha256": "cc7038b2d98f856af97b58eb06619ff441fbe9b178da5396f61d1ccdf7a65e7c",
+        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/SIGNING-PUBLIC-KEY.pub",
+        "actualPublicDownload": true
+      }
+    ]
+  },
+  "provenance": {
+    "fingerprint": "SHA256:AgU5bZlJSjUu0KsWMmVEEr+BfXpcMVNroTA33bHcQdU",
+    "checksumSignatureVerified": true,
+    "signedTagVerified": true,
+    "sourceCommitSignatureVerified": true
+  },
+  "ownerAuthorizedTransferException": {
+    "scope": "Exactly two native-asset POSTs only",
+    "transferSeconds": 90,
+    "wrapperSeconds": 120,
+    "onePostClaimWindowSeconds": 300,
+    "payloadBytes": 71887776,
+    "wholeSeconds": 134.65600000000268,
+    "originalWaitsAndExactOwnLeaseReleased": true,
+    "allOtherCapsUnchanged": true,
+    "priorFailuresRetained": true
+  },
+  "publicArchiveDownloadTransport": {
+    "archiveBodyBytes": 72275910,
+    "archiveBodyLimit": 78643200,
+    "exactSuffixResumes": [
+      {
+        "name": "tail-latency-evidence-bench-v0.1.0-preview.2-linux-x64.tar.gz",
+        "resumedExact206": true,
+        "retainedPrefixBytes": 28007744,
+        "retainedPrefixSHA256": "2ebbd360de2c866023cf4bae5162e041338cff30f64c744fab1386d391c73904",
+        "newSuffixBytes": 7682072,
+        "originalFailedJobRetained": true,
+        "archiveBodyBytesWithoutReplay": 35689816
+      }
+    ],
+    "acceptedPrefixOrArchiveReplayed": false,
+    "downloadTransferSecondsUnchanged": 45
   }
 }

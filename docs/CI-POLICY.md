@@ -1,4 +1,8 @@
 
+
+## Current .NET 10 servicing delivery - 2026-11-20
+
+Native Windows and Linux each passed 15 unit tests, three actual source/owner/SDK-byte rejection controls, locked restores, build and native package checks. All six new release assets were published and independently public-download/hash verified. The signed tag identifies the Linux/release source; exact Windows archive source is recorded separately with identical product/build/package inputs. Linux publish completed natively; its retained output was assembled as data on Windows without another SDK call, then checked natively on Linux. This later documentation commit records final delivery. No Actions or healthy M1/benchmark/trace replay occurred. Current preview: [v0.1.0-preview.2](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/tag/v0.1.0-preview.2). [Receipt](evidence/servicing-20261120/receipt.json). CI: NOT_RUN_OWNER_PROHIBITED; no Actions were requested. Windows experimental support and Linux native NuGet timeout remain explicit. Earlier entries below retain their historical scope.
 ## Current M1 delivery - 2026-11-19
 
 M1 recorded data is accepted: six frozen-plan Windows/Linux cases plus one explicitly authorized separate Windows cap99 supplement, seven native CLI calls total. Twenty-four distinct negative fixtures were evaluated in normal and optimized modes. The unchanged oracle's N01-N08 false positives remain findings; the independent witness rejects every negative. The old cap99 forced-cleanup HOLD is retained; its authorized supplement has valid strict data and natural original Job terminal. All owned runtime scopes ended and released their exact canonical leases.

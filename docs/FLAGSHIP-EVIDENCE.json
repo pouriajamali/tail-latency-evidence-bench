@@ -3,7 +3,7 @@
   "documentationDate": "2026-11-20",
   "project": "Tail-Latency Evidence Bench",
   "repository": "https://github.com/pouriajamali/tail-latency-evidence-bench",
-  "scope": "AI-assisted original synthetic local laboratory; frozen preview evidence plus later bounded M1 execution; no runtime rebuild or performance/security claim",
+  "scope": "Original synthetic local laboratory; frozen M1/original preview retained plus separately validated .NET 10 servicing preview; no performance or production/security claim",
   "runtime": {
     "tag": "v0.1.0-preview.1",
     "commit": "6158f7f8a9a8e4fd7c12ed575f427d7117b89801",
@@ -191,7 +191,90 @@
     "testedActiveSourceManifestSHA256": "a417f0082fea078f1b0d4c7517eb3caaa9bb54e1da39ed70cc03690ea78fdc5b",
     "executionCommitIsRetainedLocalReceipt": true
   },
-  "servicingCandidate": {
+  "currentServicing": {
+    "version": "0.1.0-preview.2",
+    "runtimeSourceCommit": "18e1d4a33e694f20fbcb20781e69fbefb663d426",
+    "release": {
+      "id": 452838816,
+      "tag": "v0.1.0-preview.2",
+      "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/tag/v0.1.0-preview.2",
+      "prerelease": true,
+      "signedTagObject": "15fc59f50ebb8fb72531281d3720a1fc04f58ea0",
+      "assets": [
+        {
+          "name": "tail-latency-evidence-bench-v0.1.0-preview.2-win-x64.zip",
+          "id": 772312950,
+          "bytes": 36197960,
+          "sha256": "522362ab9ffcda0466b20b758fe0fd6f8961853c01022ecafe1a315ecb6371a2",
+          "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/tail-latency-evidence-bench-v0.1.0-preview.2-win-x64.zip",
+          "actualPublicDownload": true
+        },
+        {
+          "name": "tail-latency-evidence-bench-v0.1.0-preview.2-linux-x64.tar.gz",
+          "id": 772316771,
+          "bytes": 35689816,
+          "sha256": "5faf1529393a4626a0c936af41aab69f8db3401d148750cf9a89b01f893db8c8",
+          "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/tail-latency-evidence-bench-v0.1.0-preview.2-linux-x64.tar.gz",
+          "actualPublicDownload": true
+        },
+        {
+          "name": "tail-latency-evidence-bench-v0.1.0-preview.2-source.zip",
+          "id": 772276793,
+          "bytes": 388134,
+          "sha256": "931690e43b95137ec0eff0665859ed63deb40aa463ea243f092e5344ac912736",
+          "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/tail-latency-evidence-bench-v0.1.0-preview.2-source.zip",
+          "actualPublicDownload": true
+        },
+        {
+          "name": "SHA256SUMS.txt",
+          "id": 772266903,
+          "bytes": 373,
+          "sha256": "2b631cd3329379ab59dba039f3b82c559d430436537eb020b06af21439b2c792",
+          "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/SHA256SUMS.txt",
+          "actualPublicDownload": true
+        },
+        {
+          "name": "SHA256SUMS.txt.sig",
+          "id": 772277080,
+          "bytes": 294,
+          "sha256": "65d3d3f2d68907bfd7b8a5a40aa5438cb02a394c15c019887b25250641915338",
+          "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/SHA256SUMS.txt.sig",
+          "actualPublicDownload": true
+        },
+        {
+          "name": "SIGNING-PUBLIC-KEY.pub",
+          "id": 772277310,
+          "bytes": 113,
+          "sha256": "cc7038b2d98f856af97b58eb06619ff441fbe9b178da5396f61d1ccdf7a65e7c",
+          "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/SIGNING-PUBLIC-KEY.pub",
+          "actualPublicDownload": true
+        }
+      ]
+    },
+    "receipt": "docs/evidence/servicing-20261120/receipt.json",
+    "unitTests": {
+      "win-x64": {
+        "total": 15,
+        "failed": 0,
+        "skipped": 0,
+        "xmlSHA256": "d52cb6ca972a5475f4a64dafdade235cea2edf2749f7f4f301aeea33ae14b46d",
+        "sourceCommit": "fff8a5b1e407377c1ed01a7bb991589b10a0dce9"
+      },
+      "linux-x64": {
+        "total": 15,
+        "failed": 0,
+        "skipped": 0,
+        "xmlSHA256": "771d4b362a9f6ab4cd22666210f58185ee162e02829cb633372bb357c135fcad",
+        "sourceCommit": "de3fd57b3b7dc3d4a144f707bca77b0812522a91"
+      }
+    },
+    "originalM1AndPreviewUnchanged": true,
+    "Actions": 0,
+    "CI": "NOT_RUN_OWNER_PROHIBITED",
+    "formalWindowsVendorSupport": "NOT_CONFIRMED",
+    "linuxNativeNuGetVerifier": "UNKNOWN_TIMEOUT_AT_ORIGINAL20S_RETAINED; exact Linux runtime package data independently verified by native Windows NuGet"
+  },
+  "historicalServicingValidationCheckpoint": {
     "version": "0.1.0-preview.2",
     "sdk": "10.0.404",
     "runtime": "10.0.15",
