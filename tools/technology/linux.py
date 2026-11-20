@@ -26,7 +26,8 @@ def main():
         transport={}
         for name in ['/usr/bin/systemd-run','/usr/bin/python3']:
             q=Path(name).resolve();s=q.stat();need(s.st_uid==0 and not s.st_mode&0o022 and stat.S_ISREG(s.st_mode),'ROOT_OWNED_OS_TRANSPORT');transport[str(q)]={'bytes':s.st_size,'sha256':sha(q)}
-        runtime=max(1,min(50,int(min(f['phaseDeadline'],f['deadline']-30)-time.time()-5)))
+        hard_cap=20 if f['phase'] in ('qualify','runtime-verify') else 45
+        runtime=max(1,min(hard_cap,int(min(f['phaseDeadline'],f['deadline']-30)-time.time()-5)))
         cmd=['/usr/bin/systemd-run','--wait','--collect','--pipe','--unit='+unit,'--uid=0','--gid=0','--property=Type=exec','--property=MemoryMax=536870912','--property=MemorySwapMax=0','--property=TasksMax=64','--property=CPUQuota=200%','--property=CPUQuotaPeriodSec=100ms','--property=RuntimeMaxSec='+str(runtime),'--property=TimeoutStopSec=1','--property=KillMode=control-group','--setenv=PYTHONDONTWRITEBYTECODE=1','/usr/bin/python3','-I','-S','-B',str(Path(__file__)),'--frame',a.frame,'--frame-sha',a.frame_sha,'--inner']
         fresh(out/'systemd-start.json',{'unit':unit,'argv':cmd,'transport':transport,'sourceHashes':f['sourceHashes'],'noGlobalSettingChanged':True})
         run=subprocess.Popen(cmd,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={'PATH':'/usr/bin:/bin','HOME':'/root','LANG':'C','LC_ALL':'C','PYTHONDONTWRITEBYTECODE':'1'})

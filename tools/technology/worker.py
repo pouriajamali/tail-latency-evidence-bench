@@ -167,8 +167,9 @@ def main():
         elif phase=='test':commands=[[str(sdk),'run','--project','tests/Evidence.Tests','-c','Release','--no-build','--','-result-xml',str(out/'unit.xml')]]
         elif phase=='package':
             previous=Path(f['restoreFinal']);need(sha(previous)==f['restoreFinalSha256'],'RESTORE_RECEIPT_BYTES');restored=read(previous)
-            need(restored['status']=='ACCEPTED_CHANGED_SERVICING_PHASE' and restored['phase']=='restore' and restored['rid']==rid and restored['sourceCommit']==f['sourceCommit'] and restored['packetSHA256']==f['packetSha256'],'OWN_EXACT_RESTORE_PREREQUISITE')
-            handoff=out/'restore-handoff.json';fresh(handoff,{'schema':'tail11-tech-restore-handoff/v1','sourceCommit':f['sourceCommit'],'rid':rid,'final':{'path':str(previous),'sha256':sha(previous)},'assetsSha256':sha(root/'src/Bench.Cli/obj/project.assets.json'),'lockedMode':True,'hostSupport':{'hostClass':actual.get('hostClass','OBSERVED_UBUNTU_24_04'),'formalVendorSupport':actual['formalVendorSupport'],'observedWindows':actual.get('observedWindows')},'packetSHA256':f['packetSha256']})
+            need(restored['status']=='ACCEPTED_CHANGED_SERVICING_PHASE' and restored['phase']=='restore' and restored['rid']==rid and restored['packetSHA256']==f['packetSha256'],'OWN_EXACT_RESTORE_PREREQUISITE')
+            unchanged=subprocess.run(['git','-C',str(root),'diff','--quiet',restored['sourceCommit'],f['sourceCommit'],'--','global.json','Directory.Build.props','src','tests','.config'],capture_output=True,timeout=5);need(unchanged.returncode==0,'RESTORE_PRODUCT_INPUTS_CHANGED')
+            handoff=out/'restore-handoff.json';fresh(handoff,{'schema':'tail11-tech-restore-handoff/v1','sourceCommit':f['sourceCommit'],'restoreSourceCommit':restored['sourceCommit'],'rid':rid,'final':{'path':str(previous),'sha256':sha(previous)},'assetsSha256':sha(root/'src/Bench.Cli/obj/project.assets.json'),'lockedMode':True,'hostSupport':{'hostClass':actual.get('hostClass','OBSERVED_UBUNTU_24_04'),'formalVendorSupport':actual['formalVendorSupport'],'observedWindows':actual.get('observedWindows')},'packetSHA256':f['packetSha256']})
             commands=[[sys.executable,str(root/'tools/package.py'),'--commit',f['sourceCommit'],'--rid',rid,'--dotnet',str(sdk),'--work',f['packageWork'],'--out',f['packageOut'],'--restore-handoff',str(handoff),'--restore-handoff-sha',sha(handoff)]]
         elif phase=='package-check':commands=[[sys.executable,str(root/'tools/check_package.py'),'--package',f['packageDirectory'],'--commit',f['sourceCommit'],'--out',str(out/'package-check.json')]]
         results=[]
@@ -185,7 +186,11 @@ def main():
                 else:
                     text=(Path('/proc')/str(pid)/'stat').read_text();cg=(Path('/proc')/str(pid)/'cgroup').read_text().strip();need(cg.endswith('/'+os.environ['TAIL11_ROOT_UNIT']),'SDK_CHILD_INHERITED_OWN_CGROUP');identity={'pid':pid,'birthTicks':text[text.rfind(')')+2:].split()[19],'actualCgroup':cg}
                 fresh(out/('command-'+str(index)+'-start.json'),{'argv':cmd,'identity':identity,'sourceCommit':f['sourceCommit'],'nativeScopeInherited':True,'originalWaitPending':True})
-                exitcode=run.wait(timeout=left)
+                try:exitcode=run.wait(timeout=left)
+                except subprocess.TimeoutExpired:
+                    run.kill();killed_code=run.wait(timeout=5)
+                    fresh(out/('command-'+str(index)+'-timeout.json'),{'identity':identity,'status':'NATIVE_TIMEOUT_NOT_PASS','originalWaitReturnedAfterKill':True,'exitCode':killed_code,'nativeMaximumSeconds':20 if phase in ('qualify','runtime-verify','runtime-verify-linux-data') else 45})
+                    raise
             need(log.stat().st_size<=1048576,'LOG_CAP')
             result={'pid':pid,'identity':identity,'argv':cmd,'originalPopenWaitReturned':True,'exitCode':exitcode,'logBytes':log.stat().st_size,'logSHA256':sha(log)}
             results.append(result);fresh(out/('command-'+str(index)+'.json'),result);need(exitcode==0,'COMMAND_EXIT_NONZERO')

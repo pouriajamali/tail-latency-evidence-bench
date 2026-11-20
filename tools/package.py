@@ -29,7 +29,8 @@ def main():
         handoff_path=Path(a.restore_handoff);require(handoff_path.stat().st_size<=262144 and sha(handoff_path)==a.restore_handoff_sha,'Restore handoff bytes')
         handoff=json.loads(handoff_path.read_bytes());require(handoff['schema']=='tail11-tech-restore-handoff/v1' and handoff['sourceCommit']==a.commit and handoff['rid']==a.rid and handoff['lockedMode'] is True,'Own exact restore scope')
         previous=Path(handoff['final']['path']);require(previous.stat().st_size<=262144 and sha(previous)==handoff['final']['sha256'],'Restore final identity')
-        restored=json.loads(previous.read_bytes());require(restored['status']=='ACCEPTED_CHANGED_SERVICING_PHASE' and restored['phase']=='restore' and restored['rid']==a.rid and restored['sourceCommit']==a.commit and restored['packetSHA256']==handoff['packetSHA256'],'Accepted locked restore required')
+        restored=json.loads(previous.read_bytes());require(restored['status']=='ACCEPTED_CHANGED_SERVICING_PHASE' and restored['phase']=='restore' and restored['rid']==a.rid and restored['sourceCommit']==handoff.get('restoreSourceCommit',a.commit) and restored['packetSHA256']==handoff['packetSHA256'],'Accepted locked restore required')
+        same_inputs=subprocess.run(['git','-C',str(ROOT),'diff','--quiet',restored['sourceCommit'],a.commit,'--','global.json','Directory.Build.props','src','tests','.config'],capture_output=True,timeout=10);require(same_inputs.returncode==0,'Accepted restore product inputs changed')
         require(sha(ROOT/'src/Bench.Cli/obj/project.assets.json')==handoff['assetsSha256'],'Restored assets changed')
         host_support=handoff['hostSupport'];commands=commands[1:]
     command_records=[]

@@ -93,7 +93,12 @@ def main():
         frame['packages']=cpath(PRIVATE_C/'packages');frame['cliHome']=cpath(PRIVATE_C/a.rid/'home');frame['nativeTmp']=cpath(PRIVATE_C/a.rid/(a.phase+'-'+a.attempt)/'tmp');frame['httpCache']=cpath(PRIVATE_C/'http');frame['nugetScratch']=cpath(PRIVATE_C/a.rid/'nuget-scratch');frame['scratchRoots']=[transform(O),cpath(PRIVATE_C)]
         if a.phase=='package-check':frame['packageDirectory']=transform(O/'packages'/a.rid/('tail-latency-evidence-bench-v0.1.0-preview.2-'+a.rid))
         if a.phase=='package':
-            candidates=list((O/'runs').glob(a.rid+'-restore-*/FINAL.json'));accepted=[x for x in candidates if read(x).get('status')=='ACCEPTED_CHANGED_SERVICING_PHASE' and read(x).get('sourceCommit')==head and read(x).get('packetSHA256')==a.packet_sha]
+            candidates=list((O/'runs').glob(a.rid+'-restore-*/FINAL.json'));accepted=[]
+            for x in candidates:
+                prior=read(x)
+                if prior.get('status')=='ACCEPTED_CHANGED_SERVICING_PHASE' and prior.get('packetSHA256')==a.packet_sha:
+                    equal=subprocess.run(['git','-C',str(R),'diff','--quiet',prior['sourceCommit'],head,'--','global.json','Directory.Build.props','src','tests','.config'],capture_output=True,timeout=5)
+                    if equal.returncode==0:accepted.append(x)
             need(len(accepted)==1,'ONE_ACCEPTED_CURRENT_RESTORE');frame['restoreFinal']=transform(accepted[0]);frame['restoreFinalSha256']=sha(accepted[0])
         frame_path=run/'frame.json';fresh(frame_path,frame)
         if a.rid=='win-x64':
