@@ -1,0 +1,290 @@
+{
+  "schema": "tail11-servicing-delivery/v1",
+  "status": "LOCAL_NATIVE_VALIDATED_PUBLICATION_PENDING",
+  "version": "0.1.0-preview.2",
+  "sdk": "10.0.404",
+  "runtime": "10.0.15",
+  "targetFramework": "net10.0",
+  "language": "C#14",
+  "runtimeSourceCommit": "18e1d4a33e694f20fbcb20781e69fbefb663d426",
+  "native": {
+    "win-x64": {
+      "qualify": {
+        "status": "ACCEPTED_CHANGED_SERVICING_PHASE",
+        "sourceCommit": "65abeb7de0e227e80644f9a79e452f3193624c92",
+        "allOwnedTerminal": true,
+        "exactOwnCanonicalLeaseReleased": true,
+        "receiptSHA256": "48052769ddcc8c65d35394eb8a2020e49a828b747185931b036e6ae8bf105d48",
+        "formalVendorSupport": "NOT_CONFIRMED",
+        "seconds": 3.5940000000009604
+      },
+      "negative": {
+        "status": "ACCEPTED_CHANGED_SERVICING_PHASE",
+        "sourceCommit": "bd0b104c9feacdeae94e5609641465d08f457598",
+        "allOwnedTerminal": true,
+        "exactOwnCanonicalLeaseReleased": true,
+        "receiptSHA256": "3f21e1a83d67733c975a008510cf5c559e9a6b0da10d52bfb2eafdb2ece6615e",
+        "formalVendorSupport": "NOT_CONFIRMED",
+        "seconds": 8.265999999999622,
+        "controls": [
+          "wrong-source",
+          "wrong-canonical-owner",
+          "wrong-SDK-entry-bytes"
+        ]
+      },
+      "restore": {
+        "status": "ACCEPTED_CHANGED_SERVICING_PHASE",
+        "sourceCommit": "70e134abf888f7b181808552c136e0eedc7f07c8",
+        "allOwnedTerminal": true,
+        "exactOwnCanonicalLeaseReleased": true,
+        "receiptSHA256": "b55c7b1e135d65f9fc2e32bca14e6da8644145fd3dcd6b455fd6f7ae5c36df41",
+        "formalVendorSupport": "NOT_CONFIRMED",
+        "seconds": 22.95300000000134
+      },
+      "restore-tests": {
+        "status": "ACCEPTED_CHANGED_SERVICING_PHASE",
+        "sourceCommit": "fff8a5b1e407377c1ed01a7bb991589b10a0dce9",
+        "allOwnedTerminal": true,
+        "exactOwnCanonicalLeaseReleased": true,
+        "receiptSHA256": "c7f5e7b86861a5300824022e1b2c355af3fa2f1ca64137ba802a8b0f1c03e00b",
+        "formalVendorSupport": "NOT_CONFIRMED",
+        "seconds": 4.0
+      },
+      "build": {
+        "status": "ACCEPTED_CHANGED_SERVICING_PHASE",
+        "sourceCommit": "fff8a5b1e407377c1ed01a7bb991589b10a0dce9",
+        "allOwnedTerminal": true,
+        "exactOwnCanonicalLeaseReleased": true,
+        "receiptSHA256": "0ec66728e7ccb3d88f8f7ded6d51a71e8b88cd87ba204b4ebe1072e95660ddf4",
+        "formalVendorSupport": "NOT_CONFIRMED",
+        "seconds": 8.10899999999674
+      },
+      "test": {
+        "status": "ACCEPTED_CHANGED_SERVICING_PHASE",
+        "sourceCommit": "fff8a5b1e407377c1ed01a7bb991589b10a0dce9",
+        "allOwnedTerminal": true,
+        "exactOwnCanonicalLeaseReleased": true,
+        "receiptSHA256": "67c5f253464aa12f084a6acc8bbb8f63c2fbcc9a499b4218e455508b0c72a8de",
+        "formalVendorSupport": "NOT_CONFIRMED",
+        "seconds": 3.202999999997701
+      },
+      "package": {
+        "status": "ACCEPTED_CHANGED_SERVICING_PHASE",
+        "sourceCommit": "80f431f0bfde6032f97ac27b9fe56943cf3a52d4",
+        "allOwnedTerminal": true,
+        "exactOwnCanonicalLeaseReleased": true,
+        "receiptSHA256": "95848561a7fb46e49cea739ea49fab325aca29c58288c0b77319d5ae4fe0b20a",
+        "formalVendorSupport": "NOT_CONFIRMED",
+        "seconds": 12.5
+      },
+      "package-check": {
+        "status": "ACCEPTED_CHANGED_SERVICING_PHASE",
+        "sourceCommit": "80f431f0bfde6032f97ac27b9fe56943cf3a52d4",
+        "allOwnedTerminal": true,
+        "exactOwnCanonicalLeaseReleased": true,
+        "receiptSHA256": "517db906204edf1de1fd22c26f96df7f510b1019ef28cbafc63418342c8bfe38",
+        "formalVendorSupport": "NOT_CONFIRMED",
+        "seconds": 3.936999999998079
+      }
+    },
+    "linux-x64": {
+      "qualify": {
+        "status": "ACCEPTED_CHANGED_SERVICING_PHASE",
+        "sourceCommit": "65abeb7de0e227e80644f9a79e452f3193624c92",
+        "allOwnedTerminal": true,
+        "exactOwnCanonicalLeaseReleased": true,
+        "receiptSHA256": "6276ba45083e05626342f3789a58e08e5a6c1c30de23b7eb14433720ee2ff116",
+        "formalVendorSupport": "SUPPORTED_OS_ROW_ONLY_NOT_GLOBAL_ADMISSION",
+        "seconds": 22.625
+      },
+      "negative": {
+        "status": "ACCEPTED_CHANGED_SERVICING_PHASE",
+        "sourceCommit": "80f431f0bfde6032f97ac27b9fe56943cf3a52d4",
+        "allOwnedTerminal": true,
+        "exactOwnCanonicalLeaseReleased": true,
+        "receiptSHA256": "dd1eadb60cafbe0bb3d9dde3bbf1682dba2b04d01b7a8c22c9f6af632c01d21e",
+        "formalVendorSupport": "SUPPORTED_OS_ROW_ONLY_NOT_GLOBAL_ADMISSION",
+        "seconds": 29.9529999999977,
+        "controls": [
+          "wrong-source",
+          "wrong-canonical-owner",
+          "wrong-SDK-entry-bytes"
+        ]
+      },
+      "restore": {
+        "status": "ACCEPTED_CHANGED_SERVICING_PHASE",
+        "sourceCommit": "de3fd57b3b7dc3d4a144f707bca77b0812522a91",
+        "allOwnedTerminal": true,
+        "exactOwnCanonicalLeaseReleased": true,
+        "receiptSHA256": "a84369ac26fd17af394a950617814926b4ac7ec62a38475a8f76f3ad82933d6b",
+        "formalVendorSupport": "SUPPORTED_OS_ROW_ONLY_NOT_GLOBAL_ADMISSION",
+        "seconds": 34.875
+      },
+      "restore-tests": {
+        "status": "ACCEPTED_CHANGED_SERVICING_PHASE",
+        "sourceCommit": "de3fd57b3b7dc3d4a144f707bca77b0812522a91",
+        "allOwnedTerminal": true,
+        "exactOwnCanonicalLeaseReleased": true,
+        "receiptSHA256": "adc8743c750d73576be484d448860fef9266ffdaa138706bf53d7c76904cf593",
+        "formalVendorSupport": "SUPPORTED_OS_ROW_ONLY_NOT_GLOBAL_ADMISSION",
+        "seconds": 35.86000000000058
+      },
+      "build": {
+        "status": "ACCEPTED_CHANGED_SERVICING_PHASE",
+        "sourceCommit": "de3fd57b3b7dc3d4a144f707bca77b0812522a91",
+        "allOwnedTerminal": true,
+        "exactOwnCanonicalLeaseReleased": true,
+        "receiptSHA256": "ee4e44f0f51544f9484a612b08cf27e1da563a7ae61cbf2d3cca1b8cb6e1c23b",
+        "formalVendorSupport": "SUPPORTED_OS_ROW_ONLY_NOT_GLOBAL_ADMISSION",
+        "seconds": 27.51600000000326
+      },
+      "test": {
+        "status": "ACCEPTED_CHANGED_SERVICING_PHASE",
+        "sourceCommit": "de3fd57b3b7dc3d4a144f707bca77b0812522a91",
+        "allOwnedTerminal": true,
+        "exactOwnCanonicalLeaseReleased": true,
+        "receiptSHA256": "bc2d948d827fde373507f0c0f83d06df877bb037bf65e578649ccc1330a9f9a4",
+        "formalVendorSupport": "SUPPORTED_OS_ROW_ONLY_NOT_GLOBAL_ADMISSION",
+        "seconds": 14.015999999999622
+      },
+      "package": {
+        "status": "ACCEPTED_CHANGED_SERVICING_PHASE",
+        "sourceCommit": "18e1d4a33e694f20fbcb20781e69fbefb663d426",
+        "allOwnedTerminal": true,
+        "exactOwnCanonicalLeaseReleased": true,
+        "receiptSHA256": "b0064e91e4db5832a048174fa889fd6473a8a0bf583e8a771ae9c2df365c2ae3",
+        "formalVendorSupport": "SUPPORTED_OS_ROW_ONLY_NOT_GLOBAL_ADMISSION",
+        "seconds": 8.734000000000378
+      },
+      "package-check": {
+        "status": "ACCEPTED_CHANGED_SERVICING_PHASE",
+        "sourceCommit": "18e1d4a33e694f20fbcb20781e69fbefb663d426",
+        "allOwnedTerminal": true,
+        "exactOwnCanonicalLeaseReleased": true,
+        "receiptSHA256": "14f9307df629ce62cae5b62244c15fc83773952158db19eacabcbfb5e8a85a0b",
+        "formalVendorSupport": "SUPPORTED_OS_ROW_ONLY_NOT_GLOBAL_ADMISSION",
+        "seconds": 33.46800000000076
+      }
+    }
+  },
+  "unitTests": {
+    "win-x64": {
+      "total": 15,
+      "failed": 0,
+      "skipped": 0,
+      "xmlSHA256": "d52cb6ca972a5475f4a64dafdade235cea2edf2749f7f4f301aeea33ae14b46d",
+      "sourceCommit": "fff8a5b1e407377c1ed01a7bb991589b10a0dce9"
+    },
+    "linux-x64": {
+      "total": 15,
+      "failed": 0,
+      "skipped": 0,
+      "xmlSHA256": "771d4b362a9f6ab4cd22666210f58185ee162e02829cb633372bb357c135fcad",
+      "sourceCommit": "de3fd57b3b7dc3d4a144f707bca77b0812522a91"
+    }
+  },
+  "signatureData": [
+    {
+      "targetRid": "win-x64",
+      "verifierHostRid": "win-x64",
+      "scope": "EXACT_RUNTIME_PACKAGE_DATA_ONLY",
+      "sourceCommit": "12fd05dd1eb5b9250b9905eb329c0546a51d2e94",
+      "resultSHA256": "28de541321d793d3a1b4ee521428f01cbe1d038a433ab3f74f47e43a84958736",
+      "nativeVerifierExitCode": 0,
+      "currentLinuxNativeVerifierPassClaimed": false
+    },
+    {
+      "targetRid": "linux-x64",
+      "verifierHostRid": "win-x64",
+      "scope": "EXACT_RUNTIME_PACKAGE_DATA_ONLY",
+      "sourceCommit": "bd0b104c9feacdeae94e5609641465d08f457598",
+      "resultSHA256": "1ffbe7895634ad9859c2d6f6edffcd0a581c6ef11a2f5b8c667b35d411036b83",
+      "nativeVerifierExitCode": 0,
+      "currentLinuxNativeVerifierPassClaimed": false
+    }
+  ],
+  "archives": [
+    {
+      "name": "tail-latency-evidence-bench-v0.1.0-preview.2-win-x64.zip",
+      "rid": "win-x64",
+      "bytes": 36197960,
+      "sha256": "522362ab9ffcda0466b20b758fe0fd6f8961853c01022ecafe1a315ecb6371a2",
+      "sourceCommit": "80f431f0bfde6032f97ac27b9fe56943cf3a52d4"
+    },
+    {
+      "name": "tail-latency-evidence-bench-v0.1.0-preview.2-linux-x64.tar.gz",
+      "rid": "linux-x64",
+      "bytes": 35689816,
+      "sha256": "5faf1529393a4626a0c936af41aab69f8db3401d148750cf9a89b01f893db8c8",
+      "sourceCommit": "18e1d4a33e694f20fbcb20781e69fbefb663d426"
+    }
+  ],
+  "schemaControlsRejected": 8,
+  "actualNativeControlsRejected": 6,
+  "originalM1": "DELIVERED_FROZEN_NOT_REPLAYED",
+  "originalRuntimeTag": "v0.1.0-preview.1",
+  "originalRuntimeCommit": "6158f7f8a9a8e4fd7c12ed575f427d7117b89801",
+  "M1Calls": 0,
+  "benchmarkCalls": 0,
+  "traceCalls": 0,
+  "Actions": 0,
+  "CI": "NOT_RUN_OWNER_PROHIBITED",
+  "WindowsHostClass": "OBSERVED_EXPERIMENTAL",
+  "formalWindowsVendorSupport": "NOT_CONFIRMED",
+  "linuxNativeNuGetVerifier": "UNKNOWN_TIMEOUT_AT_ORIGINAL20S_RETAINED; exact Linux runtime package data independently verified by native Windows NuGet",
+  "wholeSystemSecurityOrProviderClosureClaimed": false,
+  "performanceOrProductionClaimed": false,
+  "limits": {
+    "memoryBytes": 536870912,
+    "windowsProcesses": 16,
+    "windowsCpuRate": 1000,
+    "windowsAffinityMax": 2,
+    "linuxTasks": 64,
+    "linuxSwap": 0,
+    "linuxCPUPercent": 200,
+    "wholeSeconds": 300,
+    "workSeconds": 270,
+    "terminalSeconds": 30,
+    "roleSeconds": 20,
+    "nativeSeconds": 45,
+    "controllerSeconds": 60,
+    "scratchBytes": 1073741824,
+    "proofBytes": 8388608,
+    "qualificationReadBytes": 67108864,
+    "qualificationFiles": 256,
+    "nativeArchiveBodiesBytes": 78643200
+  },
+  "retainedFindings": [
+    "Frozen oracle N01-N08 false positives unchanged",
+    "Original M1 cap99 wrapper HOLD retained with its separate accepted owner-authorized supplement",
+    "Servicing pre-child stale-bridge guard failure retained and exact-own recovered",
+    "Prior native timeout/cleanup gaps retained as HOLD; corrected whole-scope deadlines required for current execution",
+    "No manually fabricated NuGet completion metadata or locks",
+    "Bundle documentation records build-candidate state; this versioned receipt and public release record actual final delivery"
+  ],
+  "nativeArchiveSourceCommits": {
+    "win-x64": "80f431f0bfde6032f97ac27b9fe56943cf3a52d4",
+    "linux-x64": "18e1d4a33e694f20fbcb20781e69fbefb663d426"
+  },
+  "releaseSourceRelationship": "Exact per-RID archive source commits retained; product/build/package inputs equal release source; Linux controller accounting/path deltas never trigger healthy Windows rebuild.",
+  "linuxAssembly": {
+    "actualNativePublishHost": "Linux",
+    "assemblyHost": "Windows",
+    "nativePublishSourceCommit": "18e1d4a33e694f20fbcb20781e69fbefb663d426",
+    "actualNativePublishOriginalWaitReturned": true,
+    "SDKCallsDuringDataAssembly": 0,
+    "priorWrapperTimeoutRetained": true,
+    "samePhysicalRetainedNativeOutputs": true,
+    "allGraphNoticeLockPayloadChecksRetained": true,
+    "actualNativeLinuxPackageCheckRequired": true
+  },
+  "publicationPending": {
+    "reason": "Native archive upload exceeded original45s transport ceiling; no exception applied",
+    "streamedWindowsBytesWithin45s": 24346624,
+    "windowsArchiveBytes": 36197960,
+    "smallAssetsUploadedToDraft": 4,
+    "nativeAssetsUploaded": 0,
+    "releasePublished": false,
+    "requiredDecision": "Only two native-asset POSTs need an explicit bounded transport-time exception or a preauthorized faster upload path; no healthy build/test repetition"
+  }
+}

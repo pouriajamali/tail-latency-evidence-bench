@@ -1,6 +1,6 @@
 {
   "schema": "flagship-evidence/v1",
-  "documentationDate": "2026-11-19",
+  "documentationDate": "2026-11-20",
   "project": "Tail-Latency Evidence Bench",
   "repository": "https://github.com/pouriajamali/tail-latency-evidence-bench",
   "scope": "AI-assisted original synthetic local laboratory; frozen preview evidence plus later bounded M1 execution; no runtime rebuild or performance/security claim",
@@ -190,5 +190,40 @@
     "originalOracleFalsePositivesPreserved": true,
     "testedActiveSourceManifestSHA256": "a417f0082fea078f1b0d4c7517eb3caaa9bb54e1da39ed70cc03690ea78fdc5b",
     "executionCommitIsRetainedLocalReceipt": true
+  },
+  "servicingCandidate": {
+    "version": "0.1.0-preview.2",
+    "sdk": "10.0.404",
+    "runtime": "10.0.15",
+    "signedTagObject": "15fc59f50ebb8fb72531281d3720a1fc04f58ea0",
+    "releaseSourceCommit": "18e1d4a33e694f20fbcb20781e69fbefb663d426",
+    "nativeArchiveSourceCommits": {
+      "win-x64": "80f431f0bfde6032f97ac27b9fe56943cf3a52d4",
+      "linux-x64": "18e1d4a33e694f20fbcb20781e69fbefb663d426"
+    },
+    "nativeBuildUnitPackageChecks": "PASS_BOTH_OS",
+    "unitTests": {
+      "win-x64": {
+        "total": 15,
+        "failed": 0,
+        "skipped": 0,
+        "xmlSHA256": "d52cb6ca972a5475f4a64dafdade235cea2edf2749f7f4f301aeea33ae14b46d",
+        "sourceCommit": "fff8a5b1e407377c1ed01a7bb991589b10a0dce9"
+      },
+      "linux-x64": {
+        "total": 15,
+        "failed": 0,
+        "skipped": 0,
+        "xmlSHA256": "771d4b362a9f6ab4cd22666210f58185ee162e02829cb633372bb357c135fcad",
+        "sourceCommit": "de3fd57b3b7dc3d4a144f707bca77b0812522a91"
+      }
+    },
+    "status": "LOCAL_NATIVE_VALIDATED_PUBLICATION_BLOCKED_UPLOAD_TIME",
+    "releasePublished": false,
+    "receipt": "docs/evidence/servicing-20261120/receipt.json",
+    "formalWindowsVendorSupport": "NOT_CONFIRMED",
+    "linuxNativeNuGetVerifier": "UNKNOWN_TIMEOUT_AT_ORIGINAL20S_RETAINED; exact Linux runtime package data independently verified by native Windows NuGet",
+    "Actions": 0,
+    "CI": "NOT_RUN_OWNER_PROHIBITED"
   }
 }

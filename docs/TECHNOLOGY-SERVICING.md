@@ -1,6 +1,6 @@
 # .NET 10 servicing decision - 2026-11-20
 
-Status: NATIVE_SDK_QUALIFICATION_ACCEPTED_BUILD_VALIDATION_PENDING. This decision does not reopen delivered M1.
+Status: LOCAL_NATIVE_VALIDATED_PUBLICATION_BLOCKED_UPLOAD_TIME. This decision does not reopen delivered M1.
 
 Microsoft's current .NET 10 release metadata identifies SDK 10.0.404/runtime 10.0.15, released 2026-11-10, as active LTS security servicing. The prepared change retains net10.0 and C#14. Both .NET 10 LTS and .NET 11 STS currently list 2028-11-14 end of support; no required .NET 11-only capability justifies a major migration here. Existing BenchmarkDotNet 0.15.8, xUnit v3 4.0.3 and dotnet-trace 10.0.750501 are retained, excluded from the shipped BCL-only graph. No new benchmark, trace or performance claim is planned.
 
@@ -13,7 +13,7 @@ Official references, observed 2026-11-20:
 
 ## Scope and retained evidence
 
-Only SDK/runtime/package-version pins, the packaging/checking runtime identities and additive exact notice-source records change. Product C# source, API/output contracts, package locks, diagnostic dependencies, loader/PKI guards, known signing identity, M1 source/data/counterexamples and prior preview/tag/assets remain unchanged. v0.1.0-preview.2 is a prospective source version; no such release, build or package is claimed.
+Only SDK/runtime/package-version pins, the packaging/checking runtime identities and additive exact notice-source records change. Product C# source, API/output contracts, package locks, diagnostic dependencies, loader/PKI guards, known signing identity, M1 source/data/counterexamples and prior preview/tag/assets remain unchanged. v0.1.0-preview.2 is locally built and natively validated on both RIDs, with a public signed source tag; the release remains an unpublished draft.
 
 The sealed 10.0.15 notice and normalized/raw package identities are reused as data. Historical signature results retain their historical scope. Actual package metadata, consuming bytes, raw signed archive identity, shipped dependency graph and notices must still pass the established packager. No current SDK, signature, host or provider admission is inherited from another project.
 
@@ -29,7 +29,7 @@ Native SDK --info qualification completed once per OS. The Windows adapter initi
 
 The fixed adapter exposes only qualification, affected restore/build/test, runtime verification, new rejection controls and native packaging/checking. It reuses the existing kernel witness and Job bridge, with post-claim300/work270/terminal30, role20/qualification60/native45/controller60, Windows512MiB/16/CPU1000/affinity<=2 and Linux512MiB/swap0/tasks64/CPU200%. Direct consuming guards retain64MiB/256-file bounds and explicit no-global-closure scope. Restore/test/package I/O, peak memory/processes/CPU and terminal identities are recorded. A source-bound accepted locked restore and unchanged assets may be reused by packaging; it never silently skips the prerequisite or repeats it for reporting.
 
-Build/unit/package/signature/download validation is separate and remains pending until actual receipts exist. CI is NOT_RUN_OWNER_PROHIBITED. No Actions, M1 experiment, healthy benchmark, trace, loader/PKI research, global trust/protection change, new infrastructure or production/performance/security claim follows.
+Native build/unit/package and exact runtime-package data-signature receipts now exist. Actual public publication/download verification remains pending. CI is NOT_RUN_OWNER_PROHIBITED. No Actions, M1 experiment, healthy benchmark, trace, loader/PKI research, global trust/protection change, new infrastructure or production/performance/security claim follows.
 
 The pure receiving controls reject eight malformed/version/root/borrowed-admission/support inputs without SDK execution. Additional actual consumer negatives test wrong source, wrong canonical owner and wrong SDK entry bytes under the native Job/cgroup; they never execute a rejected SDK or count as M1 counterexamples.
 
@@ -52,3 +52,9 @@ An accepted CLI locked-restore receipt may survive changes only to delivery/cont
 Linux locked restore returned exit0 twice, with original SDK waits, but its wrapper reached the unchanged whole-scope deadline during scratch accounting. Both attempts remain HOLD. Scratch accounting now uses one no-follow stat per directory entry instead of repeated pathname stats across Windows mounts, with identical complete roots, link rejection and byte/file/proof caps checked during traversal. This controller-only change does not alter product/build inputs or the accepted Windows binaries/tests. Windows and Linux archive source commits remain explicit if they differ; exact product/build-input equality is required and no healthy Windows package is rebuilt for controller documentation.
 
 Linux packaging initially rejected before any SDK/package invocation because the linked worktree control file contains its existing Windows E:/ Git metadata path. The consumer maps only that exact existing control path to /mnt/e and sets child-only GIT_DIR/GIT_WORK_TREE. Native Git still performs the source comparison, HEAD, clean-tree and tracked inventory checks. No safe.directory/trust/ownership/global configuration is changed; any Git rejection remains a failure. Accepted Linux build/unit tests and Windows packages are retained without replay.
+
+## Current native validation and publication checkpoint
+
+Both RIDs passed15/15 units and native payload/notice/graph/CLI package checks. Windows archive source80f431f0bfde6032f97ac27b9fe56943cf3a52d4 and Linux/release source18e1d4a33e694f20fbcb20781e69fbefb663d426 have identical product/build/package inputs. Native Linux publish completed with its original wait/exit0; its wrapper timed out during copying. Retained outputs were assembled as data under a fresh capped Windows Job, with all established post-publish graph/lock/notice/payload checks, then inspected/executed natively on Linux. This added no SDK call or healthy build/test replay. Temporary duplicate publish/partial-copy directories were later removed to retain1GiB scratch; packages, archives, native wait logs and all HOLD receipts remain.
+
+The first large upload timed out and its remote inspection found no asset. A required small checksum upload passed. One stream alternative measured24,346,624 bytes in45.009738s and ended naturally with curl timeout28. No accepted upload was repeated, TLS/trust/protection was not changed, and no deadline exception was applied. Four required small files are uploaded to the unpublished draft. Completing the two native POSTs requires an explicit bounded transport-time exception or a preauthorized faster path; no new runner/OS/Actions is needed. [Local receipt](evidence/servicing-20261120/receipt.json). The original preview and M1 remain frozen.

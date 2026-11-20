@@ -1,5 +1,7 @@
 # v0.1.0-preview.2 servicing candidate - 2026-11-20
 
+Current checkpoint: both native builds,15/15 units per OS and native package checks passed. The signed source tag is public; release publication remains BLOCKED by the original45s upload limit. Four small source/provenance assets exist only in a draft. No cap/trust/protection change or Actions was used. [Local validation receipt](evidence/servicing-20261120/receipt.json). The earlier candidate description below records preparation, not a current build blocker.
+
 .NET10 LTS SDK10.0.404/runtime10.0.15, net10.0/C#14 and unchanged BCL-only application semantics. Separate native SDK qualification passed on the existing Windows experimental host and Ubuntu24.04; build, affected unit tests and package/signature/download acceptance remain independent publication gates. Windows `formalVendorSupport=NOT_CONFIRMED` is retained. No Microsoft OS certification, full provider closure, speed or production claim is made.
 
 The original v0.1.0-preview.1 runtime, tag, signatures and M1 data/false positives remain immutable. No M1 experiment, healthy benchmark/trace or loader/PKI analysis is repeated. Existing diagnostic dependencies remain pinned. Native per-RID packages must identify the exact signed servicing build commit and include full runtime notices, actual graph/SPDX and known-key provenance. CI: NOT_RUN_OWNER_PROHIBITED; no Actions or global protection/trust change.
