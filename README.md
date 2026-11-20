@@ -13,6 +13,8 @@ Windows 26H2/build 26300.10075 is an **observed experimental** host with `formal
 
 The original v0.1.0-preview.1 binaries/tag/assets remain immutable as the M1 reproducibility input. The six original cases, authorized cap99 supplement, raw records, independent witness and frozen-oracle false positives remain unchanged and are not rerun. BenchmarkDotNet/xUnit/dotnet-trace versions are retained; no benchmark, tracing or speed-improvement claim is added.
 
+The standalone oracle in the current signed preview still has the documented incomplete-preflight limitation; it is not a strict cause validator. M1 uses a separate independent witness that rejects those inputs. See [exact oracle/caller/fixture scope](docs/ORACLE-SCOPE.md); historical findings do not imply the standalone oracle was fixed.
+
 ## M1 recorded and accepted (2026-11-19)
 
 The fixed six-case Windows/Linux record-cap experiment completed, plus one separately owner-authorized Windows cap99 supplement: seven native CLI calls total,24 distinct negative fixtures in both normal and optimized modes. Capacity99 is INCOMPLETE before start;100/101 account for100 records with matching offered schedules and null p99.9. The independent witness rejects every negative. The unchanged frozen oracle accepts N01–N08; those false positives are preserved as findings, not repaired behavior.

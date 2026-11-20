@@ -321,5 +321,16 @@
     "linuxNativeNuGetVerifier": "UNKNOWN_TIMEOUT_AT_ORIGINAL20S_RETAINED; exact Linux runtime package data independently verified by native Windows NuGet",
     "Actions": 0,
     "CI": "NOT_RUN_OWNER_PROHIBITED"
+  },
+  "oracleScopeReview": {
+    "scope": "SOURCE_FIXTURE_RECEIPT_REVIEW_ONLY_NO_VALIDATOR_EXECUTION",
+    "guide": "docs/ORACLE-SCOPE.md",
+    "runtimeTag": "v0.1.0-preview.2",
+    "runtimeSourceCommit": "18e1d4a33e694f20fbcb20781e69fbefb663d426",
+    "standaloneOracleKnownFalsePositivesStillPresent": true,
+    "M1IndependentWitnessRejectsAllRecordedNegatives": true,
+    "newEndToEndCallerBypassDemonstrated": false,
+    "codeOrArtifactChanged": false,
+    "healthyTestsBuildsSDKBenchmarksSignaturesArchiveDownloadsHashesReplayed": 0
   }
 }
