@@ -21,7 +21,7 @@
     "tools/package.py": "dccfaf327d5a89ded8540934b3f2ccee8c3da1e4f2bf5ba023106b443b6663bc",
     "tools/technology/consumer-profile.json": "4cbc4eb87909d4d7ffbb548a5a3616daed84d3112c0f42aa2ba45f04c6a4fc66",
     "tools/technology/linux.py": "e73245b32b3a62e372e7b8a41ce2fc01f56ee3bd1d447c60e718ce1e2b083558",
-    "tools/technology/owner.py": "aebd977751706c80d375ad43d4128d93c4c0a20cc5eb277aad528473f54c7a10",
+    "tools/technology/owner.py": "f3ada31205118599ac00ee7248e64ea764fc83aae9b0982fa89b09783b695291",
     "tools/technology/receiver.py": "f62a20a1d167571d9d52bf093a3eef69cad08be06dc8e4f69f9cb1547c37757b",
     "tools/technology/windows.ps1": "cfd80c98d5629fd3f68b569480a7cd9a590a24edf0737d241787ded9aa0a0ba8",
     "tools/technology/worker.py": "cb81647aec00a75abda6eb6822ab2752250b13408b8ce41a96a134985332eb0a",

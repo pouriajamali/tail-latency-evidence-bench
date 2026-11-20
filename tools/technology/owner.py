@@ -23,6 +23,49 @@ def birth():
     k=ctypes.WinDLL('kernel32',use_last_error=True);k.GetCurrentProcess.restype=ctypes.c_void_p;k.GetProcessTimes.argtypes=[ctypes.c_void_p]*5
     c,e,kt,ut=(ctypes.c_ulonglong() for _ in range(4));need(k.GetProcessTimes(k.GetCurrentProcess(),ctypes.byref(c),ctypes.byref(e),ctypes.byref(kt),ctypes.byref(ut)),'ACTUAL_OWNER_BIRTH');return 'FILETIME:'+str(c.value)
 
+def event_claim(run):
+    # Register before the initial atomic claim, then wake only for this filename's
+    # deletion. No holder-content read, timer polling, reset, or parallel lease.
+    k=ctypes.WinDLL('kernel32',use_last_error=True)
+    class OVERLAPPED(ctypes.Structure):
+        _fields_=[('internal',ctypes.c_size_t),('internalHigh',ctypes.c_size_t),('offset',ctypes.c_uint),('offsetHigh',ctypes.c_uint),('event',ctypes.c_void_p)]
+    k.CreateFileW.argtypes=[ctypes.c_wchar_p,ctypes.c_uint,ctypes.c_uint,ctypes.c_void_p,ctypes.c_uint,ctypes.c_uint,ctypes.c_void_p];k.CreateFileW.restype=ctypes.c_void_p
+    k.CreateEventW.argtypes=[ctypes.c_void_p,ctypes.c_int,ctypes.c_int,ctypes.c_wchar_p];k.CreateEventW.restype=ctypes.c_void_p
+    k.ReadDirectoryChangesW.argtypes=[ctypes.c_void_p,ctypes.c_void_p,ctypes.c_uint,ctypes.c_int,ctypes.c_uint,ctypes.c_void_p,ctypes.c_void_p,ctypes.c_void_p]
+    k.WaitForSingleObject.argtypes=[ctypes.c_void_p,ctypes.c_uint];k.GetOverlappedResult.argtypes=[ctypes.c_void_p,ctypes.c_void_p,ctypes.c_void_p,ctypes.c_int];k.CancelIoEx.argtypes=[ctypes.c_void_p,ctypes.c_void_p];k.ResetEvent.argtypes=[ctypes.c_void_p];k.CloseHandle.argtypes=[ctypes.c_void_p]
+    directory=k.CreateFileW(str(LEASE.parent),1,7,None,3,0x42000000,None);need(directory not in (None,ctypes.c_void_p(-1).value),'CANONICAL_DIRECTORY_WATCH')
+    event=k.CreateEventW(None,True,False,None);need(event,'CANONICAL_EVENT_HANDLE');ov=OVERLAPPED();ov.event=event;buffer=ctypes.create_string_buffer(8192);pending=False;claims=0;deletions=0;end=time.monotonic()+300
+    def watch():
+        nonlocal pending
+        k.ResetEvent(event);need(k.ReadDirectoryChangesW(directory,buffer,len(buffer),False,1,None,ctypes.byref(ov),None),'CANONICAL_DIRECTORY_CHANGE_REQUEST');pending=True
+    def claim():
+        nonlocal claims
+        claims+=1
+        try:
+            file=LEASE.open('xb');return file,time.time(),time.monotonic(),{'claimAttempts':claims,'canonicalDeletionEvents':deletions,'eventDriven':True,'holderContentsRead':False}
+        except FileExistsError:return None
+    try:
+        watch();found=claim()
+        if found:return found
+        fresh(run/'lane-wait-start.json',{'status':'BUSY_WAITING_ONE_BOUNDED_KERNEL_EVENT_SEQUENCE','maxWaitSeconds':300,'windowStarted':False,'holderContentsRead':False,'eventDriven':True})
+        while time.monotonic()<end and deletions<64:
+            left=max(1,int(1000*(end-time.monotonic())));wait=k.WaitForSingleObject(event,left)
+            if wait==258:return None
+            need(wait==0,'CANONICAL_EVENT_WAIT');count=ctypes.c_uint();need(k.GetOverlappedResult(directory,ctypes.byref(ov),ctypes.byref(count),False),'CANONICAL_EVENT_RESULT');pending=False;offset=0;deleted=False
+            while offset<count.value:
+                raw=buffer.raw;next_offset=int.from_bytes(raw[offset:offset+4],'little');action=int.from_bytes(raw[offset+4:offset+8],'little');length=int.from_bytes(raw[offset+8:offset+12],'little');name=raw[offset+12:offset+12+length].decode('utf-16-le')
+                if action==2 and name.casefold()==LEASE.name.casefold():deleted=True;deletions+=1
+                if not next_offset:break
+                offset+=next_offset
+            watch()
+            if deleted:
+                found=claim()
+                if found:return found
+        return None
+    finally:
+        if pending:k.CancelIoEx(directory,ctypes.byref(ov));k.WaitForSingleObject(event,5000)
+        k.CloseHandle(event);k.CloseHandle(directory)
+
 def main():
     p=argparse.ArgumentParser();p.add_argument('--rid',choices=['win-x64','linux-x64'],required=True);p.add_argument('--phase',choices=['qualify','restore','build','test','package','package-check','runtime-verify','negative'],required=True);p.add_argument('--packet',required=True);p.add_argument('--packet-sha',required=True);p.add_argument('--attempt',default='once');p.add_argument('--cause');a=p.parse_args()
     need(a.attempt=='once' or a.cause,'CAUSAL_RETRY_REQUIRED')
@@ -34,10 +77,11 @@ def main():
     head=subprocess.check_output(['git','-C',str(R),'rev-parse','HEAD'],timeout=10).decode().strip()
     nonce=os.urandom(16).hex();owner_birth=birth();claimed=False;terminal=False;child=None;started=None;mono=None;frame=None
     try:
-        try:lf=LEASE.open('xb')
-        except FileExistsError:
-            fresh(run/'FINAL.json',{'status':'BUSY_WINDOW_NOT_STARTED','claimAttempts':1,'targetCalls':0,'allOwnedTerminal':True,'foreignLeaseReadOrChanged':False});return
-        claimed=True;started=time.time();mono=time.monotonic();deadline=started+300
+        acquired=event_claim(run)
+        if acquired is None:
+            fresh(run/'FINAL.json',{'status':'BUSY_NO_RELEASE_EVENT_WITHIN_BOUND','targetCalls':0,'allOwnedTerminal':True,'foreignLeaseReadOrChanged':False,'windowStarted':False});return
+        lf,started,mono,lane_event=acquired;claimed=True;deadline=started+300
+        fresh(run/'lane-claim-event.json',lane_event)
         holder={'projectId':'11','randomToken':nonce,'ownerOS':'Windows','ownerPID':os.getpid(),'ownerProcessStartIdentity':owner_birth,'phase':'TECHNOLOGY_'+a.rid+'_'+a.phase,'startedAtUtc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime(started)),'receiptDirectory':str(run),'executionWindow':{'startUnix':started,'deadlineUnix':deadline}}
         with lf:lf.write((json.dumps(holder,indent=2)+'\n').encode());lf.flush();os.fsync(lf.fileno())
         fresh(run/'lease-claimed.json',{'holder':holder,'postAtomicClaimClock':True,'sourceManifestSHA256':sha(R/'tools/technology/source-manifest.json'),'causalRetry':a.cause})
