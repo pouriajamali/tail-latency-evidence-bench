@@ -96,7 +96,7 @@ def main():
             candidates=list((O/'runs').glob(a.rid+'-restore-*/FINAL.json'));accepted=[]
             for x in candidates:
                 prior=read(x)
-                if prior.get('status')=='ACCEPTED_CHANGED_SERVICING_PHASE' and prior.get('packetSHA256')==a.packet_sha:
+                if prior.get('status')=='ACCEPTED_CHANGED_SERVICING_PHASE' and prior.get('phase')=='restore' and prior.get('packetSHA256')==a.packet_sha:
                     equal=subprocess.run(['git','-C',str(R),'diff','--quiet',prior['sourceCommit'],head,'--','global.json','Directory.Build.props','src','tests','.config'],capture_output=True,timeout=5)
                     if equal.returncode==0:accepted.append(x)
             need(len(accepted)==1,'ONE_ACCEPTED_CURRENT_RESTORE');frame['restoreFinal']=transform(accepted[0]);frame['restoreFinalSha256']=sha(accepted[0])
