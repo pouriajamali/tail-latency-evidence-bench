@@ -1,3 +1,7 @@
+# Prospective v0.1.0-preview.2 servicing - 2026-11-20
+
+Source prepares .NET 10 LTS SDK 10.0.404/runtime 10.0.15, retaining net10.0/C#14 and unchanged application/M1 semantics. It is not built, tested or published; the supported Windows execution route and independent project SDK binding remain unestablished. The existing verified v0.1.0-preview.1 downloads and all signatures are retained. See [decision, official sources and delivery limits](TECHNOLOGY-SERVICING.md). CI: NOT_RUN_OWNER_PROHIBITED. No Actions, benchmark or closed-M1 replay.
+
 # v0.1.0-preview.1 - Tail-Latency Evidence Bench
 
 Fresh offline synthetic Tail-Latency Evidence Bench: intended open-loop arrivals, bounded BCL Channel, preallocated raw records, explicit rejects/generator misses/cutoff censoring, separate warmup, completed-only exact ranks and an independent Python oracle.

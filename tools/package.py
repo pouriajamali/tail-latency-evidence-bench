@@ -21,7 +21,7 @@ def main():
     published=work/'published';log=work/'build.log'
     commands=[[a.dotnet,'restore','src/Bench.Cli/Bench.Cli.csproj','--locked-mode'],
       [a.dotnet,'publish','src/Bench.Cli/Bench.Cli.csproj','-c','Release','-r',a.rid,'--self-contained','true','--no-restore',
-       '-p:RuntimeFrameworkVersion=10.0.14','-p:PublishTrimmed=false','-p:PublishAot=false','-p:PublishReadyToRun=false',
+       '-p:RuntimeFrameworkVersion=10.0.15','-p:PublishTrimmed=false','-p:PublishAot=false','-p:PublishReadyToRun=false',
        '-p:DebugType=None','-p:DebugSymbols=false','-p:SourceRevisionId='+a.commit,'-o',str(published)]]
     with log.open('wb') as output:
         for command in commands:subprocess.run(command,cwd=ROOT,stdout=output,stderr=subprocess.STDOUT,check=True,timeout=300)
@@ -52,22 +52,22 @@ def main():
     actual={(d['id'],d['version'],d['nugetContentHash']) for d in dependencies}
     require(actual==locked, 'Resolved/shipped library graph differs from source lock')
     runtime_id='Microsoft.NETCore.App.Runtime.'+a.rid
-    runtime=next(p/runtime_id.lower()/'10.0.14' for p in folders if (p/runtime_id.lower()/'10.0.14').is_dir())
+    runtime=next(p/runtime_id.lower()/'10.0.15' for p in folders if (p/runtime_id.lower()/'10.0.15').is_dir())
     require(not dependencies, 'Reviewed runtime CLI uses BCL only')
     runtime_metadata=ET.parse(next(runtime.glob('*.nuspec'))).find('{*}metadata')
     normalized=json.loads((runtime/'.nupkg.metadata').read_text())['contentHash']
-    resolved=notice_resolver.resolve(ROOT,runtime,runtime_id+'/10.0.14',{'sha512':normalized},runtime_metadata)
-    frozen=next(r for r in json.loads((ROOT/'vendor/notices/NOTICE-SOURCES.json').read_text())['components'] if r['id']==runtime_id)
+    resolved=notice_resolver.resolve(ROOT,runtime,runtime_id+'/10.0.15',{'sha512':normalized},runtime_metadata)
+    frozen=next(r for r in json.loads((ROOT/'vendor/notices/NOTICE-SOURCES.json').read_text())['components'] if r['id']==runtime_id and r['version']=='10.0.15')
     raw_sha512=hashlib.sha512(next(runtime.glob('*.nupkg')).read_bytes()).hexdigest()
     require(base64.b64decode(frozen['rawSignedNupkgSha512Base64']).hex()==raw_sha512,'Exact raw signed runtime archive changed')
     deps=json.loads((package/'tail-evidence.deps.json').read_text())
-    require({k for k,v in deps['libraries'].items() if v['type'] in ['package','runtimepack']}=={'runtimepack.'+runtime_id+'/10.0.14'},'Actual shipped runtime graph changed')
+    require({k for k,v in deps['libraries'].items() if v['type'] in ['package','runtimepack']}=={'runtimepack.'+runtime_id+'/10.0.15'},'Actual shipped runtime graph changed')
     copyright_file=licenses/(runtime_id+'-COPYRIGHT.txt');copyright_file.write_text(resolved['copyright']+'\n',encoding='utf-8',newline='\n')
     notices=[f for f in runtime.iterdir() if f.is_file() and (f.name.upper().startswith('LICENSE') or f.name.upper().startswith('THIRD-PARTY-NOTICES'))]
     require(any(f.name.upper().startswith('LICENSE') for f in notices) and any(f.name.upper().startswith('THIRD-PARTY-NOTICES') for f in notices), 'Validation failed: package.py:53')
     for file in notices:shutil.copy2(file,licenses/(runtime_id+'-'+file.name))
     runtime_license=next(licenses/(runtime_id+'-'+f.name) for f in notices if f.name.upper().startswith('LICENSE'))
-    dependencies.append({'id':runtime_id,'version':'10.0.14','license':'MIT','copyright':resolved['copyright'],'copyrightFile':copyright_file.relative_to(package).as_posix(),'nugetContentHash':normalized,'rawSignedNupkgSha512':raw_sha512,
+    dependencies.append({'id':runtime_id,'version':'10.0.15','license':'MIT','copyright':resolved['copyright'],'copyrightFile':copyright_file.relative_to(package).as_posix(),'nugetContentHash':normalized,'rawSignedNupkgSha512':raw_sha512,
         'licenseFile':runtime_license.relative_to(package).as_posix(),'licenseSha256':sha(runtime_license),'notice':'Full runtime license and original third-party notices; normalized NuGet content identity is separate from raw signed archive checksum.'})
     (package/'DEPENDENCIES.json').write_text(json.dumps({'packages':dependencies,'excludedBuildTools':['BenchmarkDotNet/0.15.8','dotnet-trace/10.0.750501','xunit.v3/4.0.3']},indent=2)+'\n',encoding='utf-8')
     spdx=[{'name':'Tail-Latency Evidence Bench','SPDXID':'SPDXRef-App','versionInfo':version,'downloadLocation':'NOASSERTION','filesAnalyzed':False,'licenseDeclared':'MIT','licenseConcluded':'NOASSERTION','copyrightText':'Copyright (c) 2026 Pouria Jamali'}]

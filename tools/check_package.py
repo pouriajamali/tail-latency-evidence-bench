@@ -12,7 +12,7 @@ def main():
         require(file.is_file() and not file.is_symlink() and file.stat().st_size==item['bytes'] and hashlib.sha256(file.read_bytes()).hexdigest()==item['sha256'],'File content')
     require({p.relative_to(package).as_posix() for p in package.rglob('*') if p.is_file()}==expected|{'BUILD-MANIFEST.json'},'File set');checks.append('exact-payload-set-size-sha256')
     dependencies=json.loads((package/'DEPENDENCIES.json').read_text())['packages'];bom=json.loads((package/'SBOM.spdx.json').read_text());require(len(dependencies)==1 and len(bom['packages'])==2,'BCL runtime-only shipped graph')
-    dep=dependencies[0];require(dep['id']=='Microsoft.NETCore.App.Runtime.'+manifest['rid'] and dep['version']=='10.0.14','Pinned actual runtime')
+    dep=dependencies[0];require(dep['id']=='Microsoft.NETCore.App.Runtime.'+manifest['rid'] and dep['version']=='10.0.15','Pinned actual runtime')
     license_file=package/dep['licenseFile'];require(license_file.stat().st_size>=300 and hashlib.sha256(license_file.read_bytes()).hexdigest()==dep['licenseSha256'],'Full runtime license');require((package/dep['copyrightFile']).read_text(encoding='utf-8').strip()==dep['copyright'],'Original copyright')
     require(any('THIRD-PARTY-NOTICES' in p.name.upper() for p in (package/'licenses').iterdir()),'Original runtime third-party notices');checks.extend(['full-runtime-license-copyright-thirdparty-notices','actual-bcl-runtime-graph'])
     item=next(i for i in bom['packages'] if i['name']==dep['id']);require(item['checksums']==[{'algorithm':'SHA512','checksumValue':dep['rawSignedNupkgSha512']}],'Raw signed archive checksum');checks.append('raw-archive-sha512-distinct-from-nuget-lock-identity')
