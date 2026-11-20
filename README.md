@@ -4,6 +4,14 @@ A small C#/.NET experiment that keeps the missing work visible. The generator fo
 
 Offline synthetic work only. No NIC, wire, exchange, cross-host latency, production HFT capacity or speed-improvement claim.
 
+## Current servicing preview - 2026-11-20
+
+[v0.1.0-preview.2](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/tag/v0.1.0-preview.2) delivers .NET10 LTS SDK10.0.404/runtime10.0.15 with net10.0/C#14 and unchanged offline measurement/accounting semantics. Native Windows/Linux packages, source, SHA256 checksums and the known-key signature are published and actually download-verified. Windows unit tests: 15 total/0 failed; Linux: 15 total/0 failed. Native package checks and six new source/owner/byte rejection controls passed independently; M1 and benchmarks were not replayed.
+
+Signed release source: [18e1d4a33e69](https://github.com/pouriajamali/tail-latency-evidence-bench/commit/18e1d4a33e694f20fbcb20781e69fbefb663d426). Native archive source commits: Windows `80f431f0bfde6032f97ac27b9fe56943cf3a52d4`, Linux `18e1d4a33e694f20fbcb20781e69fbefb663d426`; product/build/package inputs match, with Linux controller accounting/path fixes between them. Native Linux publish output was assembled as data on Windows without another SDK call and checked natively on Linux. [Servicing receipt](https://github.com/pouriajamali/tail-latency-evidence-bench/blob/42eefd000b3fc59301d04c533a08dd148f795c63/docs/evidence/servicing-20261120/receipt.json). The default branch retains the original source baseline; use the signed servicing tag for the current SDK/runtime source. Windows26H2 is observed experimental with formal vendor support NOT_CONFIRMED. Linux runtime package signature data was verified by the native Windows verifier; the native Linux verifier's20s timeout remains recorded. No Actions, trust/protection change, global host/provider security, speed or production claim follows.
+
+The original [v0.1.0-preview.1 and M1 evidence](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/tag/v0.1.0-preview.1) remain immutable, including the frozen oracle's known false positives.
+
 ## Architecture review
 
 Read the [architecture case study](docs/ARCHITECTURE-CASE-STUDY.md) for the decision, rejected alternatives, failure examples, frozen-release evidence and short English/Persian introductions. Follow the [30-minute four-project review](https://github.com/pouriajamali/trading-execution-lab/blob/main/docs/FLAGSHIP-REVIEW.md) for a guided discussion. The [evidence index](docs/FLAGSHIP-EVIDENCE.json) separates runtime/tag CI from later documentation commits.
@@ -20,7 +28,7 @@ Read the [architecture case study](docs/ARCHITECTURE-CASE-STUDY.md) for the deci
 
 ## Run the preview
 
-Published preview: [`v0.1.0-preview.1`](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/tag/v0.1.0-preview.1). Download **[Windows x64](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/tail-latency-evidence-bench-v0.1.0-preview.1-win-x64.zip)**, **[Linux x64](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/tail-latency-evidence-bench-v0.1.0-preview.1-linux-x64.tar.gz)** or [source](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/tail-latency-evidence-bench-v0.1.0-preview.1-source.zip). Get the [checksums](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/SHA256SUMS.txt), [checksum signature](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/SHA256SUMS.txt.sig) and [public key](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/SIGNING-PUBLIC-KEY.pub); verify downloaded bytes with [PROVENANCE.md](PROVENANCE.md) before executing them. Local builds and CI artifacts are separate from published releases.
+Published preview: [`v0.1.0-preview.2`](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/tag/v0.1.0-preview.2). Download **[Windows x64](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/tail-latency-evidence-bench-v0.1.0-preview.2-win-x64.zip)**, **[Linux x64](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/tail-latency-evidence-bench-v0.1.0-preview.2-linux-x64.tar.gz)** or [source](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/tail-latency-evidence-bench-v0.1.0-preview.2-source.zip). Get the [checksums](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/SHA256SUMS.txt), [checksum signature](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/SHA256SUMS.txt.sig) and [public key](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/SIGNING-PUBLIC-KEY.pub); verify downloaded bytes with [PROVENANCE.md](PROVENANCE.md) before executing them. Local builds and CI artifacts are separate from published releases.
 
 From the extracted Windows x64 package:
 
@@ -61,9 +69,11 @@ Ranks use completed records only and keep their denominator beside them. Missing
 
 ## Build and separate diagnostics
 
-Source requires exact .NET SDK 10.0.403, runtime 10.0.14 and C#14:
+The signed servicing tag requires exact .NET SDK 10.0.404, runtime 10.0.15 and C#14. Check out that tag before building:
 
 ```sh
+git fetch origin tag v0.1.0-preview.2
+git switch --detach v0.1.0-preview.2
 dotnet restore TailLatencyEvidence.slnx --locked-mode
 dotnet build TailLatencyEvidence.slnx -c Release --no-restore -m:1
 dotnet run --project tests/Evidence.Tests -c Release --no-build -- -result-xml artifacts/unit.xml
