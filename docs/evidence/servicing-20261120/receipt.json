@@ -290,48 +290,60 @@
         "id": 772312950,
         "bytes": 36197960,
         "sha256": "522362ab9ffcda0466b20b758fe0fd6f8961853c01022ecafe1a315ecb6371a2",
-        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/tail-latency-evidence-bench-v0.1.0-preview.2-win-x64.zip",
-        "actualPublicDownload": true
+        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/tail-latency-evidence-bench-v0.1.0-preview.2-win-x64.zip",
+        "actualPublicDownload": true,
+        "historicalDraftDownloadUrl": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/tail-latency-evidence-bench-v0.1.0-preview.2-win-x64.zip",
+        "canonicalPublicDownloadUrl": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/tail-latency-evidence-bench-v0.1.0-preview.2-win-x64.zip"
       },
       {
         "name": "tail-latency-evidence-bench-v0.1.0-preview.2-linux-x64.tar.gz",
         "id": 772316771,
         "bytes": 35689816,
         "sha256": "5faf1529393a4626a0c936af41aab69f8db3401d148750cf9a89b01f893db8c8",
-        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/tail-latency-evidence-bench-v0.1.0-preview.2-linux-x64.tar.gz",
-        "actualPublicDownload": true
+        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/tail-latency-evidence-bench-v0.1.0-preview.2-linux-x64.tar.gz",
+        "actualPublicDownload": true,
+        "historicalDraftDownloadUrl": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/tail-latency-evidence-bench-v0.1.0-preview.2-linux-x64.tar.gz",
+        "canonicalPublicDownloadUrl": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/tail-latency-evidence-bench-v0.1.0-preview.2-linux-x64.tar.gz"
       },
       {
         "name": "tail-latency-evidence-bench-v0.1.0-preview.2-source.zip",
         "id": 772276793,
         "bytes": 388134,
         "sha256": "931690e43b95137ec0eff0665859ed63deb40aa463ea243f092e5344ac912736",
-        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/tail-latency-evidence-bench-v0.1.0-preview.2-source.zip",
-        "actualPublicDownload": true
+        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/tail-latency-evidence-bench-v0.1.0-preview.2-source.zip",
+        "actualPublicDownload": true,
+        "historicalDraftDownloadUrl": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/tail-latency-evidence-bench-v0.1.0-preview.2-source.zip",
+        "canonicalPublicDownloadUrl": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/tail-latency-evidence-bench-v0.1.0-preview.2-source.zip"
       },
       {
         "name": "SHA256SUMS.txt",
         "id": 772266903,
         "bytes": 373,
         "sha256": "2b631cd3329379ab59dba039f3b82c559d430436537eb020b06af21439b2c792",
-        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/SHA256SUMS.txt",
-        "actualPublicDownload": true
+        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/SHA256SUMS.txt",
+        "actualPublicDownload": true,
+        "historicalDraftDownloadUrl": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/SHA256SUMS.txt",
+        "canonicalPublicDownloadUrl": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/SHA256SUMS.txt"
       },
       {
         "name": "SHA256SUMS.txt.sig",
         "id": 772277080,
         "bytes": 294,
         "sha256": "65d3d3f2d68907bfd7b8a5a40aa5438cb02a394c15c019887b25250641915338",
-        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/SHA256SUMS.txt.sig",
-        "actualPublicDownload": true
+        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/SHA256SUMS.txt.sig",
+        "actualPublicDownload": true,
+        "historicalDraftDownloadUrl": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/SHA256SUMS.txt.sig",
+        "canonicalPublicDownloadUrl": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/SHA256SUMS.txt.sig"
       },
       {
         "name": "SIGNING-PUBLIC-KEY.pub",
         "id": 772277310,
         "bytes": 113,
         "sha256": "cc7038b2d98f856af97b58eb06619ff441fbe9b178da5396f61d1ccdf7a65e7c",
-        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/SIGNING-PUBLIC-KEY.pub",
-        "actualPublicDownload": true
+        "url": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/SIGNING-PUBLIC-KEY.pub",
+        "actualPublicDownload": true,
+        "historicalDraftDownloadUrl": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/untagged-b96f366787db9b7abba5/SIGNING-PUBLIC-KEY.pub",
+        "canonicalPublicDownloadUrl": "https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/SIGNING-PUBLIC-KEY.pub"
       }
     ]
   },
@@ -368,5 +380,15 @@
     ],
     "acceptedPrefixOrArchiveReplayed": false,
     "downloadTransferSecondsUnchanged": 45
+  },
+  "downloadUrlClarification": {
+    "scope": "Documentation-only correction; original commits/asset bytes/signatures/native evidence unchanged",
+    "historicalReceiptCommit": "42eefd000b3fc59301d04c533a08dd148f795c63",
+    "historicalDraftDownloadUrl": "Former draft API browser URL retained only as history; not a working public download link",
+    "canonicalPublicDownloadUrl": "Current stable version-tagged public download URL; url aliases this canonical value",
+    "allSixCanonicalURLsObservedHEAD200": true,
+    "historicalChecksumURLObservedHEAD404": true,
+    "artifactBodyBytesRead": 0,
+    "artifactHashOrSignatureOrTestReplays": 0
   }
 }
