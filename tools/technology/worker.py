@@ -108,7 +108,7 @@ def sdk_files(packet,rid,phase,budget,holds):
     else:
         names=['dotnet','host/fxr/10.0.15/libhostfxr.so','shared/Microsoft.NETCore.App/10.0.15/libcoreclr.so','shared/Microsoft.NETCore.App/10.0.15/libclrjit.so','shared/Microsoft.NETCore.App/10.0.15/libhostpolicy.so','shared/Microsoft.NETCore.App/10.0.15/System.Private.CoreLib.dll']
     names+=['sdk/10.0.404/dotnet.dll','sdk/10.0.404/dotnet.deps.json','sdk/10.0.404/dotnet.runtimeconfig.json']
-    if phase in ('restore','build','test','package'):names+=['sdk/10.0.404/MSBuild.dll','sdk/10.0.404/MSBuild.deps.json']
+    if phase in ('restore','restore-tests','build','test','package','evaluate'):names+=['sdk/10.0.404/MSBuild.dll','sdk/10.0.404/MSBuild.deps.json']
     if phase in ('build','package'):names+=['sdk/10.0.404/Roslyn/bincore/csc.dll','sdk/10.0.404/Roslyn/bincore/Microsoft.CodeAnalysis.dll','sdk/10.0.404/Roslyn/bincore/Microsoft.CodeAnalysis.CSharp.dll']
     seen=[]
     for name in names:
@@ -121,7 +121,7 @@ def sdk_files(packet,rid,phase,budget,holds):
 def main():
     a=argparse.ArgumentParser();a.add_argument('--frame',required=True);a.add_argument('--frame-sha',required=True);args=a.parse_args()
     need(sha(args.frame)==args.frame_sha,'FRAME_BYTES');f=read(args.frame);root,profile=source(f);out=Path(f['output']);need(out.is_dir(),'OWN_OUTPUT')
-    phase=f['phase'];need(phase in ('qualify','restore','build','test','package','package-check','runtime-verify','runtime-verify-linux-data','negative'),'FIXED_PHASE')
+    phase=f['phase'];need(phase in ('qualify','restore','restore-tests','build','test','package','package-check','runtime-verify','runtime-verify-linux-data','negative','evaluate'),'FIXED_PHASE')
     rid='win-x64' if os.name=='nt' else 'linux-x64';need(f['rid']==rid,'NATIVE_RID_ONLY')
     actual=kernel(f,root);fresh(out/'kernel.json',actual)
     packet_path=Path(f['packet']);need(sha(packet_path)==f['packetSha256'],'PACKET_BYTES');packet=read(packet_path)
@@ -155,12 +155,14 @@ def main():
         before_storage=storage(f,root)
         common=['-c','Release','--no-restore','-m:1','-p:UseSharedCompilation=false','-nodeReuse:false']
         if phase=='qualify':commands=[[str(sdk),'--info']]
+        elif phase=='evaluate':commands=[[str(sdk),'msbuild','src/Bench.Cli/Bench.Cli.csproj','-getProperty:MSBuildProjectFullPath,MSBuildSDKsPath,TargetFramework,RuntimeIdentifier,RuntimeIdentifiers,RuntimeFrameworkVersion,UseWPF,UseWindowsForms,SelfContained','-getItem:FrameworkReference','-nodeReuse:false']]
         elif phase in ('runtime-verify','runtime-verify-linux-data'):
             target_rid='linux-x64' if phase=='runtime-verify-linux-data' else rid
             need(phase!='runtime-verify-linux-data' or rid=='win-x64','DATA_SIGNATURE_HOST_SCOPE')
             runtime=packet['runtimePackages'][target_rid];ref=runtime.get('archive',runtime)
             commands=[[str(sdk),'nuget','verify',str(path(ref)),'--all','--verbosity','detailed']]
-        elif phase=='restore':commands=[[str(sdk),'restore','src/Bench.Cli/Bench.Cli.csproj','--locked-mode','--configfile',f['nugetConfig'],'--disable-parallel'],[str(sdk),'restore','tests/Evidence.Tests/Evidence.Tests.csproj','--locked-mode','--configfile',f['nugetConfig'],'--disable-parallel']]
+        elif phase=='restore':commands=[[str(sdk),'restore','src/Bench.Cli/Bench.Cli.csproj','--locked-mode','--configfile',f['nugetConfig'],'--disable-parallel','--verbosity','normal']]
+        elif phase=='restore-tests':commands=[[str(sdk),'restore','tests/Evidence.Tests/Evidence.Tests.csproj','--locked-mode','--configfile',f['nugetConfig'],'--disable-parallel','--verbosity','normal']]
         elif phase=='build':commands=[[str(sdk),'build','tests/Evidence.Tests/Evidence.Tests.csproj',*common]]
         elif phase=='test':commands=[[str(sdk),'run','--project','tests/Evidence.Tests','-c','Release','--no-build','--','-result-xml',str(out/'unit.xml')]]
         elif phase=='package':

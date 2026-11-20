@@ -68,7 +68,7 @@ def event_claim(run):
         k.CloseHandle(event);k.CloseHandle(directory)
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--rid',choices=['win-x64','linux-x64'],required=True);p.add_argument('--phase',choices=['qualify','restore','build','test','package','package-check','runtime-verify','runtime-verify-linux-data','negative'],required=True);p.add_argument('--packet',required=True);p.add_argument('--packet-sha',required=True);p.add_argument('--attempt',default='once');p.add_argument('--cause');a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('--rid',choices=['win-x64','linux-x64'],required=True);p.add_argument('--phase',choices=['qualify','restore','restore-tests','build','test','package','package-check','runtime-verify','runtime-verify-linux-data','negative','evaluate'],required=True);p.add_argument('--packet',required=True);p.add_argument('--packet-sha',required=True);p.add_argument('--attempt',default='once');p.add_argument('--cause');a=p.parse_args()
     need(a.attempt=='once' or a.cause,'CAUSAL_RETRY_REQUIRED')
     run=O/'runs'/(a.rid+'-'+a.phase+'-'+a.attempt);need(not run.exists(),'NO_PHASE_REPLAY');run.mkdir(parents=True)
     need(sha(PROTOCOL)=='fca40422e6abb4aa552759d7aadfd63fda6eccde4a8be3b272ff480fa72a6035','CANONICAL_PROTOCOL')

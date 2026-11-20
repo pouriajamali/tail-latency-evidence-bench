@@ -14,7 +14,7 @@ def proc(pid):
 def main():
     p=argparse.ArgumentParser();p.add_argument('--frame',required=True);p.add_argument('--frame-sha',required=True);p.add_argument('--inner',action='store_true');a=p.parse_args()
     need(sha(a.frame)==a.frame_sha,'FRAME_BYTES');f=json.loads(Path(a.frame).read_bytes());need(f['schema']=='tail11-technology-frame/v1' and f['rid']=='linux-x64' and os.getuid()==0,'FIXED_ROOT_TRANSPORT')
-    need(f['phase'] in ('qualify','restore','build','test','package','package-check','runtime-verify','negative'),'FIXED_PHASE')
+    need(f['phase'] in ('qualify','restore','restore-tests','build','test','package','package-check','runtime-verify','negative'),'FIXED_PHASE')
     root=Path(f['workspace']);out=Path(f['output']);need(out.is_dir() and Path(__file__).resolve()==root/'tools/technology/linux.py','OWN_SOURCE_ROOT')
     need(sha(f['protocol'])=='fca40422e6abb4aa552759d7aadfd63fda6eccde4a8be3b272ff480fa72a6035','PROTOCOL')
     holder=json.loads(Path(f['lease']).read_bytes());need(holder['projectId']=='11' and holder['randomToken']==f['nonce'] and holder['ownerPID']==f['ownerPID'] and holder['ownerProcessStartIdentity']==f['ownerBirth'],'EXACT_CANONICAL_OWNER')
