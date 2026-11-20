@@ -7,6 +7,7 @@ PROTOCOL=Path(r'E:\Codex WorkSpace\Git Projects\portfolio-management\development
 LEASE=PROTOCOL.with_name('LOCAL-FIXTURE-LEASE.json')
 PS=Path(r'C:\Program Files\WindowsApps\OpenAI.CodexPrimaryRuntime.v26-1112-611-0_26.1112.611.0_x64__3k8sg7r9htsxt\dependencies\native\powershell\pwsh.exe')
 PY=Path(r'C:\Users\Office\AppData\Local\Programs\Python\Python312\python.exe')
+PRIVATE_C=Path(r'C:\Users\Office\.codex\visualizations\2026\11\10\01a1c661-ee98-7292-8c0d-e81cb735f175\tail-servicing-scratch-20261120')
 
 def need(v,c):
     if not v:raise RuntimeError(c)
@@ -88,7 +89,8 @@ def main():
         transform=(lambda p:str(p)) if a.rid=='win-x64' else linux
         sdkout=O/'artifacts';sdkout.mkdir(exist_ok=True);cache=O/'cache'/a.rid
         frame={'schema':'tail11-technology-frame/v1','rid':a.rid,'phase':a.phase,'nonce':nonce,'ownerPID':os.getpid(),'ownerBirth':owner_birth,'started':started,'deadline':deadline,'phaseDeadline':min(deadline-30,time.time()+60),'workspace':transform(R),'output':transform(run),'protocol':transform(PROTOCOL),'lease':transform(LEASE),'sourceCommit':head,'sourceHashes':manifest['files'],'sourceManifestSHA256':sha(R/'tools/technology/source-manifest.json'),'packet':transform(packet),'packetSha256':a.packet_sha,'contractSha256':sha(contract),'packages':transform(cache/'packages'),'cliHome':transform(cache/'home'),'nugetConfig':transform(O/('NuGet-'+a.rid+'.Config')),'packageWork':transform(O/'packages'/a.rid),'packageOut':transform(sdkout),'packageDirectory':transform(O/'packages'/a.rid/('tail-latency-evidence-bench-v0.1.0-preview.2-'+a.rid))}
-        frame['packages']=transform(O/'cache/shared-packages')
+        cpath=(lambda p:str(p)) if a.rid=='win-x64' else (lambda p:'/mnt/c/'+str(p)[3:].replace('\\','/'))
+        frame['packages']=cpath(PRIVATE_C/'packages');frame['cliHome']=cpath(PRIVATE_C/a.rid/'home');frame['nativeTmp']=cpath(PRIVATE_C/a.rid/(a.phase+'-'+a.attempt)/'tmp');frame['httpCache']=cpath(PRIVATE_C/'http');frame['nugetScratch']=cpath(PRIVATE_C/a.rid/'nuget-scratch');frame['scratchRoots']=[transform(O),cpath(PRIVATE_C)]
         if a.phase=='package-check':frame['packageDirectory']=transform(O/'packages'/a.rid/('tail-latency-evidence-bench-v0.1.0-preview.2-'+a.rid))
         if a.phase=='package':
             candidates=list((O/'runs').glob(a.rid+'-restore-*/FINAL.json'));accepted=[x for x in candidates if read(x).get('status')=='ACCEPTED_CHANGED_SERVICING_PHASE' and read(x).get('sourceCommit')==head and read(x).get('packetSHA256')==a.packet_sha]

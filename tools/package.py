@@ -55,8 +55,14 @@ def main():
     name=f'tail-latency-evidence-bench-v{version}-{a.rid}';package=work/name;shutil.copytree(published,package)
     require(a.commit.encode() in (package/'tail-evidence.dll').read_bytes(), 'Source commit absent from binary metadata')
     for file in ['README.md','LICENSE','NOTICE.md','PROVENANCE.md','SIGNING-PUBLIC-KEY.pub','CONTRIBUTING.md']:shutil.copy2(ROOT/file,package/file)
-    for directory in ['docs','tools','vendor','.config']:shutil.copytree(ROOT/directory,package/directory,ignore=shutil.ignore_patterns('__pycache__','*.pyc'))
-    shutil.copytree(ROOT/'tests/provenance-fixture',package/'tests/provenance-fixture')
+    # Exact clean commit owns the support inventory. Ignored local inputs, prior
+    # runtime archives, private controller frames and caches are never shipped.
+    tracked=git('ls-files','-z').split('\0')
+    for relative in tracked:
+        if not relative or not any(relative.startswith(prefix) for prefix in ('docs/','tools/','vendor/','.config/','tests/provenance-fixture/')):continue
+        source_file=ROOT/relative;require(source_file.is_file() and not source_file.is_symlink(),'Tracked ordinary support file required')
+        destination=package/relative;destination.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(source_file,destination)
+    require(not (package/'tools/m1/inputs').exists(),'Private M1 input namespace must remain absent')
     assets=json.loads((ROOT/'src/Bench.Cli/obj/project.assets.json').read_text(encoding='utf-8'))
     folders=[Path(p) for p in assets['packageFolders']];dependencies=[];licenses=package/'licenses';licenses.mkdir()
     for identity,entry in sorted(assets['libraries'].items()):

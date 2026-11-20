@@ -17,6 +17,20 @@ def fresh(p,v):
     raw=(json.dumps(v,indent=2,sort_keys=True)+'\n').encode('utf-8');need(len(raw)<=262144,'PROOF_CAP')
     with Path(p).open('xb') as f:f.write(raw);f.flush();os.fsync(f.fileno())
 
+def storage(f,root):
+    total=proof=count=0
+    roots=[Path(x) for x in f['scratchRoots']]
+    roots += [root/name for name in ['src/Evidence/bin','src/Evidence/obj','src/Bench.Cli/bin','src/Bench.Cli/obj','tests/Evidence.Tests/bin','tests/Evidence.Tests/obj']]
+    for base in roots:
+        if not base.exists():continue
+        for p in base.rglob('*'):
+            need(not p.is_symlink(),'NO_LINKED_SCRATCH')
+            if p.is_file():
+                size=p.stat().st_size;total+=size;count+=1
+                if '/runs/' in p.as_posix() and p.suffix in ('.json','.log','.xml'):proof+=size
+    need(total<=1073741824 and proof<=8388608 and count<=4096,'ACTUAL_SCRATCH_PROOF_BOUND')
+    return {'actualScratchBytes':total,'actualProofBytes':proof,'files':count,'scratchLimit':1073741824,'proofLimit':8388608,'scope':'Current task scratch roots and affected build outputs only; immutable SDK/M1 inputs excluded'}
+
 def bound_packet(data,contract_sha):
     result=receiver.packet(data,contract_sha)
     for rid,entry in data['roots'].items():
@@ -130,13 +144,15 @@ def main():
     try:
         sdk,files=sdk_files(packet,rid,phase,budget,holds)
         fresh(out/'input-binding.json',{'sdk':str(sdk),'criticalFiles':files,'consumingReadBytes':budget[0],'consumingFiles':budget[1],'sealedInventoryReused':True,'fullSDKArchiveOrTreeRehashed':False,'globalSDKOrProviderClosureClaimed':False,'producerAdmissionTransferred':False,'packetSHA256':f['packetSha256']})
-        env={**os.environ,'DOTNET_ROOT':str(sdk.parent),'DOTNET_CLI_HOME':f['cliHome'],'DOTNET_SKIP_FIRST_TIME_EXPERIENCE':'1','DOTNET_CLI_TELEMETRY_OPTOUT':'1','TESTINGPLATFORM_TELEMETRY_OPTOUT':'1','DOTNET_GENERATE_ASPNET_CERTIFICATE':'false','DOTNET_MULTILEVEL_LOOKUP':'0','DOTNET_NOLOGO':'1','DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE':'true','MSBUILDDISABLENODEREUSE':'1','DOTNET_ROLL_FORWARD':'Disable','DOTNET_CLI_USE_MSBUILD_SERVER':'0','NUGET_PACKAGES':f['packages'],'NUGET_HTTP_CACHE_PATH':str(out/'http'),'TMPDIR':str(out/'tmp'),'TMP':str(out/'tmp'),'TEMP':str(out/'tmp'),'PYTHONDONTWRITEBYTECODE':'1','COMPlus_GCHeapHardLimit':'0x10000000','UseSharedCompilation':'false','BuildInParallel':'false','DOTNET_PROCESSOR_COUNT':'2'}
+        env={**os.environ,'DOTNET_ROOT':str(sdk.parent),'DOTNET_CLI_HOME':f['cliHome'],'DOTNET_SKIP_FIRST_TIME_EXPERIENCE':'1','DOTNET_CLI_TELEMETRY_OPTOUT':'1','TESTINGPLATFORM_TELEMETRY_OPTOUT':'1','DOTNET_GENERATE_ASPNET_CERTIFICATE':'false','DOTNET_MULTILEVEL_LOOKUP':'0','DOTNET_NOLOGO':'1','DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE':'true','MSBUILDDISABLENODEREUSE':'1','DOTNET_ROLL_FORWARD':'Disable','DOTNET_CLI_USE_MSBUILD_SERVER':'0','NUGET_PACKAGES':f['packages'],'NUGET_HTTP_CACHE_PATH':f['httpCache'],'NUGET_SCRATCH':f['nugetScratch'],'TMPDIR':f['nativeTmp'],'TMP':f['nativeTmp'],'TEMP':f['nativeTmp'],'PYTHONDONTWRITEBYTECODE':'1','COMPlus_GCHeapHardLimit':'0x10000000','UseSharedCompilation':'false','BuildInParallel':'false','DOTNET_PROCESSOR_COUNT':'2'}
         for name in ['cliHome','packages']:Path(f[name]).mkdir(parents=True,exist_ok=True)
         env['HOME']=f['cliHome']
         if os.name=='nt':
             env.update(USERPROFILE=f['cliHome'],APPDATA=str(Path(f['cliHome'])/'appdata'),LOCALAPPDATA=str(Path(f['cliHome'])/'localappdata'))
             for name in ['APPDATA','LOCALAPPDATA']:Path(env[name]).mkdir(parents=True,exist_ok=True)
         (out/'tmp').mkdir(exist_ok=True)
+        for name in ['nativeTmp','httpCache','nugetScratch']:Path(f[name]).mkdir(parents=True,exist_ok=True)
+        before_storage=storage(f,root)
         common=['-c','Release','--no-restore','-m:1','-p:UseSharedCompilation=false','-nodeReuse:false']
         if phase=='qualify':commands=[[str(sdk),'--info']]
         elif phase in ('runtime-verify','runtime-verify-linux-data'):
@@ -176,7 +192,7 @@ def main():
             if phase in ('runtime-verify','runtime-verify-linux-data'):need(packet['runtimePackages'][target_rid]['normalizedContentHash'] in log.read_text(encoding='utf-8'),'ACTUAL_NORMALIZED_PACKAGE_IDENTITY')
         for handle,p,ident in holds:
             now=os.fstat(handle.fileno());need((now.st_dev,now.st_ino,now.st_size,now.st_mtime_ns)==ident,'HELD_INPUT_TERMINAL_IDENTITY')
-        fresh(out/'result.json',{'status':'PASS_CHANGED_SERVICING_PHASE','phase':phase,'rid':rid,'seconds':time.monotonic()-started,'commands':results,'sourceCommit':f['sourceCommit'],'packetSHA256':f['packetSha256'],'formalVendorSupport':actual['formalVendorSupport'],'signatureTargetRid':target_rid if phase in ('runtime-verify','runtime-verify-linux-data') else None,'signatureHostRid':rid if phase in ('runtime-verify','runtime-verify-linux-data') else None,'signatureScope':'EXACT_PACKAGE_DATA_NOT_OTHER_OS_OR_HOST_ADMISSION' if phase in ('runtime-verify','runtime-verify-linux-data') else None,'globalAdmission':False,'M1Calls':0,'Actions':0})
+        fresh(out/'result.json',{'status':'PASS_CHANGED_SERVICING_PHASE','phase':phase,'rid':rid,'seconds':time.monotonic()-started,'commands':results,'sourceCommit':f['sourceCommit'],'packetSHA256':f['packetSha256'],'formalVendorSupport':actual['formalVendorSupport'],'signatureTargetRid':target_rid if phase in ('runtime-verify','runtime-verify-linux-data') else None,'signatureHostRid':rid if phase in ('runtime-verify','runtime-verify-linux-data') else None,'signatureScope':'EXACT_PACKAGE_DATA_NOT_OTHER_OS_OR_HOST_ADMISSION' if phase in ('runtime-verify','runtime-verify-linux-data') else None,'storageBefore':before_storage,'storageAfter':storage(f,root),'globalAdmission':False,'M1Calls':0,'Actions':0})
     except Exception as e:
         fresh(out/'hold.json',{'status':'HOLD','phase':phase,'code':str(e) if isinstance(e,RuntimeError) else type(e).__name__,'exceptionType':type(e).__name__,'seconds':time.monotonic()-started,'M1Calls':0,'Actions':0})
         raise
