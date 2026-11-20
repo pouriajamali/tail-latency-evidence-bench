@@ -23,11 +23,19 @@ def storage(f,root):
     roots += [root/name for name in ['src/Evidence/bin','src/Evidence/obj','src/Bench.Cli/bin','src/Bench.Cli/obj','tests/Evidence.Tests/bin','tests/Evidence.Tests/obj']]
     for base in roots:
         if not base.exists():continue
-        for p in base.rglob('*'):
-            need(not p.is_symlink(),'NO_LINKED_SCRATCH')
-            if p.is_file():
-                size=p.stat().st_size;total+=size;count+=1
-                if '/runs/' in p.as_posix() and p.suffix in ('.json','.log','.xml'):proof+=size
+        pending=[base]
+        while pending:
+            directory=pending.pop()
+            with os.scandir(directory) as entries:
+                for entry in entries:
+                    info=entry.stat(follow_symlinks=False)
+                    need(not stat.S_ISLNK(info.st_mode),'NO_LINKED_SCRATCH')
+                    if stat.S_ISDIR(info.st_mode):pending.append(Path(entry.path))
+                    elif stat.S_ISREG(info.st_mode):
+                        size=info.st_size;total+=size;count+=1
+                        p=Path(entry.path)
+                        if '/runs/' in p.as_posix() and p.suffix in ('.json','.log','.xml'):proof+=size
+                        need(total<=1073741824 and proof<=8388608 and count<=4096,'ACTUAL_SCRATCH_PROOF_BOUND')
     need(total<=1073741824 and proof<=8388608 and count<=4096,'ACTUAL_SCRATCH_PROOF_BOUND')
     return {'actualScratchBytes':total,'actualProofBytes':proof,'files':count,'scratchLimit':1073741824,'proofLimit':8388608,'scope':'Current task scratch roots and affected build outputs only; immutable SDK/M1 inputs excluded'}
 
@@ -152,7 +160,7 @@ def main():
             for name in ['APPDATA','LOCALAPPDATA']:Path(env[name]).mkdir(parents=True,exist_ok=True)
         (out/'tmp').mkdir(exist_ok=True)
         for name in ['nativeTmp','httpCache','nugetScratch']:Path(f[name]).mkdir(parents=True,exist_ok=True)
-        before_storage=storage(f,root)
+        before_storage=storage(f,root);fresh(out/'storage-before.json',before_storage)
         common=['-c','Release','--no-restore','-m:1','-p:UseSharedCompilation=false','-nodeReuse:false']
         if phase=='qualify':commands=[[str(sdk),'--info']]
         elif phase=='evaluate':commands=[[str(sdk),'msbuild','src/Bench.Cli/Bench.Cli.csproj','-getProperty:MSBuildProjectFullPath,MSBuildSDKsPath,TargetFramework,RuntimeIdentifier,RuntimeIdentifiers,RuntimeFrameworkVersion,UseWPF,UseWindowsForms,SelfContained','-getItem:FrameworkReference','-nodeReuse:false']]
