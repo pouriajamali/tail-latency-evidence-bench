@@ -1,6 +1,10 @@
-# Prospective v0.1.0-preview.2 servicing - 2026-11-20
+# v0.1.0-preview.2 servicing candidate - 2026-11-20
 
-Source prepares .NET 10 LTS SDK 10.0.404/runtime 10.0.15, retaining net10.0/C#14 and unchanged application/M1 semantics. It is not built, tested or published; the supported Windows execution route and independent project SDK binding remain unestablished. The existing verified v0.1.0-preview.1 downloads and all signatures are retained. See [decision, official sources and delivery limits](TECHNOLOGY-SERVICING.md). CI: NOT_RUN_OWNER_PROHIBITED. No Actions, benchmark or closed-M1 replay.
+.NET10 LTS SDK10.0.404/runtime10.0.15, net10.0/C#14 and unchanged BCL-only application semantics. Separate native SDK qualification passed on the existing Windows experimental host and Ubuntu24.04; build, affected unit tests and package/signature/download acceptance remain independent publication gates. Windows `formalVendorSupport=NOT_CONFIRMED` is retained. No Microsoft OS certification, full provider closure, speed or production claim is made.
+
+The original v0.1.0-preview.1 runtime, tag, signatures and M1 data/false positives remain immutable. No M1 experiment, healthy benchmark/trace or loader/PKI analysis is repeated. Existing diagnostic dependencies remain pinned. Native per-RID packages must identify the exact signed servicing build commit and include full runtime notices, actual graph/SPDX and known-key provenance. CI: NOT_RUN_OWNER_PROHIBITED; no Actions or global protection/trust change.
+
+See [the bounded LAB decision and evidence limits](TECHNOLOGY-SERVICING.md).
 
 # v0.1.0-preview.1 - Tail-Latency Evidence Bench
 

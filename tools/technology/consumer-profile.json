@@ -1,0 +1,61 @@
+{
+  "schema": "tail11-technology-consumer-profile/v1",
+  "projectId": "11",
+  "purpose": "SERVICING_TECHNOLOGY_ONLY_NOT_M1",
+  "repository": "pouriajamali/tail-latency-evidence-bench",
+  "workspaceWindows": "E:\\Codex WorkSpace\\Git Projects\\tail-latency-evidence-bench\\worktree-wave4-m1-20261117",
+  "workspaceLinux": "/mnt/e/Codex WorkSpace/Git Projects/tail-latency-evidence-bench/worktree-wave4-m1-20261117",
+  "baselineCommit": "65abeb7de0e227e80644f9a79e452f3193624c92",
+  "protocolSha256": "fca40422e6abb4aa552759d7aadfd63fda6eccde4a8be3b272ff480fa72a6035",
+  "protocolWindows": "E:\\Codex WorkSpace\\Git Projects\\portfolio-management\\development-management-20261110\\wave2-state\\LEASE-PROTOCOL.json",
+  "windowsHostClass": "OBSERVED_EXPERIMENTAL",
+  "formalVendorSupport": "NOT_CONFIRMED",
+  "linuxDistro": "Ubuntu-24.04",
+  "requiredRids": [
+    "win-x64",
+    "linux-x64"
+  ],
+  "sdk": "10.0.404",
+  "runtime": "10.0.15",
+  "targetFramework": "net10.0",
+  "language": "14.0",
+  "limits": {
+    "whole": 300,
+    "work": 270,
+    "terminal": 30,
+    "role": 20,
+    "qualification": 60,
+    "native": 45,
+    "controller": 60,
+    "memory": 536870912,
+    "scratch": 1073741824,
+    "proof": 8388608,
+    "qualificationRead": 67108864,
+    "qualificationFiles": 256,
+    "roleProof": 262144,
+    "allRoleProof": 1048576,
+    "archiveTransport": 78643200,
+    "windowsProcesses": 16,
+    "windowsCpuRate": 1000,
+    "windowsAffinityMax": 2,
+    "linuxTasks": 64,
+    "linuxSwap": 0,
+    "linuxCpuMax": "200000 100000"
+  },
+  "existingKernelWitness": {
+    "path": "tools/m1/support.py",
+    "sha256": "2100f4d0d495c2c9c2bdf69ff35a172e698ad431d65e6e3239577da04246c37e",
+    "scope": "Reuse actual kernel membership/caps/birth functions only; no M1 ticket, host or crypto admission transferred"
+  },
+  "existingJobBridge": {
+    "path": "tools/m1/job_bridge11.cs",
+    "sha256": "64c1986b4af44610c4f790ed50a65135cdc57521614ddcb8f53fbb2255a40ebb"
+  },
+  "sourceManifest": "Exact active technology consumer source manifest required before each actual SDK child; receiver contract is stable data interface, not execution admission.",
+  "qualification": "Own actual native SDK info/version probe after byte-bound input and source/lease/kernel membership; negative controls reject wrong source/RID/root/version/owner/support claims before SDK exec.",
+  "affectedValidation": "New-runtime build and unit tests and native package checks only; no frozen M1 experiment, healthy benchmark, tracing, loader/PKI investigation or old runtime replay.",
+  "ioScope": "qualificationRead/files constrain consumer qualification reads; actual restore/test/package I/O and peak resources recorded independently, unchanged memory/process/CPU/time/scratch caps enforced throughout.",
+  "receipt": "Actual original waits and exact own scope population/cgroup terminal plus durable proof, then exact-owner/birth/token lease release; unknown terminal retains lease.",
+  "Actions": "FORBIDDEN_ALL_AUTOMATIC_EVENTS",
+  "trustProtectionAndSecurityGuards": "UNCHANGED"
+}

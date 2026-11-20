@@ -13,7 +13,7 @@ def require(condition,message='Validation failed'):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     for name in ['commit','rid','work','out']:parser.add_argument('--'+name,required=True)
-    parser.add_argument('--dotnet',default='dotnet');parser.add_argument('--local-candidate',action='store_true');a=parser.parse_args()
+    parser.add_argument('--dotnet',default='dotnet');parser.add_argument('--local-candidate',action='store_true');parser.add_argument('--restore-handoff');parser.add_argument('--restore-handoff-sha');a=parser.parse_args()
     require(a.rid in ['win-x64','linux-x64'] and git('rev-parse','HEAD')==a.commit, 'Validation failed: package.py:14')
     require(not git('status','--porcelain'), 'Exact clean source required')
     if not a.local_candidate:require(platform.system()==('Windows' if a.rid=='win-x64' else 'Linux'), 'Public build OS must match RID')
@@ -23,8 +23,32 @@ def main():
       [a.dotnet,'publish','src/Bench.Cli/Bench.Cli.csproj','-c','Release','-r',a.rid,'--self-contained','true','--no-restore',
        '-p:RuntimeFrameworkVersion=10.0.15','-p:PublishTrimmed=false','-p:PublishAot=false','-p:PublishReadyToRun=false',
        '-p:DebugType=None','-p:DebugSymbols=false','-p:SourceRevisionId='+a.commit,'-o',str(published)]]
+    host_support=None
+    require(bool(a.restore_handoff)==bool(a.restore_handoff_sha),'Paired exact restore evidence required')
+    if a.restore_handoff:
+        handoff_path=Path(a.restore_handoff);require(handoff_path.stat().st_size<=262144 and sha(handoff_path)==a.restore_handoff_sha,'Restore handoff bytes')
+        handoff=json.loads(handoff_path.read_bytes());require(handoff['schema']=='tail11-tech-restore-handoff/v1' and handoff['sourceCommit']==a.commit and handoff['rid']==a.rid and handoff['lockedMode'] is True,'Own exact restore scope')
+        previous=Path(handoff['final']['path']);require(previous.stat().st_size<=262144 and sha(previous)==handoff['final']['sha256'],'Restore final identity')
+        restored=json.loads(previous.read_bytes());require(restored['status']=='ACCEPTED_CHANGED_SERVICING_PHASE' and restored['phase']=='restore' and restored['rid']==a.rid and restored['sourceCommit']==a.commit and restored['packetSHA256']==handoff['packetSHA256'],'Accepted locked restore required')
+        require(sha(ROOT/'src/Bench.Cli/obj/project.assets.json')==handoff['assetsSha256'],'Restored assets changed')
+        host_support=handoff['hostSupport'];commands=commands[1:]
+    command_records=[]
     with log.open('wb') as output:
-        for command in commands:subprocess.run(command,cwd=ROOT,stdout=output,stderr=subprocess.STDOUT,check=True,timeout=300)
+        for command in commands:
+            started=subprocess.Popen(command,cwd=ROOT,stdout=output,stderr=subprocess.STDOUT)
+            identity={'pid':started.pid}
+            if os.name=='nt':
+                import ctypes
+                k=ctypes.WinDLL('kernel32',use_last_error=True);k.GetProcessTimes.argtypes=[ctypes.c_void_p]*5
+                c,e,kt,ut=(ctypes.c_ulonglong() for _ in range(4));require(k.GetProcessTimes(int(started._handle),ctypes.byref(c),ctypes.byref(e),ctypes.byref(kt),ctypes.byref(ut)),'Actual SDK process birth');identity['birthFileTime']=c.value
+                if a.restore_handoff:
+                    k.OpenJobObjectW.argtypes=[ctypes.c_uint,ctypes.c_int,ctypes.c_wchar_p];k.OpenJobObjectW.restype=ctypes.c_void_p;k.IsProcessInJob.argtypes=[ctypes.c_void_p,ctypes.c_void_p,ctypes.POINTER(ctypes.c_int)];k.CloseHandle.argtypes=[ctypes.c_void_p]
+                    job=k.OpenJobObjectW(4,False,'tail11-input-only-'+os.environ['TAIL11_ROOT_NONCE']);member=ctypes.c_int();require(job and k.IsProcessInJob(int(started._handle),job,ctypes.byref(member)) and member.value,'Actual SDK inherited Job');identity['actualJobMembership']=True;k.CloseHandle(job)
+            else:
+                proc=Path('/proc')/str(started.pid);text=(proc/'stat').read_text();identity['birthTicks']=text[text.rfind(')')+2:].split()[19];identity['cgroup']=(proc/'cgroup').read_text().strip()
+                if a.restore_handoff:require(identity['cgroup'].endswith('/'+os.environ['TAIL11_ROOT_UNIT']),'Actual SDK inherited cgroup')
+            exitcode=started.wait(timeout=300);command_records.append({'argv':command,'identity':identity,'originalWaitReturned':True,'exitCode':exitcode});require(exitcode==0,'SDK command failed')
+    (work/'build-commands.json').write_text(json.dumps({'commands':command_records,'acceptedRestoreReused':bool(a.restore_handoff),'sourceCommit':a.commit},indent=2)+'\n',encoding='utf-8')
     require(not git('status','--porcelain'), 'Build changed frozen source/locks')
     version=ET.parse(ROOT/'Directory.Build.props').findtext('.//Version')
     name=f'tail-latency-evidence-bench-v{version}-{a.rid}';package=work/name;shutil.copytree(published,package)
@@ -86,6 +110,7 @@ def main():
         relative=file.relative_to(package).as_posix();require(not relative.lower().endswith(('.pdb','.db','.sqlite','.private.json')), 'Validation failed: package.py:72')
         files.append({'path':relative,'bytes':file.stat().st_size,'sha256':sha(file)})
     manifest={'schema':1,'version':version,'rid':a.rid,'sourceCommit':a.commit,'sourceTree':git('rev-parse','HEAD^{tree}'),'selfContained':True,'localCandidate':a.local_candidate,'buildHost':platform.system(),'files':files}
+    if host_support is not None:manifest['hostSupport']=host_support
     (package/'BUILD-MANIFEST.json').write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')
     archive=out/(name+('.zip' if a.rid=='win-x64' else '.tar.gz'));require(not archive.exists(), 'Validation failed: package.py:76')
     if a.rid=='win-x64':

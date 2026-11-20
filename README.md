@@ -5,11 +5,13 @@ A small C#/.NET experiment that keeps the missing work visible. The generator fo
 Offline synthetic work only. No NIC, wire, exchange, cross-host latency, production HFT capacity or speed-improvement claim.
 
 
-## Technology servicing preparation (2026-11-20)
+## .NET 10 servicing candidate (2026-11-20)
 
-Source pins prepare .NET 10 LTS SDK 10.0.404/runtime 10.0.15 for a prospective v0.1.0-preview.2. This preserves net10.0/C#14, BCL-only runtime dependencies, application code, accounting/loss/censoring semantics, raw records and all frozen M1 findings. A major .NET 11 migration has no required feature or support-lifetime benefit for this bounded change; the existing diagnostic tools remain pinned and are not rerun.
+The servicing candidate v0.1.0-preview.2 pins .NET 10 LTS SDK 10.0.404/runtime 10.0.15 and retains net10.0/C#14, the BCL-only runtime graph and unchanged measurement/accounting/loss/censoring semantics. Native SDK startup/version qualification passed separately on Windows and existing Ubuntu 24.04 with actual project-owned kernel caps and byte/source/lease binding. Build, affected unit tests and package checks are separate evidence and must complete before publication.
 
-This is source preparation, not a new downloadable release. The published preview below remains v0.1.0-preview.1 with runtime 10.0.14. Native build/test/package/signature/download validation for the servicing binaries has not run. The observed local Windows 26H2 build 26300.10075 is absent from Microsoft's current .NET 10 supported-OS table. An existing supported Windows build route with project-specific controller/lease binding is required; another project's admission is not reusable. See [servicing decision and limits](docs/TECHNOLOGY-SERVICING.md). M1 is delivered and is not reopened.
+Windows 26H2/build 26300.10075 is an **observed experimental** host with `formalVendorSupport=NOT_CONFIRMED`; a successful local compatibility check is not Microsoft OS certification, provider closure or whole-system security approval. The owner-authorized LAB profile preserves signature/trust/protection and rejection guards. No new OS/runner/infrastructure or Actions is used. See [servicing decision and limits](docs/TECHNOLOGY-SERVICING.md).
+
+The original v0.1.0-preview.1 binaries/tag/assets remain immutable as the M1 reproducibility input. The six original cases, authorized cap99 supplement, raw records, independent witness and frozen-oracle false positives remain unchanged and are not rerun. BenchmarkDotNet/xUnit/dotnet-trace versions are retained; no benchmark, tracing or speed-improvement claim is added.
 
 ## M1 recorded and accepted (2026-11-19)
 
@@ -35,7 +37,7 @@ Read the [architecture case study](docs/ARCHITECTURE-CASE-STUDY.md) for the deci
 
 ## Run the preview
 
-Published preview: [`v0.1.0-preview.1`](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/tag/v0.1.0-preview.1). Download **[Windows x64](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/tail-latency-evidence-bench-v0.1.0-preview.1-win-x64.zip)**, **[Linux x64](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/tail-latency-evidence-bench-v0.1.0-preview.1-linux-x64.tar.gz)** or [source](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/tail-latency-evidence-bench-v0.1.0-preview.1-source.zip). Get the [checksums](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/SHA256SUMS.txt), [checksum signature](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/SHA256SUMS.txt.sig) and [public key](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.1/SIGNING-PUBLIC-KEY.pub); verify downloaded bytes with [PROVENANCE.md](PROVENANCE.md) before executing them. Local builds and CI artifacts are separate from published releases.
+Servicing preview candidate (publish only after the release checks): [`v0.1.0-preview.2`](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/tag/v0.1.0-preview.2). Download **[Windows x64](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/tail-latency-evidence-bench-v0.1.0-preview.2-win-x64.zip)**, **[Linux x64](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/tail-latency-evidence-bench-v0.1.0-preview.2-linux-x64.tar.gz)** or [source](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/tail-latency-evidence-bench-v0.1.0-preview.2-source.zip). Get the [checksums](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/SHA256SUMS.txt), [checksum signature](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/SHA256SUMS.txt.sig) and [public key](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/download/v0.1.0-preview.2/SIGNING-PUBLIC-KEY.pub); verify downloaded bytes with [PROVENANCE.md](PROVENANCE.md) before executing them. Local builds and CI artifacts are separate from published releases.
 
 From the extracted Windows x64 package:
 
@@ -76,7 +78,7 @@ Ranks use completed records only and keep their denominator beside them. Missing
 
 ## Build and separate diagnostics
 
-The prepared servicing source requires exact .NET SDK 10.0.404, runtime 10.0.15 and C#14. It is not a published or runtime-validated upgrade:
+The servicing source requires exact .NET SDK 10.0.404, runtime 10.0.15 and C#14. SDK qualification, build/test and publication are separately recorded:
 
 ```sh
 dotnet restore TailLatencyEvidence.slnx --locked-mode

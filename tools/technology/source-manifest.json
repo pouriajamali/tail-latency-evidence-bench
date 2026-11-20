@@ -1,0 +1,31 @@
+{
+  "schema": "tail11-technology-source-manifest/v1",
+  "projectId": "11",
+  "files": {
+    "Directory.Build.props": "4c326b3a242dcebdefe81fd5ed8ce2d06b8ba050f311ae59621d5c1d3de3105b",
+    "global.json": "dda54844ea19b5ec594cb53f6095c76fd876de8386c69c4bd0859c435988d5a2",
+    "src/Bench.Cli/Bench.Cli.csproj": "719ed78c857ea88b2196542b5301ae5dc04cc3dff6f26e720f3a7f70c1dfd034",
+    "src/Bench.Cli/Program.cs": "9b977def008a6a6e7c530abe5284b29b848be959614e6cdb739a3cf83e69a16d",
+    "src/Bench.Cli/packages.lock.json": "386dad0991c3573e1aaddd803ce9bc2c12c06841201e51130a030ab68f8acaf0",
+    "src/Evidence/Evidence.csproj": "8d654c44b7bebb6b31a9f2f606927f45b5072193adc4eef8cce3f3cf3b278df3",
+    "src/Evidence/Model.cs": "119f11e8ee44232a2a94afac1cfe90e754b79c428db815d2b38f1fe45722f7ad",
+    "src/Evidence/Runner.cs": "c566118af7715bbd7a01484d29e0805be8bb3773cb2fdfa3ca65e72ed4447d85",
+    "src/Evidence/packages.lock.json": "1d1dc155698e2dec519b9782729f488be113028b4abf40d5dbc4b58be4049792",
+    "tests/Evidence.Tests/AnalysisTests.cs": "7bd8e4b32f0ac9c13a11b008f63a4b5a7a9c79506f563693c577fa750837a0ef",
+    "tests/Evidence.Tests/Evidence.Tests.csproj": "875d65b112b712d0791a4d55fcc2ad9a54224a70371278f2272acbb3d6b9a267",
+    "tests/Evidence.Tests/packages.lock.json": "307994f559e74883bbab7929923b95c42067874ce86635964f221324c0375402",
+    "tools/check_package.py": "d98a4efc6554a86fc837e1513d5d63098a10bf6bb3b0aff5dc8719a40a9e1504",
+    "tools/m1/job_bridge11.cs": "64c1986b4af44610c4f790ed50a65135cdc57521614ddcb8f53fbb2255a40ebb",
+    "tools/m1/support.py": "2100f4d0d495c2c9c2bdf69ff35a172e698ad431d65e6e3239577da04246c37e",
+    "tools/notices.py": "721a0a339703c29131a305d48fd6b44cef93c2250d18e97ff121ae8af8856253",
+    "tools/package.py": "dccfaf327d5a89ded8540934b3f2ccee8c3da1e4f2bf5ba023106b443b6663bc",
+    "tools/technology/consumer-profile.json": "4cbc4eb87909d4d7ffbb548a5a3616daed84d3112c0f42aa2ba45f04c6a4fc66",
+    "tools/technology/linux.py": "e73245b32b3a62e372e7b8a41ce2fc01f56ee3bd1d447c60e718ce1e2b083558",
+    "tools/technology/owner.py": "aebd977751706c80d375ad43d4128d93c4c0a20cc5eb277aad528473f54c7a10",
+    "tools/technology/receiver.py": "f62a20a1d167571d9d52bf093a3eef69cad08be06dc8e4f69f9cb1547c37757b",
+    "tools/technology/windows.ps1": "cfd80c98d5629fd3f68b569480a7cd9a590a24edf0737d241787ded9aa0a0ba8",
+    "tools/technology/worker.py": "cb81647aec00a75abda6eb6822ab2752250b13408b8ce41a96a134985332eb0a",
+    "vendor/notices/NOTICE-SOURCES.json": "3597872c1de9663aac63197408fc168405835f109ebfc2380f858cb814273f93"
+  },
+  "M1FrozenSourceManifestSHA256": "a417f0082fea078f1b0d4c7517eb3caaa9bb54e1da39ed70cc03690ea78fdc5b"
+}
