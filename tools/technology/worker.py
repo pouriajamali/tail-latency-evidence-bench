@@ -174,9 +174,17 @@ def main():
         elif phase=='build':commands=[[str(sdk),'build','tests/Evidence.Tests/Evidence.Tests.csproj',*common]]
         elif phase=='test':commands=[[str(sdk),'run','--project','tests/Evidence.Tests','-c','Release','--no-build','--','-result-xml',str(out/'unit.xml')]]
         elif phase=='package':
+            if os.name!='nt':
+                # Windows linked-worktree control paths need an OS path mapping.
+                # No safe.directory, ownership or Git trust setting is changed.
+                control=(root/'.git').read_text(encoding='utf-8').strip()
+                expected='E:/Codex WorkSpace/Git Projects/portfolio-management/legacy-portfolio-new-tools/p3-tail-latency-evidence/repo/.git/worktrees/worktree-wave4-m1-20261117'
+                need(control=='gitdir: '+expected,'EXACT_EXISTING_LINKED_WORKTREE_CONTROL')
+                env['GIT_DIR']='/mnt/e/'+expected[3:];env['GIT_WORK_TREE']=str(root)
+                need(Path(env['GIT_DIR']).is_dir(),'EXISTING_GIT_CONTROL_DIRECTORY')
             previous=Path(f['restoreFinal']);need(sha(previous)==f['restoreFinalSha256'],'RESTORE_RECEIPT_BYTES');restored=read(previous)
             need(restored['status']=='ACCEPTED_CHANGED_SERVICING_PHASE' and restored['phase']=='restore' and restored['rid']==rid and restored['packetSHA256']==f['packetSha256'],'OWN_EXACT_RESTORE_PREREQUISITE')
-            unchanged=subprocess.run(['git','-C',str(root),'diff','--quiet',restored['sourceCommit'],f['sourceCommit'],'--','global.json','Directory.Build.props','src','tests','.config'],capture_output=True,timeout=5);need(unchanged.returncode==0,'RESTORE_PRODUCT_INPUTS_CHANGED')
+            unchanged=subprocess.run(['git','-C',str(root),'diff','--quiet',restored['sourceCommit'],f['sourceCommit'],'--','global.json','Directory.Build.props','src','tests','.config'],capture_output=True,timeout=5,env=env);fresh(out/'git-input-comparison.json',{'exitCode':unchanged.returncode,'stderr':unchanged.stderr.decode('utf-8','replace')[:4096],'physicalWorktreePathMapped':os.name!='nt','trustOrOwnershipChanged':False});need(unchanged.returncode==0,'RESTORE_PRODUCT_INPUTS_CHANGED')
             handoff=out/'restore-handoff.json';fresh(handoff,{'schema':'tail11-tech-restore-handoff/v1','sourceCommit':f['sourceCommit'],'restoreSourceCommit':restored['sourceCommit'],'rid':rid,'final':{'path':str(previous),'sha256':sha(previous)},'assetsSha256':sha(root/'src/Bench.Cli/obj/project.assets.json'),'lockedMode':True,'hostSupport':{'hostClass':actual.get('hostClass','OBSERVED_UBUNTU_24_04'),'formalVendorSupport':actual['formalVendorSupport'],'observedWindows':actual.get('observedWindows')},'packetSHA256':f['packetSha256']})
             commands=[[sys.executable,str(root/'tools/package.py'),'--commit',f['sourceCommit'],'--rid',rid,'--dotnet',str(sdk),'--work',f['packageWork'],'--out',f['packageOut'],'--restore-handoff',str(handoff),'--restore-handoff-sha',sha(handoff)]]
         elif phase=='package-check':commands=[[sys.executable,str(root/'tools/check_package.py'),'--package',f['packageDirectory'],'--commit',f['sourceCommit'],'--out',str(out/'package-check.json')]]
