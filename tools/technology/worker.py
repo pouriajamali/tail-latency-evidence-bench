@@ -107,7 +107,7 @@ def sdk_files(packet,rid,phase,budget,holds):
 def main():
     a=argparse.ArgumentParser();a.add_argument('--frame',required=True);a.add_argument('--frame-sha',required=True);args=a.parse_args()
     need(sha(args.frame)==args.frame_sha,'FRAME_BYTES');f=read(args.frame);root,profile=source(f);out=Path(f['output']);need(out.is_dir(),'OWN_OUTPUT')
-    phase=f['phase'];need(phase in ('qualify','restore','build','test','package','package-check','runtime-verify','negative'),'FIXED_PHASE')
+    phase=f['phase'];need(phase in ('qualify','restore','build','test','package','package-check','runtime-verify','runtime-verify-linux-data','negative'),'FIXED_PHASE')
     rid='win-x64' if os.name=='nt' else 'linux-x64';need(f['rid']==rid,'NATIVE_RID_ONLY')
     actual=kernel(f,root);fresh(out/'kernel.json',actual)
     packet_path=Path(f['packet']);need(sha(packet_path)==f['packetSha256'],'PACKET_BYTES');packet=read(packet_path)
@@ -130,7 +130,7 @@ def main():
     try:
         sdk,files=sdk_files(packet,rid,phase,budget,holds)
         fresh(out/'input-binding.json',{'sdk':str(sdk),'criticalFiles':files,'consumingReadBytes':budget[0],'consumingFiles':budget[1],'sealedInventoryReused':True,'fullSDKArchiveOrTreeRehashed':False,'globalSDKOrProviderClosureClaimed':False,'producerAdmissionTransferred':False,'packetSHA256':f['packetSha256']})
-        env={**os.environ,'DOTNET_ROOT':str(sdk.parent),'DOTNET_CLI_HOME':f['cliHome'],'DOTNET_SKIP_FIRST_TIME_EXPERIENCE':'1','DOTNET_CLI_TELEMETRY_OPTOUT':'1','DOTNET_GENERATE_ASPNET_CERTIFICATE':'false','DOTNET_MULTILEVEL_LOOKUP':'0','DOTNET_NOLOGO':'1','DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE':'true','MSBUILDDISABLENODEREUSE':'1','DOTNET_ROLL_FORWARD':'Disable','DOTNET_CLI_USE_MSBUILD_SERVER':'0','NUGET_PACKAGES':f['packages'],'NUGET_HTTP_CACHE_PATH':str(out/'http'),'TMPDIR':str(out/'tmp'),'TMP':str(out/'tmp'),'TEMP':str(out/'tmp'),'PYTHONDONTWRITEBYTECODE':'1','COMPlus_GCHeapHardLimit':'0x10000000','UseSharedCompilation':'false','BuildInParallel':'false','DOTNET_PROCESSOR_COUNT':'2'}
+        env={**os.environ,'DOTNET_ROOT':str(sdk.parent),'DOTNET_CLI_HOME':f['cliHome'],'DOTNET_SKIP_FIRST_TIME_EXPERIENCE':'1','DOTNET_CLI_TELEMETRY_OPTOUT':'1','TESTINGPLATFORM_TELEMETRY_OPTOUT':'1','DOTNET_GENERATE_ASPNET_CERTIFICATE':'false','DOTNET_MULTILEVEL_LOOKUP':'0','DOTNET_NOLOGO':'1','DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE':'true','MSBUILDDISABLENODEREUSE':'1','DOTNET_ROLL_FORWARD':'Disable','DOTNET_CLI_USE_MSBUILD_SERVER':'0','NUGET_PACKAGES':f['packages'],'NUGET_HTTP_CACHE_PATH':str(out/'http'),'TMPDIR':str(out/'tmp'),'TMP':str(out/'tmp'),'TEMP':str(out/'tmp'),'PYTHONDONTWRITEBYTECODE':'1','COMPlus_GCHeapHardLimit':'0x10000000','UseSharedCompilation':'false','BuildInParallel':'false','DOTNET_PROCESSOR_COUNT':'2'}
         for name in ['cliHome','packages']:Path(f[name]).mkdir(parents=True,exist_ok=True)
         env['HOME']=f['cliHome']
         if os.name=='nt':
@@ -139,8 +139,10 @@ def main():
         (out/'tmp').mkdir(exist_ok=True)
         common=['-c','Release','--no-restore','-m:1','-p:UseSharedCompilation=false','-nodeReuse:false']
         if phase=='qualify':commands=[[str(sdk),'--info']]
-        elif phase=='runtime-verify':
-            runtime=packet['runtimePackages'][rid];ref=runtime.get('archive',runtime)
+        elif phase in ('runtime-verify','runtime-verify-linux-data'):
+            target_rid='linux-x64' if phase=='runtime-verify-linux-data' else rid
+            need(phase!='runtime-verify-linux-data' or rid=='win-x64','DATA_SIGNATURE_HOST_SCOPE')
+            runtime=packet['runtimePackages'][target_rid];ref=runtime.get('archive',runtime)
             commands=[[str(sdk),'nuget','verify',str(path(ref)),'--all','--verbosity','detailed']]
         elif phase=='restore':commands=[[str(sdk),'restore','src/Bench.Cli/Bench.Cli.csproj','--locked-mode','--configfile',f['nugetConfig'],'--disable-parallel'],[str(sdk),'restore','tests/Evidence.Tests/Evidence.Tests.csproj','--locked-mode','--configfile',f['nugetConfig'],'--disable-parallel']]
         elif phase=='build':commands=[[str(sdk),'build','tests/Evidence.Tests/Evidence.Tests.csproj',*common]]
@@ -153,7 +155,7 @@ def main():
         elif phase=='package-check':commands=[[sys.executable,str(root/'tools/check_package.py'),'--package',f['packageDirectory'],'--commit',f['sourceCommit'],'--out',str(out/'package-check.json')]]
         results=[]
         for index,cmd in enumerate(commands):
-            left=min(20-(time.monotonic()-started) if phase in ('qualify','runtime-verify') else 45,f['deadline']-time.time()-30,f['phaseDeadline']-time.time())
+            left=min(20-(time.monotonic()-started) if phase in ('qualify','runtime-verify','runtime-verify-linux-data') else 45,f['deadline']-time.time()-30,f['phaseDeadline']-time.time())
             need(left>0,'PHASE_CLOCK');log=out/('command-'+str(index)+'.log')
             with log.open('xb') as target:
                 run=subprocess.Popen(cmd,cwd=root,env=env,stdin=subprocess.DEVNULL,stdout=target,stderr=subprocess.STDOUT)
@@ -164,16 +166,17 @@ def main():
                     c,e,kt,ut=(ctypes.c_ulonglong() for _ in range(4));need(k.GetProcessTimes(int(run._handle),ctypes.byref(c),ctypes.byref(e),ctypes.byref(kt),ctypes.byref(ut)),'SDK_CHILD_BIRTH');identity={'pid':pid,'birthFileTime':c.value,'actualMembership':True};k.CloseHandle(j)
                 else:
                     text=(Path('/proc')/str(pid)/'stat').read_text();cg=(Path('/proc')/str(pid)/'cgroup').read_text().strip();need(cg.endswith('/'+os.environ['TAIL11_ROOT_UNIT']),'SDK_CHILD_INHERITED_OWN_CGROUP');identity={'pid':pid,'birthTicks':text[text.rfind(')')+2:].split()[19],'actualCgroup':cg}
+                fresh(out/('command-'+str(index)+'-start.json'),{'argv':cmd,'identity':identity,'sourceCommit':f['sourceCommit'],'nativeScopeInherited':True,'originalWaitPending':True})
                 exitcode=run.wait(timeout=left)
             need(log.stat().st_size<=1048576,'LOG_CAP')
             result={'pid':pid,'identity':identity,'argv':cmd,'originalPopenWaitReturned':True,'exitCode':exitcode,'logBytes':log.stat().st_size,'logSHA256':sha(log)}
             results.append(result);fresh(out/('command-'+str(index)+'.json'),result);need(exitcode==0,'COMMAND_EXIT_NONZERO')
             if phase=='qualify':
                 text=log.read_text(encoding='utf-8');need('10.0.404' in text and '10.0.15' in text and str(sdk.parent) in text,'ACTUAL_SDK_RUNTIME_INFO')
-            if phase=='runtime-verify':need(packet['runtimePackages'][rid]['normalizedContentHash'] in log.read_text(encoding='utf-8'),'ACTUAL_NORMALIZED_PACKAGE_IDENTITY')
+            if phase in ('runtime-verify','runtime-verify-linux-data'):need(packet['runtimePackages'][target_rid]['normalizedContentHash'] in log.read_text(encoding='utf-8'),'ACTUAL_NORMALIZED_PACKAGE_IDENTITY')
         for handle,p,ident in holds:
             now=os.fstat(handle.fileno());need((now.st_dev,now.st_ino,now.st_size,now.st_mtime_ns)==ident,'HELD_INPUT_TERMINAL_IDENTITY')
-        fresh(out/'result.json',{'status':'PASS_CHANGED_SERVICING_PHASE','phase':phase,'rid':rid,'seconds':time.monotonic()-started,'commands':results,'sourceCommit':f['sourceCommit'],'packetSHA256':f['packetSha256'],'formalVendorSupport':actual['formalVendorSupport'],'globalAdmission':False,'M1Calls':0,'Actions':0})
+        fresh(out/'result.json',{'status':'PASS_CHANGED_SERVICING_PHASE','phase':phase,'rid':rid,'seconds':time.monotonic()-started,'commands':results,'sourceCommit':f['sourceCommit'],'packetSHA256':f['packetSha256'],'formalVendorSupport':actual['formalVendorSupport'],'signatureTargetRid':target_rid if phase in ('runtime-verify','runtime-verify-linux-data') else None,'signatureHostRid':rid if phase in ('runtime-verify','runtime-verify-linux-data') else None,'signatureScope':'EXACT_PACKAGE_DATA_NOT_OTHER_OS_OR_HOST_ADMISSION' if phase in ('runtime-verify','runtime-verify-linux-data') else None,'globalAdmission':False,'M1Calls':0,'Actions':0})
     except Exception as e:
         fresh(out/'hold.json',{'status':'HOLD','phase':phase,'code':str(e) if isinstance(e,RuntimeError) else type(e).__name__,'exceptionType':type(e).__name__,'seconds':time.monotonic()-started,'M1Calls':0,'Actions':0})
         raise

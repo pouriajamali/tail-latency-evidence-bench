@@ -47,6 +47,7 @@ def main():
             else:
                 proc=Path('/proc')/str(started.pid);text=(proc/'stat').read_text();identity['birthTicks']=text[text.rfind(')')+2:].split()[19];identity['cgroup']=(proc/'cgroup').read_text().strip()
                 if a.restore_handoff:require(identity['cgroup'].endswith('/'+os.environ['TAIL11_ROOT_UNIT']),'Actual SDK inherited cgroup')
+            (work/('build-command-'+str(len(command_records))+'-start.json')).write_text(json.dumps({'argv':command,'identity':identity,'originalWaitPending':True,'sourceCommit':a.commit},indent=2)+'\n',encoding='utf-8')
             exitcode=started.wait(timeout=300);command_records.append({'argv':command,'identity':identity,'originalWaitReturned':True,'exitCode':exitcode});require(exitcode==0,'SDK command failed')
     (work/'build-commands.json').write_text(json.dumps({'commands':command_records,'acceptedRestoreReused':bool(a.restore_handoff),'sourceCommit':a.commit},indent=2)+'\n',encoding='utf-8')
     require(not git('status','--porcelain'), 'Build changed frozen source/locks')

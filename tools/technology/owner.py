@@ -67,7 +67,7 @@ def event_claim(run):
         k.CloseHandle(event);k.CloseHandle(directory)
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--rid',choices=['win-x64','linux-x64'],required=True);p.add_argument('--phase',choices=['qualify','restore','build','test','package','package-check','runtime-verify','negative'],required=True);p.add_argument('--packet',required=True);p.add_argument('--packet-sha',required=True);p.add_argument('--attempt',default='once');p.add_argument('--cause');a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('--rid',choices=['win-x64','linux-x64'],required=True);p.add_argument('--phase',choices=['qualify','restore','build','test','package','package-check','runtime-verify','runtime-verify-linux-data','negative'],required=True);p.add_argument('--packet',required=True);p.add_argument('--packet-sha',required=True);p.add_argument('--attempt',default='once');p.add_argument('--cause');a=p.parse_args()
     need(a.attempt=='once' or a.cause,'CAUSAL_RETRY_REQUIRED')
     run=O/'runs'/(a.rid+'-'+a.phase+'-'+a.attempt);need(not run.exists(),'NO_PHASE_REPLAY');run.mkdir(parents=True)
     need(sha(PROTOCOL)=='fca40422e6abb4aa552759d7aadfd63fda6eccde4a8be3b272ff480fa72a6035','CANONICAL_PROTOCOL')
@@ -88,6 +88,7 @@ def main():
         transform=(lambda p:str(p)) if a.rid=='win-x64' else linux
         sdkout=O/'artifacts';sdkout.mkdir(exist_ok=True);cache=O/'cache'/a.rid
         frame={'schema':'tail11-technology-frame/v1','rid':a.rid,'phase':a.phase,'nonce':nonce,'ownerPID':os.getpid(),'ownerBirth':owner_birth,'started':started,'deadline':deadline,'phaseDeadline':min(deadline-30,time.time()+60),'workspace':transform(R),'output':transform(run),'protocol':transform(PROTOCOL),'lease':transform(LEASE),'sourceCommit':head,'sourceHashes':manifest['files'],'sourceManifestSHA256':sha(R/'tools/technology/source-manifest.json'),'packet':transform(packet),'packetSha256':a.packet_sha,'contractSha256':sha(contract),'packages':transform(cache/'packages'),'cliHome':transform(cache/'home'),'nugetConfig':transform(O/('NuGet-'+a.rid+'.Config')),'packageWork':transform(O/'packages'/a.rid),'packageOut':transform(sdkout),'packageDirectory':transform(O/'packages'/a.rid/('tail-latency-evidence-bench-v0.1.0-preview.2-'+a.rid))}
+        frame['packages']=transform(O/'cache/shared-packages')
         if a.phase=='package-check':frame['packageDirectory']=transform(O/'packages'/a.rid/('tail-latency-evidence-bench-v0.1.0-preview.2-'+a.rid))
         if a.phase=='package':
             candidates=list((O/'runs').glob(a.rid+'-restore-*/FINAL.json'));accepted=[x for x in candidates if read(x).get('status')=='ACCEPTED_CHANGED_SERVICING_PHASE' and read(x).get('sourceCommit')==head and read(x).get('packetSHA256')==a.packet_sha]
