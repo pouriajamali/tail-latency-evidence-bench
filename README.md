@@ -20,7 +20,7 @@ those files. M1's separate witness checks the recorded invocation as well.
 Run the offline regressions with
 `python -m unittest discover -s tools -p test_oracle.py`.
 
-Download the [standalone oracle preview](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/tag/oracle-v0.1.0-preview.1)
+Download the [standalone oracle preview](https://github.com/pouriajamali/tail-latency-evidence-bench/tree/913ef68e4392e0df77bdf78d4d754e6cc5083c08/downloads/oracle-v0.1.0-preview.1)
 to validate existing results or run the updated demo wrapper with the signed
 preview.2 native executable. The Python ZIP is a separate distribution and
 does not require an SDK. The preview.2 native archives retain their original
