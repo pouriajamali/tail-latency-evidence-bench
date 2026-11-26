@@ -1,0 +1,4 @@
+tail-latency-evidence-oracle-v0.1.0-preview.1.zip -text
+SHA256SUMS.txt -text
+SHA256SUMS.txt.sig -text
+SIGNING-PUBLIC-KEY.pub -text whitespace=cr-at-eol
