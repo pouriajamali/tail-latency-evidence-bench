@@ -20,6 +20,12 @@ those files. M1's separate witness checks the recorded invocation as well.
 Run the offline regressions with
 `python -m unittest discover -s tools -p test_oracle.py`.
 
+Download the [standalone oracle preview](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/tag/oracle-v0.1.0-preview.1)
+to validate existing results or run the updated demo wrapper with the signed
+preview.2 native executable. The Python ZIP is a separate distribution and
+does not require an SDK. The preview.2 native archives retain their original
+bundled Python tools.
+
 ## Architecture review
 
 Read the [architecture case study](docs/ARCHITECTURE-CASE-STUDY.md) for the decision, rejected alternatives, failure examples, frozen-release evidence and short English/Persian introductions. Follow the [30-minute four-project review](https://github.com/pouriajamali/trading-execution-lab/blob/main/docs/FLAGSHIP-REVIEW.md) for a guided discussion. The [evidence index](docs/FLAGSHIP-EVIDENCE.json) separates runtime/tag CI from later documentation commits.
@@ -32,7 +38,7 @@ Read the [architecture case study](docs/ARCHITECTURE-CASE-STUDY.md) for the deci
 | Do not treat missing work as fast work | Generator misses, rejections and cutoff-censored admissions are separate counts |
 | Do not invent a tail from a small sample | Exact raw-sample ranks; p99.9 suppressed below 100,000 completions |
 | Do not silently lose measurement records | A requested run beyond the record cap returns INCOMPLETE before starting, without quantiles |
-| Do not trust the producer's own statistics | Independent Python integer/Fraction oracle and eight corrupted-data counterexamples |
+| Do not trust the producer's own statistics | Independent Python integer/Fraction oracle with regressions for complete runs and record-cap preflight |
 
 ## Run the preview
 

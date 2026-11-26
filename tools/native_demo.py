@@ -13,7 +13,10 @@ def main():
     run([cli,'raw-cap-demo',out/'rawcap'],code=4);run([sys.executable,tools/'oracle.py','--run',out/'rawcap','--expect-incomplete','--out',out/'rawcap-oracle.json'])
     run([sys.executable,tools/'environment.py','--out',out/'environment.json'])
     validated=json.loads((out/'oracle.json').read_text());regression=json.loads((out/'oracle-regressions/receipt.json').read_text())
-    if validated['status']!='PASS' or validated['runCount']!=6 or regression['run']!=8 or regression['failures'] or regression['errors']:raise ValueError('Native evidence mismatch')
-    receipt={'status':'PASS_ACCOUNTING_NOT_A_PERFORMANCE_THRESHOLD','os':os.name,'runs':6,'recordsEach':5000,'independentOracleRegressions':8,'rawCap':'INCOMPLETE_WITHOUT_STATISTICS','offeredScheduleSha256':validated['runs'][0]['offeredScheduleSha256'],'sourceVersion':validated['runs'][0]['sourceVersion'],'scope':'One native process/monotonic clock. Healthy/slow settings share offered inputs; all drops, censoring, failures and lateness retained. No wire/exchange or speed-improvement claim.'}
+    if (validated['status'] != 'PASS' or validated['runCount'] != 6
+            or regression['status'] != 'PASS' or regression['run'] < 8
+            or regression['failures'] or regression['errors']):
+        raise ValueError('Native evidence mismatch')
+    receipt={'status':'PASS_ACCOUNTING_NOT_A_PERFORMANCE_THRESHOLD','os':os.name,'runs':6,'recordsEach':5000,'independentOracleRegressions':regression['run'],'rawCap':'INCOMPLETE_WITHOUT_STATISTICS','offeredScheduleSha256':validated['runs'][0]['offeredScheduleSha256'],'sourceVersion':validated['runs'][0]['sourceVersion'],'scope':'One native process/monotonic clock. Healthy/slow settings share offered inputs; all drops, censoring, failures and lateness retained. No wire/exchange or speed-improvement claim.'}
     (out/'receipt.json').write_text(json.dumps(receipt,indent=2)+'\n',encoding='utf-8');print(json.dumps(receipt))
 if __name__=='__main__':main()
