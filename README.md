@@ -12,6 +12,14 @@ Signed release source: [18e1d4a33e69](https://github.com/pouriajamali/tail-laten
 
 The original [v0.1.0-preview.1 and M1 evidence](https://github.com/pouriajamali/tail-latency-evidence-bench/releases/tag/v0.1.0-preview.1) remain immutable, including the frozen oracle's known false positives. This limitation also remains in the standalone oracle shipped in the current preview; the independent M1 witness rejects those inputs. [Exact caller/source/fixture scope](https://github.com/pouriajamali/tail-latency-evidence-bench/blob/d2b42cb323717843d3e6facfe689fe87cd1654e4/docs/ORACLE-SCOPE.md).
 
+This source revision fixes standalone preflight validation for N01–N08. The
+oracle requires a valid declared configuration, actual exceedance of the
+declared raw cap, zero cutoff and warmup, an empty offered-schedule digest,
+header-only CSV and null statistics. The verdict describes consistency of
+those files. M1's separate witness checks the recorded invocation as well.
+Run the offline regressions with
+`python -m unittest discover -s tools -p test_oracle.py`.
+
 ## Architecture review
 
 Read the [architecture case study](docs/ARCHITECTURE-CASE-STUDY.md) for the decision, rejected alternatives, failure examples, frozen-release evidence and short English/Persian introductions. Follow the [30-minute four-project review](https://github.com/pouriajamali/trading-execution-lab/blob/main/docs/FLAGSHIP-REVIEW.md) for a guided discussion. The [evidence index](docs/FLAGSHIP-EVIDENCE.json) separates runtime/tag CI from later documentation commits.

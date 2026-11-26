@@ -4,6 +4,17 @@ from fractions import Fraction
 from pathlib import Path
 
 HEADER=['index','intended','work_units','planned_failure','observed','actual_send','enqueue','service_start','completion','admitted']
+CONFIG_LIMITS = {
+    'count': (1, 200000),
+    'periodUs': (1, 1000000),
+    'capacity': (1, 4096),
+    'rawCapacity': (1, 200000),
+    'seed': (0, 4294967295),
+    'latenessBudgetUs': (0, 5000000),
+    'drainUs': (0, 5000000),
+    'deadlineUs': (1, 10000000),
+    'warmupCount': (0, 10000),
+}
 def require(condition,message):
     if not condition:raise ValueError(message)
 def integer(value):
@@ -18,13 +29,42 @@ def bounded(path,cap):
 def nearest(values,p,q,floor=1):
     if len(values)<floor:return None
     rank=Fraction(len(values)*p,q).__ceil__();return sorted(values)[rank-1]
+
+
+def validate_incomplete_cap(directory, summary):
+    require(isinstance(summary, dict) and type(summary.get('schema')) is int
+            and summary['schema'] == 1, 'Schema')
+    require(summary.get('status') == 'INCOMPLETE'
+            and summary.get('reason') == 'RAW_RECORD_CAP_BEFORE_START'
+            and 'statistics' in summary and summary['statistics'] is None,
+            'Incomplete cap must not invent samples/quantiles')
+    config = summary.get('configuration')
+    require(isinstance(config, dict), 'Preflight configuration required')
+    for name, (low, high) in CONFIG_LIMITS.items():
+        value = config.get(name)
+        require(type(value) is int and low <= value <= high,
+                'Preflight configuration range: ' + name)
+    require((config['count'] - 1) * config['periodUs'] + config['drainUs'] <= 30000000,
+            'Preflight nominal profile duration')
+    require(config['count'] > config['rawCapacity'], 'Raw record cap was not exceeded')
+    require(integer(summary.get('cutoffTicks')) == 0, 'Preflight cutoff must be zero')
+    require(summary.get('offeredScheduleSha256') == '', 'Offered schedule must be unstarted')
+    for name in ('warmupPlanned', 'warmupCompleted'):
+        value = summary.get(name)
+        require(type(value) is int and value == 0, 'Warmup must be unstarted: ' + name)
+
+    header = ','.join(HEADER).encode('ascii')
+    raw = bounded(directory / 'raw.csv', len(header) + 2)
+    require(raw in (header + b'\n', header + b'\r\n'), 'Preflight raw CSV must be header only')
+    return {'status': 'PASS_INCOMPLETE_CAP_NO_STATISTICAL_RESULT', 'records': 0, 'quantiles': None}
+
+
 def validate(directory,expect_incomplete=False):
     directory=Path(directory);summary=json.loads(bounded(directory/'summary.json',2*1024*1024).decode('utf-8'))
+    if expect_incomplete:
+        return validate_incomplete_cap(directory, summary)
     require(summary['schema']==1,'Schema');reader=csv.DictReader(io.StringIO(bounded(directory/'raw.csv',64*1024*1024).decode('ascii')))
     require(reader.fieldnames==HEADER,'Raw schema');rows=list(reader);require(len(rows)<=200000,'Raw record cap')
-    if expect_incomplete:
-        require(summary['status']=='INCOMPLETE' and summary['reason']=='RAW_RECORD_CAP_BEFORE_START' and not rows and summary['statistics'] is None,'Incomplete cap must not invent samples/quantiles')
-        return {'status':'PASS_INCOMPLETE_CAP_NO_STATISTICAL_RESULT','records':0,'quantiles':None}
     require(summary['status']=='COMPLETE','Incomplete run has no complete accounting/quantile claim')
     config=summary['configuration'];frequency=integer(summary['clock']['frequency']);count=integer(config['count']);cutoff=integer(summary['cutoffTicks'])
     require(frequency>0 and count==len(rows) and count<=integer(config['rawCapacity']),'Declared record/accounting cap')
